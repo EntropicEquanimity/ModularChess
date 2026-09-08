@@ -45,7 +45,7 @@ Account and app settings. Includes show notation. Not a Match and not Customizat
 _Avoid_: Match Settings, Customization
 
 **Shop**:
-The catalog of purchasable content. MVP sells Modes. Later also Activities and Customization. Core, Versus AI, Versus Friend, and Join are not sold here.
+The catalog of purchasable content. MVP sells Modes. Later also Activities and Customization. Core, Versus AI, Versus Friend, and Join are not sold here. Ownership is per platform store (Steam, App Store, Play), not synced across platforms in MVP.
 _Avoid_: Unlock, store, DLC menu
 
 **Game**:
