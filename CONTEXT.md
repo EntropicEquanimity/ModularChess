@@ -13,7 +13,7 @@ An optional rule pack that hooks Core for one Match. Never replaces Core. A Matc
 _Avoid_: Add-on, DLC, mod, game mode
 
 **Opponent**:
-Who plays a Match, and how they connect. Default Opponents are Versus AI and Versus Friend.
+Who plays a Match, and how they connect. Versus AI has no Lobby; the Match starts after Modes and Match Settings are confirmed. Versus Friend uses a Lobby.
 _Avoid_: Mode, game mode, match type, playlist
 
 **Host**:
