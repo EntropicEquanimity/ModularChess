@@ -25,7 +25,7 @@ The player who authors a Versus Friend Lobby and must own every Mode in that Mat
 _Avoid_: owner, server
 
 **Lobby**:
-A Versus Friend room waiting for the second player. It ends when the Match starts or the Host leaves. If the Host leaves, the other player returns to Activity selection. Not matchmaking. The other player does not Start; they wait for the Host.
+A Versus Friend room waiting for the second player. It ends when the Match starts or the Host leaves. If the Host leaves, the other player returns to Activity selection. If the other player leaves, the Host stays and the Join Code stays valid. Not matchmaking. The other player does not Start; they wait for the Host.
 _Avoid_: queue, server browser, matchmaking
 
 **Join Code**:
