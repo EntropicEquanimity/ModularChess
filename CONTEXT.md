@@ -29,7 +29,7 @@ One playthrough of Core, Match Settings, and one shared Mode set, from setup unt
 _Avoid_: game, game mode
 
 **Match Settings**:
-Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control (including none) and Host color (White, Black, or Random).
+Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control (including none), Host color (White, Black, or Random), and Versus AI strength (Easy, Medium, Hard).
 _Avoid_: Base Settings, Time Pressure, Options
 
 **Options**:
