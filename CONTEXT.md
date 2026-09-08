@@ -56,6 +56,10 @@ _Avoid_: action, sub-move, Turn
 One Side's opportunity to make one or more Moves. FIDE default is one Move. A Mode may allow further Moves before the Turn ends. Extra Moves are optional. That Side's clock runs for the whole Turn.
 _Avoid_: action, sub-move, round
 
+**Timeout**:
+That Side loses immediately when their clock hits zero, even mid-Move, unless a Mode says otherwise.
+_Avoid_: flag
+
 **End Turn**:
 Closes a Turn that did not end after a Move. Shown only after a Move that left the Turn open. By default a Side cannot End Turn with zero Moves this Turn. End Turn is illegal while that Side is in check, unless a Mode changes that.
 _Avoid_: Pass, skip
