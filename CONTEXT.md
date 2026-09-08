@@ -29,5 +29,5 @@ The product, Modular Chess. Not a playthrough.
 _Avoid_: using "game" for a Match
 
 **Customization**:
-Account-level presentation: unit sets, colors, icons, BGM, and SFX. Not a Mode. Not in MVP except a disabled Customize control on the main menu.
+Account-level presentation: unit sets, colors, icons, BGM, and SFX. Not a Mode. Each player's unit set, colors, and icons appear on that player's pieces for both people. Not in MVP except a disabled Customize control on the main menu.
 _Avoid_: client-side, mod, skin pack
