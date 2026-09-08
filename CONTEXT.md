@@ -13,7 +13,7 @@ What you came to do. MVP Activities are Versus AI and Versus Friend. Later Activ
 _Avoid_: Opponent, Mode, game mode, match type
 
 **Mode**:
-An optional rule pack that hooks Core for one Match. Never replaces Core. A Match may stack several compatible Modes; both players play that same set.
+An optional rule pack that hooks Core for one Match. Never replaces Core. A Mode declares which Activities may use it. After the player picks an Activity, only those Modes are offered. A Match may stack several compatible Modes; both players play that same set.
 _Avoid_: Add-on, DLC, mod, game mode, Activity
 
 **Join**:
