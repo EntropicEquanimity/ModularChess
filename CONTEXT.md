@@ -60,6 +60,10 @@ _Avoid_: action, sub-move, round
 That Side loses immediately when their clock hits zero, even mid-Move, unless a Mode says otherwise.
 _Avoid_: flag
 
+**Disconnect**:
+During a Match, a reconnect window; if that player does not return, that Side loses, unless a Mode says otherwise.
+_Avoid_: Timeout, ragequit
+
 **End Turn**:
 Closes a Turn that did not end after a Move. Shown only after a Move that left the Turn open. By default a Side cannot End Turn with zero Moves this Turn. End Turn is illegal while that Side is in check, unless a Mode changes that.
 _Avoid_: Pass, skip
