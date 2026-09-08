@@ -57,7 +57,7 @@ One Side's opportunity to make one or more Moves. FIDE default is one Move. A Mo
 _Avoid_: action, sub-move, round
 
 **End Turn**:
-Closes a Turn that did not end after a Move. Shown only after a Move that left the Turn open. By default a Side cannot End Turn with zero Moves this Turn.
+Closes a Turn that did not end after a Move. Shown only after a Move that left the Turn open. By default a Side cannot End Turn with zero Moves this Turn. End Turn is illegal while that Side is in check, unless a Mode changes that.
 _Avoid_: Pass, skip
 
 **Match Settings**:
