@@ -25,7 +25,7 @@ A Versus Friend room waiting for the second player. It ends when the Match start
 _Avoid_: queue, server browser, matchmaking
 
 **Join Code**:
-A shareable code that admits a player to a Versus Friend Lobby. On mobile this is the only join path. Desktop also allows Steam invite.
+A shareable code that admits a player to a Versus Friend Lobby. Cross-play is allowed. On mobile this is the only join path. Steam invite is desktop-to-desktop only.
 _Avoid_: room ID, matchmaking
 
 **Match**:
