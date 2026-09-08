@@ -21,8 +21,16 @@ The player who authors a Versus Friend Match and must own every Mode in that Mat
 _Avoid_: owner, server
 
 **Match**:
-One playthrough of Core plus one shared Mode set, from setup until a terminal result.
+One playthrough of Core, Match Settings, and one shared Mode set, from setup until a terminal result.
 _Avoid_: game, game mode
+
+**Match Settings**:
+Per-Match options that are part of Core, not a Mode. Host-authored. Time control (including none) and Host color (White, Black, or Random).
+_Avoid_: Base Settings, Time Pressure, Options
+
+**Options**:
+Account and app settings. Includes show notation. Not a Match and not Customization.
+_Avoid_: Match Settings, Customization
 
 **Game**:
 The product, Modular Chess. Not a playthrough.
