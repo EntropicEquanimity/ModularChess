@@ -36,6 +36,18 @@ _Avoid_: room ID, matchmaking
 One playthrough of Versus AI or Versus Friend: Core, Match Settings, and one shared Mode set, from setup until a terminal result. Versus AI has no Lobby; the Match starts after Modes and Match Settings are confirmed.
 _Avoid_: game, game mode, Activity
 
+**Piece**:
+A specific occupant of the Board: identity, Side, and current PieceType. Two knights of the same Side are two Pieces.
+_Avoid_: unit, token, PieceType
+
+**PieceType**:
+The kind of a Piece: Pawn, Knight, Bishop, Rook, Queen, or King. Not the Piece itself.
+_Avoid_: Piece, class, role
+
+**Side**:
+White or Black. Who owns a Piece, and who is to move.
+_Avoid_: color, player, team
+
 **Match Settings**:
 Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control (including none), Host color (White, Black, or Random), and Versus AI strength (Easy, Medium, Hard).
 _Avoid_: Base Settings, Time Pressure, Options
