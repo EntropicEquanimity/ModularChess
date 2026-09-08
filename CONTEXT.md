@@ -17,11 +17,11 @@ Who plays a Match, and how they connect. Default Opponents are Versus AI and Ver
 _Avoid_: Mode, game mode, match type, playlist
 
 **Host**:
-The player who authors a Versus Friend Lobby and must own every Mode in that Match's Mode set. Changing the Mode set means leaving and creating a new Lobby.
+The player who authors a Versus Friend Lobby and must own every Mode in that Match's Mode set. Changing the Mode set means leaving and creating a new Lobby. The Host Starts the Match; Start is allowed only when the other player is in the Lobby and synced.
 _Avoid_: owner, server
 
 **Lobby**:
-A Versus Friend room waiting for the second player. It ends when the Match starts or the Host leaves. Not matchmaking.
+A Versus Friend room waiting for the second player. It ends when the Match starts or the Host leaves. Not matchmaking. The other player does not Start; they wait for the Host.
 _Avoid_: queue, server browser, matchmaking
 
 **Match**:
