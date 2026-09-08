@@ -24,6 +24,10 @@ _Avoid_: owner, server
 A Versus Friend room waiting for the second player. It ends when the Match starts or the Host leaves. Not matchmaking. The other player does not Start; they wait for the Host.
 _Avoid_: queue, server browser, matchmaking
 
+**Join Code**:
+A shareable code that admits a player to a Versus Friend Lobby. On mobile this is the only join path. Desktop also allows Steam invite.
+_Avoid_: room ID, matchmaking
+
 **Match**:
 One playthrough of Core, Match Settings, and one shared Mode set, from setup until a terminal result.
 _Avoid_: game, game mode
