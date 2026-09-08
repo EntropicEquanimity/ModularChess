@@ -41,7 +41,7 @@ A specific occupant of the Board: identity, Side, and current PieceType. Two kni
 _Avoid_: unit, token, PieceType
 
 **PieceType**:
-The kind of a Piece: Pawn, Knight, Bishop, Rook, Queen, or King. Not the Piece itself.
+The kind of a Piece. Core ships Pawn, Knight, Bishop, Rook, Queen, and King. A Mode may introduce additional kinds for a Match.
 _Avoid_: Piece, class, role
 
 **Side**:
