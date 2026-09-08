@@ -48,6 +48,14 @@ _Avoid_: Piece, class, role
 White or Black. Who owns a Piece, and who is to move.
 _Avoid_: color, player, team
 
+**Move**:
+One Core state change: a Piece from–to, including castle, en passant, and promotion.
+_Avoid_: action, sub-move, Turn
+
+**Turn**:
+One Side's opportunity to make one or more Moves. FIDE default is one Move. A Mode may allow further Moves before the Turn ends.
+_Avoid_: action, sub-move, round
+
 **Match Settings**:
 Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control (including none), Host color (White, Black, or Random), and Versus AI strength (Easy, Medium, Hard).
 _Avoid_: Base Settings, Time Pressure, Options
