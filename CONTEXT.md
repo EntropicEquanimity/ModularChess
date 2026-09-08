@@ -53,7 +53,7 @@ One Core state change: a Piece from–to, including castle, en passant, and prom
 _Avoid_: action, sub-move, Turn
 
 **Turn**:
-One Side's opportunity to make one or more Moves. FIDE default is one Move. A Mode may allow further Moves before the Turn ends. Extra Moves are optional.
+One Side's opportunity to make one or more Moves. FIDE default is one Move. A Mode may allow further Moves before the Turn ends. Extra Moves are optional. That Side's clock runs for the whole Turn.
 _Avoid_: action, sub-move, round
 
 **End Turn**:
