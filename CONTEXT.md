@@ -44,6 +44,10 @@ _Avoid_: Base Settings, Time Pressure, Options
 Account and app settings. Includes show notation. Not a Match and not Customization.
 _Avoid_: Match Settings, Customization
 
+**Shop**:
+The catalog of purchasable content. MVP sells Modes. Later also Activities and Customization. Core, Versus AI, Versus Friend, and Join are not sold here.
+_Avoid_: Unlock, store, DLC menu
+
 **Game**:
 The product, Modular Chess. Not a playthrough.
 _Avoid_: using "game" for a Match
