@@ -27,3 +27,7 @@ _Avoid_: game, game mode
 **Game**:
 The product, Modular Chess. Not a playthrough.
 _Avoid_: using "game" for a Match
+
+**Customization**:
+Account-level presentation: unit sets, colors, icons, BGM, and SFX. Not a Mode. Not in MVP except a disabled Customize control on the main menu.
+_Avoid_: client-side, mod, skin pack
