@@ -57,7 +57,7 @@ namespace ModularChess.Presentation
             if (_camera == null)
                 _camera = GetComponent<Camera>();
 
-            BoardView target = board != null ? board : FindFirstObjectByType<BoardView>();
+            BoardView target = board != null ? board : FindAnyObjectByType<BoardView>();
             if (target == null || _camera == null)
                 return;
 

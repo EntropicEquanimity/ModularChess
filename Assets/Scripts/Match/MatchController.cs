@@ -34,17 +34,17 @@ namespace ModularChess.Match
         {
             if (boardView == null)
             {
-                boardView = FindFirstObjectByType<BoardView>();
+                boardView = FindAnyObjectByType<BoardView>();
             }
 
             if (promotionPicker == null)
             {
-                promotionPicker = FindFirstObjectByType<PromotionPicker>();
+                promotionPicker = FindAnyObjectByType<PromotionPicker>();
             }
 
             if (hud == null)
             {
-                hud = FindFirstObjectByType<MatchHud>();
+                hud = FindAnyObjectByType<MatchHud>();
             }
 
             if (boardView == null || promotionPicker == null || hud == null)

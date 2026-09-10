@@ -39,7 +39,7 @@ namespace ModularChess.Match
             Camera existing = Camera.main;
             if (existing == null)
             {
-                existing = FindFirstObjectByType<Camera>();
+                existing = FindAnyObjectByType<Camera>();
             }
 
             if (existing != null)
@@ -99,7 +99,7 @@ namespace ModularChess.Match
                 return boardView;
             }
 
-            boardView = FindFirstObjectByType<BoardView>();
+            boardView = FindAnyObjectByType<BoardView>();
             if (boardView != null)
             {
                 return boardView;
@@ -118,7 +118,7 @@ namespace ModularChess.Match
                 return matchHud;
             }
 
-            matchHud = FindFirstObjectByType<MatchHud>();
+            matchHud = FindAnyObjectByType<MatchHud>();
             if (matchHud != null)
             {
                 return matchHud;
@@ -149,7 +149,7 @@ namespace ModularChess.Match
                 return promotionPicker;
             }
 
-            promotionPicker = FindFirstObjectByType<PromotionPicker>();
+            promotionPicker = FindAnyObjectByType<PromotionPicker>();
             if (promotionPicker != null)
             {
                 return promotionPicker;
@@ -179,7 +179,7 @@ namespace ModularChess.Match
 
         private static void EnsureEventSystem(Transform parent)
         {
-            EventSystem eventSystem = FindFirstObjectByType<EventSystem>();
+            EventSystem eventSystem = FindAnyObjectByType<EventSystem>();
             if (eventSystem == null)
             {
                 GameObject eventObject = new GameObject("EventSystem");
@@ -195,7 +195,7 @@ namespace ModularChess.Match
 
             if (eventSystem.GetComponent<InputSystemUIInputModule>() == null)
             {
-                eventSystem.AddComponent<InputSystemUIInputModule>();
+                eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
             }
         }
     }

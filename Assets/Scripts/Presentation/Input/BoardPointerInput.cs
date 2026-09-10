@@ -62,7 +62,7 @@ namespace ModularChess.Presentation
         bool IsPromotionOpen()
         {
             if (promotionPicker == null)
-                promotionPicker = FindFirstObjectByType<PromotionPicker>();
+                promotionPicker = FindAnyObjectByType<PromotionPicker>();
             return promotionPicker != null && promotionPicker.IsOpen;
         }
 
