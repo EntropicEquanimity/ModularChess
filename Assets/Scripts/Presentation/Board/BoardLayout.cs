@@ -22,15 +22,21 @@ namespace ModularChess.Presentation
 
         public Vector3 BoardSizeLocal => new Vector3(FileCount * SquareSize, RankCount * SquareSize, 0f);
 
-        public Vector3 SquareCenterLocal(Square square)
+        public Vector3 SquareCenterLocal(Square square, Side viewer)
         {
+            Square display = Display(square, viewer);
             return new Vector3(
-                (square.File + 0.5f) * SquareSize,
-                (square.Rank + 0.5f) * SquareSize,
+                (display.File + 0.5f) * SquareSize,
+                (display.Rank + 0.5f) * SquareSize,
                 0f);
         }
 
-        public bool TryGetSquare(Vector3 localPoint, out Square square)
+        public Vector3 SquareCenterLocal(Square square)
+        {
+            return SquareCenterLocal(square, Side.White);
+        }
+
+        public bool TryGetSquare(Vector3 localPoint, out Square square, Side viewer)
         {
             int file = Mathf.FloorToInt(localPoint.x / SquareSize);
             int rank = Mathf.FloorToInt(localPoint.y / SquareSize);
@@ -40,8 +46,23 @@ namespace ModularChess.Presentation
                 return false;
             }
 
-            square = new Square(file, rank);
+            square = Display(new Square(file, rank), viewer);
             return square.IsOnBoard;
+        }
+
+        public bool TryGetSquare(Vector3 localPoint, out Square square)
+        {
+            return TryGetSquare(localPoint, out square, Side.White);
+        }
+
+        public static Square Display(Square square, Side viewer)
+        {
+            if (viewer == Side.White)
+            {
+                return square;
+            }
+
+            return new Square(FileCount - 1 - square.File, RankCount - 1 - square.Rank);
         }
     }
 

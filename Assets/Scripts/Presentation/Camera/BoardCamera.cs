@@ -58,7 +58,7 @@ namespace ModularChess.Presentation
                 _camera = GetComponent<Camera>();
 
             BoardView target = board != null ? board : FindAnyObjectByType<BoardView>();
-            if (target == null || _camera == null)
+            if (target == null || !target.gameObject.activeInHierarchy || _camera == null)
                 return;
 
             Bounds bounds = target.GetWorldBounds();

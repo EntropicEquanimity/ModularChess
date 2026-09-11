@@ -29,8 +29,24 @@ namespace ModularChess.Presentation
             bool white = piece.Side == Side.White;
             _outline.color = white ? theme.WhitePieceOutline : theme.BlackPieceOutline;
             _body.color = white ? theme.WhitePieceFill : theme.BlackPieceFill;
-            _glyph.sprite = ChessGlyphs.GetSprite(piece.Type);
-            _glyph.color = white ? theme.WhitePieceGlyph : theme.BlackPieceGlyph;
+            _glyph.sprite = ChessGlyphs.GetSprite(piece.Type, piece.Side);
+            _glyph.color = Color.white;
+            bool hasArt = ChessArt.Get(piece.Type, piece.Side) != null;
+            _outline.enabled = !hasArt;
+            _body.enabled = !hasArt;
+            _glyph.enabled = true;
+        }
+
+        public void BindShadow(float squareSize, BoardTheme theme)
+        {
+            EnsureRenderers();
+            name = "Shadow";
+            float bodySize = squareSize * 0.7f;
+            _outline.enabled = false;
+            _body.enabled = true;
+            _glyph.enabled = false;
+            _body.transform.localScale = new Vector3(bodySize, bodySize, 1f);
+            _body.color = theme.BlackPieceFill;
         }
 
         void EnsureRenderers()

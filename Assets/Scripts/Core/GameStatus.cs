@@ -5,6 +5,9 @@ namespace ModularChess.Core
         InProgress,
         Checkmate,
         Stalemate,
-        Draw
+        Draw,
+        Timeout,
+        Resign,
+        Aborted
     }
 }

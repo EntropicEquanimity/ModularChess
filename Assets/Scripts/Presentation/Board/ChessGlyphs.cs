@@ -48,6 +48,17 @@ namespace ModularChess.Presentation
             };
         }
 
+        public static Sprite GetSprite(PieceType type, Side side)
+        {
+            Sprite art = ChessArt.Get(type, side);
+            if (art != null)
+            {
+                return art;
+            }
+
+            return GetSprite(type);
+        }
+
         public static Sprite GetSprite(PieceType type)
         {
             if (Sprites.TryGetValue(type, out Sprite sprite) && sprite != null)

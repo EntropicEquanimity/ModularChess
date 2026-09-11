@@ -110,6 +110,15 @@ namespace ModularChess.Core
                 case MoveKind.CastleQueenSide:
                     ApplyCastle(next, moving, move.From, kingFile: 2, rookFromFile: 0, rookToFile: 3);
                     break;
+                case MoveKind.Swap:
+                    Piece swapped = _squares[move.To.ToIndex()];
+                    next[move.To.ToIndex()] = moving.AsMoved();
+                    next[move.From.ToIndex()] = swapped == null ? null : swapped.AsMoved();
+                    break;
+                case MoveKind.Bombard:
+                    next[move.From.ToIndex()] = moving.AsMoved();
+                    next[move.To.ToIndex()] = null;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(move), move.Kind, null);
             }

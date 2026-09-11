@@ -9,9 +9,11 @@ namespace ModularChess.Presentation
         SpriteRenderer _overlay;
         SpriteRenderer _marker;
         BoardTheme _theme;
+        Color _squareColor;
         bool _lastMove;
         bool _selected;
         bool _legal;
+        bool _hidden;
 
         public Square Square { get; private set; }
 
@@ -19,6 +21,7 @@ namespace ModularChess.Presentation
         {
             Square = square;
             _theme = theme;
+            _squareColor = squareColor;
 
             _base = CreateRenderer("Base", BoardRenderOrder.Square);
             _base.sprite = RuntimeSprites.Pixel;
@@ -49,6 +52,7 @@ namespace ModularChess.Presentation
             _lastMove = false;
             _selected = false;
             _legal = false;
+            _hidden = false;
             ApplyMarkers();
         }
 
@@ -70,6 +74,12 @@ namespace ModularChess.Presentation
             ApplyMarkers();
         }
 
+        public void SetHidden(bool value)
+        {
+            _hidden = value;
+            ApplyMarkers();
+        }
+
         SpriteRenderer CreateRenderer(string childName, int order)
         {
             var child = new GameObject(childName);
@@ -83,6 +93,13 @@ namespace ModularChess.Presentation
 
         void ApplyMarkers()
         {
+            if (_base != null)
+            {
+                _base.color = _hidden
+                    ? new Color(_squareColor.r * 0.45f, _squareColor.g * 0.45f, _squareColor.b * 0.45f, 1f)
+                    : _squareColor;
+            }
+
             if (_overlay == null)
                 return;
 

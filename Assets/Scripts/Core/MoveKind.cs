@@ -7,6 +7,8 @@ namespace ModularChess.Core
         CastleKingSide,
         CastleQueenSide,
         EnPassant,
-        Promotion
+        Promotion,
+        Swap,
+        Bombard
     }
 }

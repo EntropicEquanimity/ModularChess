@@ -23,12 +23,24 @@ namespace ModularChess.Presentation
         Transform _piecesRoot;
         BoardLayout _layout;
         GameState _state;
+        VisionMap _vision = VisionMap.AllIdentified;
+        Side _viewer = Side.White;
         Square? _selected;
         Square? _lastFrom;
         Square? _lastTo;
         bool _built;
 
         public GameState BoundState => _state;
+        public Side ViewerSide
+        {
+            get => _viewer;
+            set
+            {
+                _viewer = value;
+                if (_built)
+                    Relayout();
+            }
+        }
         public Square? SelectedSquare => _selected;
         public float SquareSize => _built ? _layout.SquareSize : squareSize;
         public BoardLayout Layout => _built ? _layout : new BoardLayout(squareSize);
@@ -56,11 +68,19 @@ namespace ModularChess.Presentation
 
         public void Bind(GameState state)
         {
+            Bind(state, VisionMap.Compute(state, _viewer), _viewer);
+        }
+
+        public void Bind(GameState state, VisionMap vision, Side viewer)
+        {
             if (state == null)
                 throw new ArgumentNullException(nameof(state));
 
             EnsureBuilt();
             _state = state;
+            _vision = vision ?? VisionMap.AllIdentified;
+            _viewer = viewer;
+            Relayout();
             SyncPieces();
             PruneSelectionAfterBind();
             RefreshHighlights();
@@ -99,14 +119,14 @@ namespace ModularChess.Presentation
         public Vector3 SquareToWorld(Square square)
         {
             EnsureBuilt();
-            return transform.TransformPoint(_layout.SquareCenterLocal(square));
+            return transform.TransformPoint(_layout.SquareCenterLocal(square, _viewer));
         }
 
         public bool TryPickSquare(Vector3 worldPoint, out Square square)
         {
             EnsureBuilt();
             Vector3 local = transform.InverseTransformPoint(worldPoint);
-            return _layout.TryGetSquare(local, out square);
+            return _layout.TryGetSquare(local, out square, _viewer);
         }
 
         public Bounds GetWorldBounds()
@@ -166,6 +186,23 @@ namespace ModularChess.Presentation
             _built = true;
         }
 
+        void Relayout()
+        {
+            if (!_built)
+                return;
+
+            for (int file = 0; file < BoardLayout.FileCount; file++)
+            {
+                for (int rank = 0; rank < BoardLayout.RankCount; rank++)
+                {
+                    var square = new Square(file, rank);
+                    SquareView view = SquareAt(square);
+                    if (view != null)
+                        view.transform.localPosition = _layout.SquareCenterLocal(square, _viewer);
+                }
+            }
+        }
+
         void EnsureRoots()
         {
             if (_squaresRoot == null)
@@ -192,7 +229,7 @@ namespace ModularChess.Presentation
             bool light = (square.File + square.Rank) % 2 != 0;
             var go = new GameObject($"{(char)('a' + square.File)}{square.Rank + 1}");
             go.transform.SetParent(_squaresRoot, false);
-            go.transform.localPosition = _layout.SquareCenterLocal(square);
+            go.transform.localPosition = _layout.SquareCenterLocal(square, _viewer);
             go.transform.localRotation = Quaternion.identity;
             go.transform.localScale = Vector3.one;
 
@@ -218,6 +255,10 @@ namespace ModularChess.Presentation
                     if (piece == null)
                         continue;
 
+                    SquareSight sight = _vision[square];
+                    if (sight == SquareSight.Hidden && piece.Side != _viewer)
+                        continue;
+
                     _seenIds.Add(piece.Id);
                     if (!_pieces.TryGetValue(piece.Id, out PieceView view))
                     {
@@ -225,8 +266,13 @@ namespace ModularChess.Presentation
                         _pieces.Add(piece.Id, view);
                     }
 
-                    view.Bind(piece, _layout.SquareSize, theme);
-                    view.transform.localPosition = _layout.SquareCenterLocal(square);
+                    bool shadow = sight == SquareSight.Shadow && piece.Side != _viewer;
+                    if (shadow)
+                        view.BindShadow(_layout.SquareSize, theme);
+                    else
+                        view.Bind(piece, _layout.SquareSize, theme);
+                    view.transform.localPosition = _layout.SquareCenterLocal(square, _viewer);
+                    view.gameObject.SetActive(true);
                 }
             }
 
@@ -317,10 +363,19 @@ namespace ModularChess.Presentation
                     _squares[i].ClearMarkers();
             }
 
-            if (_lastFrom.HasValue)
+            if (_lastFrom.HasValue && _vision.IsIdentified(_lastFrom.Value))
                 SquareAt(_lastFrom.Value)?.SetLastMove(true);
-            if (_lastTo.HasValue)
+            if (_lastTo.HasValue && _vision.IsIdentified(_lastTo.Value))
                 SquareAt(_lastTo.Value)?.SetLastMove(true);
+
+            for (int file = 0; file < BoardLayout.FileCount; file++)
+            {
+                for (int rank = 0; rank < BoardLayout.RankCount; rank++)
+                {
+                    var square = new Square(file, rank);
+                    SquareAt(square)?.SetHidden(_vision[square] == SquareSight.Hidden);
+                }
+            }
 
             if (!_selected.HasValue)
                 return;

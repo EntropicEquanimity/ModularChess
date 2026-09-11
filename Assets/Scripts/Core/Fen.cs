@@ -7,7 +7,7 @@ namespace ModularChess.Core
     {
         public const string StartingPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-        public static GameState Parse(string fen)
+        public static GameState Parse(string fen, MatchRules rules = null)
         {
             if (string.IsNullOrWhiteSpace(fen))
             {
@@ -36,7 +36,14 @@ namespace ModularChess.Core
 
             ValidateKings(board);
             board = ApplyHasMovedFromCastling(board, castling);
-            return GameState.FromPosition(board, sideToMove, enPassant, castling, halfmove, fullmove);
+            return GameState.FromPosition(
+                board,
+                sideToMove,
+                enPassant,
+                castling,
+                halfmove,
+                fullmove,
+                rules: rules);
         }
 
         public static string Format(GameState state)

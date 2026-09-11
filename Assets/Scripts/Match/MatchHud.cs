@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using ModularChess.Core;
+using ModularChess.Presentation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +15,14 @@ namespace ModularChess.Match
         [SerializeField] private Text moveListText;
         [SerializeField] private Text gameOverText;
         [SerializeField] private GameObject gameOverBanner;
+        Text _statusLine;
+        Text _clockText;
+        Button _endTurnButton;
+        Button _pauseButton;
+        Button _resignButton;
+        Button _leaveButton;
+        Transform _draftRow;
+        Action<MartyrPower> _onDraft;
 
         private void Awake()
         {
@@ -32,7 +41,9 @@ namespace ModularChess.Match
             turnText.text = inProgress ? $"{state.SideToMove} to move" : "Game over";
             checkText.gameObject.SetActive(inProgress && state.IsInCheck);
             checkText.text = "Check";
-            moveListText.text = FormatMoveList(moves);
+            bool showMoves = PlayerPrefs.GetInt("ShowNotation", 1) == 1;
+            moveListText.gameObject.SetActive(showMoves);
+            moveListText.text = showMoves ? FormatMoveList(moves) : string.Empty;
 
             string result = FormatResult(state);
             bool showResult = result.Length > 0;
@@ -178,13 +189,7 @@ namespace ModularChess.Match
 
         private static Font BuiltinFont()
         {
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null)
-            {
-                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            }
-
-            return font;
+            return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
 
         private static string FormatResult(GameState state)
@@ -200,6 +205,12 @@ namespace ModularChess.Match
                     return "Stalemate";
                 case GameStatus.Draw:
                     return "Draw";
+                case GameStatus.Timeout:
+                    return $"{state.SideToMove} loses on time";
+                case GameStatus.Resign:
+                    return $"{state.SideToMove} resigns";
+                case GameStatus.Aborted:
+                    return "Match aborted";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), state.Status, null);
             }
@@ -248,6 +259,8 @@ namespace ModularChess.Match
                 case MoveKind.Capture:
                 case MoveKind.EnPassant:
                 case MoveKind.Promotion:
+                case MoveKind.Swap:
+                case MoveKind.Bombard:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(move), move.Kind, null);
@@ -280,6 +293,179 @@ namespace ModularChess.Match
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
+        }
+
+        public void BindActions(MatchController controller)
+        {
+            EnsureBuilt();
+            EnsureActions();
+            _endTurnButton.onClick.RemoveAllListeners();
+            _endTurnButton.onClick.AddListener(controller.RequestEndTurn);
+            _pauseButton.onClick.RemoveAllListeners();
+            _pauseButton.onClick.AddListener(controller.TogglePause);
+            _resignButton.onClick.RemoveAllListeners();
+            _resignButton.onClick.AddListener(controller.Resign);
+            _leaveButton.onClick.RemoveAllListeners();
+            _leaveButton.onClick.AddListener(controller.LeaveToMenu);
+        }
+
+        public void SetClock(MatchClock clock)
+        {
+            EnsureBuilt();
+            EnsureActions();
+            if (_clockText == null)
+            {
+                return;
+            }
+
+            if (clock == null || clock.IsNone)
+            {
+                _clockText.text = string.Empty;
+                return;
+            }
+
+            _clockText.text = $"W {clock.Format(Side.White)}   B {clock.Format(Side.Black)}";
+        }
+
+        public void SetEndTurnVisible(bool visible)
+        {
+            EnsureActions();
+            if (_endTurnButton != null)
+            {
+                _endTurnButton.gameObject.SetActive(visible);
+            }
+        }
+
+        public void SetStatusLine(string text)
+        {
+            EnsureActions();
+            if (_statusLine != null)
+            {
+                _statusLine.text = text ?? string.Empty;
+            }
+        }
+
+        public void ShowDraft(GameState state, Action<MartyrPower> onPick)
+        {
+            EnsureActions();
+            _onDraft = onPick;
+            if (_draftRow == null || state?.Runtime.PendingDraft == null)
+            {
+                return;
+            }
+
+            _draftRow.gameObject.SetActive(true);
+            DraftOffer offer = state.Runtime.PendingDraft.Value;
+            SetDraftButton(0, offer.First);
+            SetDraftButton(1, offer.Second);
+            SetDraftButton(2, offer.Third);
+        }
+
+        public void HideDraft()
+        {
+            if (_draftRow != null)
+            {
+                _draftRow.gameObject.SetActive(false);
+            }
+        }
+
+        void SetDraftButton(int index, MartyrPower power)
+        {
+            Transform child = _draftRow.GetChild(index);
+            var button = child.GetComponent<Button>();
+            var label = child.GetComponentInChildren<Text>();
+            if (label != null)
+            {
+                label.text = power.ToString();
+            }
+
+            button.onClick.RemoveAllListeners();
+            MartyrPower captured = power;
+            button.onClick.AddListener(() => _onDraft?.Invoke(captured));
+        }
+
+        void EnsureActions()
+        {
+            if (_leaveButton != null)
+            {
+                return;
+            }
+
+            RectTransform root = GetComponent<RectTransform>();
+            Font font = BuiltinFont();
+            _statusLine = CreateText(
+                "StatusLine",
+                root,
+                font,
+                22,
+                TextAnchor.LowerCenter,
+                Color.white,
+                new Vector2(0.15f, 0f),
+                new Vector2(0.85f, 0.08f),
+                new Vector2(8f, 8f),
+                new Vector2(-8f, 4f));
+            _clockText = CreateText(
+                "Clock",
+                root,
+                font,
+                22,
+                TextAnchor.UpperRight,
+                Color.white,
+                new Vector2(0.7f, 0.9f),
+                new Vector2(1f, 1f),
+                new Vector2(8f, -8f),
+                new Vector2(-16f, -4f));
+
+            _endTurnButton = CreateHudButton(root, "End Turn", new Vector2(0.82f, 0.12f), new Vector2(0.98f, 0.2f));
+            _pauseButton = CreateHudButton(root, "Pause", new Vector2(0.82f, 0.22f), new Vector2(0.98f, 0.3f));
+            _resignButton = CreateHudButton(root, "Resign", new Vector2(0.82f, 0.32f), new Vector2(0.98f, 0.4f));
+            _leaveButton = CreateHudButton(root, "Leave", new Vector2(0.82f, 0.42f), new Vector2(0.98f, 0.5f));
+            _endTurnButton.gameObject.SetActive(false);
+
+            var draft = new GameObject("DraftRow", typeof(RectTransform));
+            draft.transform.SetParent(root, false);
+            var draftRect = draft.GetComponent<RectTransform>();
+            draftRect.anchorMin = new Vector2(0.2f, 0.08f);
+            draftRect.anchorMax = new Vector2(0.8f, 0.2f);
+            draftRect.offsetMin = Vector2.zero;
+            draftRect.offsetMax = Vector2.zero;
+            var layout = draft.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = 8f;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = true;
+            _draftRow = draft.transform;
+            for (int i = 0; i < 3; i++)
+            {
+                CreateHudButton(draftRect, "Power", new Vector2(0f, 0f), new Vector2(1f, 1f));
+            }
+
+            draft.SetActive(false);
+        }
+
+        static Button CreateHudButton(Transform parent, string label, Vector2 anchorMin, Vector2 anchorMax)
+        {
+            var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            go.GetComponent<Image>().color = new Color(0.15f, 0.16f, 0.2f, 0.9f);
+            var text = CreateText(
+                "Label",
+                rect,
+                BuiltinFont(),
+                20,
+                TextAnchor.MiddleCenter,
+                Color.white,
+                Vector2.zero,
+                Vector2.one,
+                Vector2.zero,
+                Vector2.zero);
+            text.raycastTarget = false;
+            text.text = label;
+            return go.GetComponent<Button>();
         }
     }
 }
