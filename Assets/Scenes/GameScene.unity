@@ -1106,10 +1106,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatchSettings
       objectReference: {fileID: 0}
-    - target: {fileID: 8270000001, guid: e1010000000000000000000000000007, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 8270000002, guid: e1010000000000000000000000000007, type: 3}
       propertyPath: m_Pivot.x
       value: 0
