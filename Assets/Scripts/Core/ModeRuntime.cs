@@ -5,53 +5,15 @@ namespace ModularChess.Core
 {
     public sealed class ModeRuntime
     {
+        #region Fields
         public static ModeRuntime Empty { get; } = new ModeRuntime();
-
-        readonly HashSet<Guid> _empowered;
-        readonly HashSet<Guid> _extraLife;
-        readonly HashSet<Guid> _extraLifeSpent;
-        readonly HashSet<Guid> _summoned;
-        readonly Dictionary<Guid, PieceStatus> _statuses;
-        readonly HashSet<MartyrPower> _whiteUnlocks;
-        readonly HashSet<MartyrPower> _blackUnlocks;
-
-        ModeRuntime()
-        {
-            _empowered = new HashSet<Guid>();
-            _extraLife = new HashSet<Guid>();
-            _extraLifeSpent = new HashSet<Guid>();
-            _summoned = new HashSet<Guid>();
-            _statuses = new Dictionary<Guid, PieceStatus>();
-            _whiteUnlocks = new HashSet<MartyrPower>();
-            _blackUnlocks = new HashSet<MartyrPower>();
-        }
-
-        ModeRuntime(ModeRuntime source)
-        {
-            _empowered = new HashSet<Guid>(source._empowered);
-            _extraLife = new HashSet<Guid>(source._extraLife);
-            _extraLifeSpent = new HashSet<Guid>(source._extraLifeSpent);
-            _summoned = new HashSet<Guid>(source._summoned);
-            _statuses = new Dictionary<Guid, PieceStatus>(source._statuses);
-            _whiteUnlocks = new HashSet<MartyrPower>(source._whiteUnlocks);
-            _blackUnlocks = new HashSet<MartyrPower>(source._blackUnlocks);
-            WhiteLostMaterial = source.WhiteLostMaterial;
-            BlackLostMaterial = source.BlackLostMaterial;
-            WhiteDraftsQueued = source.WhiteDraftsQueued;
-            BlackDraftsQueued = source.BlackDraftsQueued;
-            WhiteDraftsResolved = source.WhiteDraftsResolved;
-            BlackDraftsResolved = source.BlackDraftsResolved;
-            WhiteFleetPawns = source.WhiteFleetPawns;
-            BlackFleetPawns = source.BlackFleetPawns;
-            WhiteBombard = source.WhiteBombard;
-            BlackBombard = source.BlackBombard;
-            ExtraMoveKingId = source.ExtraMoveKingId;
-            MovesThisTurn = source.MovesThisTurn;
-            PendingDraft = source.PendingDraft;
-            PendingBattlefieldType = source.PendingBattlefieldType;
-            SetupComplete = source.SetupComplete;
-        }
-
+        private readonly HashSet<Guid> _empowered;
+        private readonly HashSet<Guid> _extraLife;
+        private readonly HashSet<Guid> _extraLifeSpent;
+        private readonly HashSet<Guid> _summoned;
+        private readonly Dictionary<Guid, PieceStatus> _statuses;
+        private readonly HashSet<MartyrPower> _whiteUnlocks;
+        private readonly HashSet<MartyrPower> _blackUnlocks;
         public int WhiteLostMaterial { get; private set; }
         public int BlackLostMaterial { get; private set; }
         public int WhiteDraftsQueued { get; private set; }
@@ -67,51 +29,41 @@ namespace ModularChess.Core
         public DraftOffer? PendingDraft { get; private set; }
         public PieceType? PendingBattlefieldType { get; private set; }
         public bool SetupComplete { get; private set; }
+        #endregion
 
+        #region Public Methods
         public bool IsEmpowered(Guid pieceId) => _empowered.Contains(pieceId);
-
         public bool ExtraLifeAvailable(Guid pieceId)
         {
             return _extraLife.Contains(pieceId) && !_extraLifeSpent.Contains(pieceId);
         }
-
         public bool ExtraLifeSpent(Guid pieceId) => _extraLifeSpent.Contains(pieceId);
-
         public bool IsSummoned(Guid pieceId) => _summoned.Contains(pieceId);
-
         public bool TryGetStatus(Guid pieceId, out PieceStatus status)
         {
             return _statuses.TryGetValue(pieceId, out status);
         }
-
         public bool HasStatus(Guid pieceId, StatusKind kind)
         {
             return _statuses.TryGetValue(pieceId, out PieceStatus status) && status.Kind == kind;
         }
-
         public bool FleetPawns(Side side) => side == Side.White ? WhiteFleetPawns : BlackFleetPawns;
-
         public bool Bombard(Side side) => side == Side.White ? WhiteBombard : BlackBombard;
-
         public int LostMaterial(Side side) => side == Side.White ? WhiteLostMaterial : BlackLostMaterial;
-
         public bool Unlocked(Side side, MartyrPower power)
         {
             return side == Side.White
                 ? _whiteUnlocks.Contains(power)
                 : _blackUnlocks.Contains(power);
         }
-
         public IReadOnlyCollection<MartyrPower> Unlocks(Side side)
         {
             return side == Side.White ? _whiteUnlocks : _blackUnlocks;
         }
-
         public ModeRuntime Clone()
         {
             return new ModeRuntime(this);
         }
-
         public ModeRuntime WithEmpowered(IEnumerable<Guid> ids, IEnumerable<Guid> extraLifeIds)
         {
             ModeRuntime next = Clone();
@@ -136,28 +88,24 @@ namespace ModularChess.Core
             next.SetupComplete = true;
             return next;
         }
-
         public ModeRuntime WithMovesThisTurn(int count)
         {
             ModeRuntime next = Clone();
             next.MovesThisTurn = count;
             return next;
         }
-
         public ModeRuntime WithExtraKing(Guid? kingId)
         {
             ModeRuntime next = Clone();
             next.ExtraMoveKingId = kingId;
             return next;
         }
-
         public ModeRuntime WithoutEmpowered(Guid pieceId)
         {
             ModeRuntime next = Clone();
             next._empowered.Remove(pieceId);
             return next;
         }
-
         public ModeRuntime SpendExtraLife(Guid pieceId)
         {
             ModeRuntime next = Clone();
@@ -166,14 +114,12 @@ namespace ModularChess.Core
             next._empowered.Remove(pieceId);
             return next;
         }
-
         public ModeRuntime AddSummoned(Guid pieceId)
         {
             ModeRuntime next = Clone();
             next._summoned.Add(pieceId);
             return next;
         }
-
         public ModeRuntime AddLostMaterial(Side side, int amount, int threshold)
         {
             ModeRuntime next = Clone();
@@ -194,14 +140,12 @@ namespace ModularChess.Core
 
             return next;
         }
-
         public ModeRuntime WithStatus(Guid pieceId, PieceStatus status)
         {
             ModeRuntime next = Clone();
             next._statuses[pieceId] = status;
             return next;
         }
-
         public ModeRuntime Unlock(Side side, MartyrPower power)
         {
             ModeRuntime next = Clone();
@@ -232,7 +176,6 @@ namespace ModularChess.Core
 
             return next;
         }
-
         public ModeRuntime ConsumeDraftSlot(Side side)
         {
             ModeRuntime next = Clone();
@@ -259,7 +202,6 @@ namespace ModularChess.Core
             next.PendingBattlefieldType = null;
             return next;
         }
-
         public ModeRuntime WithPendingDraft(DraftOffer? offer, PieceType? battlefieldType)
         {
             ModeRuntime next = Clone();
@@ -267,7 +209,6 @@ namespace ModularChess.Core
             next.PendingBattlefieldType = battlefieldType;
             return next;
         }
-
         public ModeRuntime TickStatuses(Side sideThatEndedTurn)
         {
             ModeRuntime next = Clone();
@@ -305,10 +246,48 @@ namespace ModularChess.Core
 
             return next;
         }
+        #endregion
 
-        HashSet<MartyrPower> UnlocksMutable(Side side)
+        #region Private Methods
+        private ModeRuntime()
+        {
+            _empowered = new HashSet<Guid>();
+            _extraLife = new HashSet<Guid>();
+            _extraLifeSpent = new HashSet<Guid>();
+            _summoned = new HashSet<Guid>();
+            _statuses = new Dictionary<Guid, PieceStatus>();
+            _whiteUnlocks = new HashSet<MartyrPower>();
+            _blackUnlocks = new HashSet<MartyrPower>();
+        }
+        private ModeRuntime(ModeRuntime source)
+        {
+            _empowered = new HashSet<Guid>(source._empowered);
+            _extraLife = new HashSet<Guid>(source._extraLife);
+            _extraLifeSpent = new HashSet<Guid>(source._extraLifeSpent);
+            _summoned = new HashSet<Guid>(source._summoned);
+            _statuses = new Dictionary<Guid, PieceStatus>(source._statuses);
+            _whiteUnlocks = new HashSet<MartyrPower>(source._whiteUnlocks);
+            _blackUnlocks = new HashSet<MartyrPower>(source._blackUnlocks);
+            WhiteLostMaterial = source.WhiteLostMaterial;
+            BlackLostMaterial = source.BlackLostMaterial;
+            WhiteDraftsQueued = source.WhiteDraftsQueued;
+            BlackDraftsQueued = source.BlackDraftsQueued;
+            WhiteDraftsResolved = source.WhiteDraftsResolved;
+            BlackDraftsResolved = source.BlackDraftsResolved;
+            WhiteFleetPawns = source.WhiteFleetPawns;
+            BlackFleetPawns = source.BlackFleetPawns;
+            WhiteBombard = source.WhiteBombard;
+            BlackBombard = source.BlackBombard;
+            ExtraMoveKingId = source.ExtraMoveKingId;
+            MovesThisTurn = source.MovesThisTurn;
+            PendingDraft = source.PendingDraft;
+            PendingBattlefieldType = source.PendingBattlefieldType;
+            SetupComplete = source.SetupComplete;
+        }
+        private HashSet<MartyrPower> UnlocksMutable(Side side)
         {
             return side == Side.White ? _whiteUnlocks : _blackUnlocks;
         }
+        #endregion
     }
 }

@@ -4,22 +4,27 @@ namespace ModularChess.Core
 {
     public readonly struct CastlingRights : IEquatable<CastlingRights>
     {
+        #region Fields
         public static CastlingRights All { get; } = new CastlingRights(true, true, true, true);
         public static CastlingRights None { get; } = new CastlingRights(false, false, false, false);
-
         public bool WhiteKingSide { get; }
         public bool WhiteQueenSide { get; }
         public bool BlackKingSide { get; }
         public bool BlackQueenSide { get; }
+        #endregion
 
-        public CastlingRights(bool whiteKingSide, bool whiteQueenSide, bool blackKingSide, bool blackQueenSide)
+        #region Public Methods
+        public CastlingRights(
+            bool whiteKingSide,
+            bool whiteQueenSide,
+            bool blackKingSide,
+            bool blackQueenSide)
         {
             WhiteKingSide = whiteKingSide;
             WhiteQueenSide = whiteQueenSide;
             BlackKingSide = blackKingSide;
             BlackQueenSide = blackQueenSide;
         }
-
         public bool HasKingSide(Side side)
         {
             switch (side)
@@ -32,7 +37,6 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(side), side, null);
             }
         }
-
         public bool HasQueenSide(Side side)
         {
             switch (side)
@@ -45,7 +49,6 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(side), side, null);
             }
         }
-
         public CastlingRights WithoutKingSide(Side side)
         {
             switch (side)
@@ -58,7 +61,6 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(side), side, null);
             }
         }
-
         public CastlingRights WithoutQueenSide(Side side)
         {
             switch (side)
@@ -71,7 +73,6 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(side), side, null);
             }
         }
-
         public CastlingRights WithoutSide(Side side)
         {
             switch (side)
@@ -84,7 +85,6 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(side), side, null);
             }
         }
-
         internal CastlingRights AfterMove(Move move, Board before)
         {
             CastlingRights result = this;
@@ -113,42 +113,14 @@ namespace ModularChess.Core
 
             return result;
         }
-
-        private CastlingRights WithoutRookOrigin(Square square)
-        {
-            if (square.File == 0 && square.Rank == 0)
-            {
-                return WithoutQueenSide(Side.White);
-            }
-
-            if (square.File == 7 && square.Rank == 0)
-            {
-                return WithoutKingSide(Side.White);
-            }
-
-            if (square.File == 0 && square.Rank == 7)
-            {
-                return WithoutQueenSide(Side.Black);
-            }
-
-            if (square.File == 7 && square.Rank == 7)
-            {
-                return WithoutKingSide(Side.Black);
-            }
-
-            return this;
-        }
-
         public bool Equals(CastlingRights other)
         {
             return WhiteKingSide == other.WhiteKingSide
-                   && WhiteQueenSide == other.WhiteQueenSide
-                   && BlackKingSide == other.BlackKingSide
-                   && BlackQueenSide == other.BlackQueenSide;
+                && WhiteQueenSide == other.WhiteQueenSide
+                && BlackKingSide == other.BlackKingSide
+                && BlackQueenSide == other.BlackQueenSide;
         }
-
         public override bool Equals(object obj) => obj is CastlingRights other && Equals(other);
-
         public override int GetHashCode()
         {
             int hash = WhiteKingSide ? 1 : 0;
@@ -157,11 +129,8 @@ namespace ModularChess.Core
             hash |= BlackQueenSide ? 8 : 0;
             return hash;
         }
-
         public static bool operator ==(CastlingRights left, CastlingRights right) => left.Equals(right);
-
         public static bool operator !=(CastlingRights left, CastlingRights right) => !left.Equals(right);
-
         public override string ToString()
         {
             if (this == None)
@@ -192,5 +161,33 @@ namespace ModularChess.Core
 
             return text;
         }
+        #endregion
+
+        #region Private Methods
+        private CastlingRights WithoutRookOrigin(Square square)
+        {
+            if (square.File == 0 && square.Rank == 0)
+            {
+                return WithoutQueenSide(Side.White);
+            }
+
+            if (square.File == 7 && square.Rank == 0)
+            {
+                return WithoutKingSide(Side.White);
+            }
+
+            if (square.File == 0 && square.Rank == 7)
+            {
+                return WithoutQueenSide(Side.Black);
+            }
+
+            if (square.File == 7 && square.Rank == 7)
+            {
+                return WithoutKingSide(Side.Black);
+            }
+
+            return this;
+        }
+        #endregion
     }
 }

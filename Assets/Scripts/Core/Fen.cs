@@ -5,8 +5,12 @@ namespace ModularChess.Core
 {
     public static class Fen
     {
-        public const string StartingPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        #region Fields
+        public const string StartingPosition =
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        #endregion
 
+        #region Public Methods
         public static GameState Parse(string fen, MatchRules rules = null)
         {
             if (string.IsNullOrWhiteSpace(fen))
@@ -45,7 +49,6 @@ namespace ModularChess.Core
                 fullmove,
                 rules: rules);
         }
-
         public static string Format(GameState state)
         {
             if (state == null)
@@ -53,14 +56,14 @@ namespace ModularChess.Core
                 throw new ArgumentNullException(nameof(state));
             }
 
-            return $"{FormatPlacement(state.Board)} {FormatSide(state.SideToMove)} {state.CastlingRights} {FormatEnPassant(state.EnPassantTarget)} {state.HalfmoveClock} {state.FullmoveNumber}";
+            return $"{FormatPlacement(state.Board)} {FormatSide(state.SideToMove)} "
+                + $"{state.CastlingRights} {FormatEnPassant(state.EnPassantTarget)} "
+                + $"{state.HalfmoveClock} {state.FullmoveNumber}";
         }
-
         internal static string PositionKey(Board board, Side side, CastlingRights castling, Square? enPassant)
         {
             return $"{FormatPlacement(board)} {FormatSide(side)} {castling} {FormatEnPassant(enPassant)}";
         }
-
         internal static char PieceTypeToFenChar(PieceType type, Side side)
         {
             char letter;
@@ -90,7 +93,9 @@ namespace ModularChess.Core
 
             return side == Side.White ? char.ToUpperInvariant(letter) : letter;
         }
+        #endregion
 
+        #region Private Methods
         private static Board ParsePlacement(string placement)
         {
             string[] ranks = placement.Split('/');
@@ -138,7 +143,6 @@ namespace ModularChess.Core
 
             return new Board(squares);
         }
-
         private static Piece ParsePiece(char symbol, int file, int rank)
         {
             Side side = char.IsUpper(symbol) ? Side.White : Side.Black;
@@ -170,7 +174,6 @@ namespace ModularChess.Core
             bool hasMoved = HasMovedFromPlacement(type, side, file, rank);
             return new Piece(type, side, hasMoved);
         }
-
         private static Board ApplyHasMovedFromCastling(Board board, CastlingRights rights)
         {
             Board next = board;
@@ -186,13 +189,16 @@ namespace ModularChess.Core
                 Side.Black,
                 PieceType.King,
                 rights.BlackKingSide || rights.BlackQueenSide);
-            next = FlagUnmovedIfRightsLost(next, new Square(0, 0), Side.White, PieceType.Rook, rights.WhiteQueenSide);
-            next = FlagUnmovedIfRightsLost(next, new Square(7, 0), Side.White, PieceType.Rook, rights.WhiteKingSide);
-            next = FlagUnmovedIfRightsLost(next, new Square(0, 7), Side.Black, PieceType.Rook, rights.BlackQueenSide);
-            next = FlagUnmovedIfRightsLost(next, new Square(7, 7), Side.Black, PieceType.Rook, rights.BlackKingSide);
+            next = FlagUnmovedIfRightsLost(
+                next, new Square(0, 0), Side.White, PieceType.Rook, rights.WhiteQueenSide);
+            next = FlagUnmovedIfRightsLost(
+                next, new Square(7, 0), Side.White, PieceType.Rook, rights.WhiteKingSide);
+            next = FlagUnmovedIfRightsLost(
+                next, new Square(0, 7), Side.Black, PieceType.Rook, rights.BlackQueenSide);
+            next = FlagUnmovedIfRightsLost(
+                next, new Square(7, 7), Side.Black, PieceType.Rook, rights.BlackKingSide);
             return next;
         }
-
         private static Board FlagUnmovedIfRightsLost(
             Board board,
             Square square,
@@ -208,7 +214,6 @@ namespace ModularChess.Core
 
             return board.WithPiece(square, new Piece(type, side, true, piece.Id));
         }
-
         private static bool HasMovedFromPlacement(PieceType type, Side side, int file, int rank)
         {
             switch (type)
@@ -228,7 +233,6 @@ namespace ModularChess.Core
                     return false;
             }
         }
-
         private static Side ParseSide(string token)
         {
             if (token == "w")
@@ -243,7 +247,6 @@ namespace ModularChess.Core
 
             throw new FormatException("Active color must be 'w' or 'b'.");
         }
-
         private static CastlingRights ParseCastling(string token)
         {
             if (token == "-")
@@ -278,7 +281,6 @@ namespace ModularChess.Core
 
             return new CastlingRights(whiteKing, whiteQueen, blackKing, blackQueen);
         }
-
         private static Square? ParseEnPassant(string token)
         {
             if (token == "-")
@@ -293,7 +295,6 @@ namespace ModularChess.Core
 
             return square;
         }
-
         private static void ValidateKings(Board board)
         {
             if (board.FindKing(Side.White) == null || board.FindKing(Side.Black) == null)
@@ -301,7 +302,6 @@ namespace ModularChess.Core
                 throw new FormatException("FEN must contain one king for each side.");
             }
         }
-
         private static string FormatPlacement(Board board)
         {
             StringBuilder builder = new StringBuilder();
@@ -340,7 +340,6 @@ namespace ModularChess.Core
 
             return builder.ToString();
         }
-
         private static string FormatSide(Side side)
         {
             switch (side)
@@ -353,10 +352,10 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(side), side, null);
             }
         }
-
         private static string FormatEnPassant(Square? square)
         {
             return square == null ? "-" : square.Value.ToString();
         }
+        #endregion
     }
 }

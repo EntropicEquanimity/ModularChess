@@ -2,6 +2,7 @@ namespace ModularChess.Core
 {
     internal static class DrawEvaluator
     {
+        #region Public Methods
         public static GameStatus Resolve(
             bool inCheck,
             int legalMoveCount,
@@ -21,7 +22,9 @@ namespace ModularChess.Core
 
             return GameStatus.InProgress;
         }
+        #endregion
 
+        #region Private Methods
         private static bool IsThreefold(string[] positionKeys)
         {
             if (positionKeys.Length == 0)
@@ -45,7 +48,6 @@ namespace ModularChess.Core
 
             return false;
         }
-
         private static bool IsInsufficientMaterial(Board board)
         {
             Piece whiteMinor = null;
@@ -124,15 +126,14 @@ namespace ModularChess.Core
 
             return false;
         }
-
         private static bool IsMinor(Piece piece)
         {
             return piece != null && (piece.Type == PieceType.Knight || piece.Type == PieceType.Bishop);
         }
-
         private static bool SameColor(Square a, Square b)
         {
             return ((a.File + a.Rank) & 1) == ((b.File + b.Rank) & 1);
         }
+        #endregion
     }
 }

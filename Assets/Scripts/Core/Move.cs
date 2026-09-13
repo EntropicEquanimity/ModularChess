@@ -4,12 +4,15 @@ namespace ModularChess.Core
 {
     public readonly struct Move : IEquatable<Move>
     {
+        #region Fields
         public Square From { get; }
         public Square To { get; }
         public MoveKind Kind { get; }
         public PieceType? PromotionType { get; }
         public PieceType? CapturedType { get; }
+        #endregion
 
+        #region Public Methods
         public Move(
             Square from,
             Square to,
@@ -40,18 +43,15 @@ namespace ModularChess.Core
             PromotionType = promotionType;
             CapturedType = capturedType;
         }
-
         public bool Equals(Move other)
         {
             return From.Equals(other.From)
-                   && To.Equals(other.To)
-                   && Kind == other.Kind
-                   && PromotionType == other.PromotionType
-                   && CapturedType == other.CapturedType;
+                && To.Equals(other.To)
+                && Kind == other.Kind
+                && PromotionType == other.PromotionType
+                && CapturedType == other.CapturedType;
         }
-
         public override bool Equals(object obj) => obj is Move other && Equals(other);
-
         public override int GetHashCode()
         {
             unchecked
@@ -64,11 +64,8 @@ namespace ModularChess.Core
                 return hash;
             }
         }
-
         public static bool operator ==(Move left, Move right) => left.Equals(right);
-
         public static bool operator !=(Move left, Move right) => !left.Equals(right);
-
         public override string ToString()
         {
             string text = $"{From}{To}";
@@ -79,5 +76,6 @@ namespace ModularChess.Core
 
             return text;
         }
+        #endregion
     }
 }

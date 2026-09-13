@@ -4,6 +4,7 @@ namespace ModularChess.Core
 {
     public static class SideExtensions
     {
+        #region Public Methods
         public static Side Opponent(this Side side)
         {
             switch (side)
@@ -16,5 +17,6 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(side), side, null);
             }
         }
+        #endregion
     }
 }

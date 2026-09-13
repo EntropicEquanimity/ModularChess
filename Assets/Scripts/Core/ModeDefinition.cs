@@ -4,11 +4,14 @@ namespace ModularChess.Core
 {
     public sealed class ModeDefinition
     {
+        #region Fields
         public ModeId Id { get; }
         public string DisplayName { get; }
         public string Summary { get; }
         public int Priority { get; }
+        #endregion
 
+        #region Public Methods
         public ModeDefinition(ModeId id, string displayName, string summary, int priority = 0)
         {
             Id = id;
@@ -16,7 +19,6 @@ namespace ModularChess.Core
             Summary = summary ?? string.Empty;
             Priority = priority;
         }
-
         public bool Allows(Activity activity)
         {
             switch (activity)
@@ -28,5 +30,6 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(activity), activity, null);
             }
         }
+        #endregion
     }
 }

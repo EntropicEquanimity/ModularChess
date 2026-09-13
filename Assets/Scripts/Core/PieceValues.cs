@@ -4,12 +4,15 @@ namespace ModularChess.Core
 {
     public static class PieceValues
     {
+        #region Fields
         public const int Pawn = 1;
         public const int Knight = 3;
         public const int Bishop = 3;
         public const int Rook = 5;
         public const int Queen = 9;
+        #endregion
 
+        #region Public Methods
         public static int? Get(PieceType type)
         {
             switch (type)
@@ -30,5 +33,6 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
         }
+        #endregion
     }
 }

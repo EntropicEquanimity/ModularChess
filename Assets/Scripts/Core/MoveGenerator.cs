@@ -5,6 +5,7 @@ namespace ModularChess.Core
 {
     internal static class MoveGenerator
     {
+        #region Fields
         private static readonly PieceType[] PromotionTypes =
         {
             PieceType.Queen,
@@ -12,7 +13,9 @@ namespace ModularChess.Core
             PieceType.Bishop,
             PieceType.Knight
         };
+        #endregion
 
+        #region Public Methods
         public static List<Move> GenerateLegal(
             Board board,
             Side side,
@@ -52,8 +55,10 @@ namespace ModularChess.Core
 
             return legal;
         }
+        #endregion
 
-        static List<Move> GeneratePseudoLegal(
+        #region Private Methods
+        private static List<Move> GeneratePseudoLegal(
             Board board,
             Side side,
             Square? enPassantTarget,
@@ -83,10 +88,25 @@ namespace ModularChess.Core
                             AddPawnMoves(board, from, piece, enPassantTarget, runtime, moves);
                             break;
                         case PieceType.Knight:
-                            AddLeaperMoves(board, from, piece, Directions.KnightFiles, Directions.KnightRanks, runtime, moves);
+                            AddLeaperMoves(
+                                board,
+                                from,
+                                piece,
+                                Directions.KnightFiles,
+                                Directions.KnightRanks,
+                                runtime,
+                                moves);
                             break;
                         case PieceType.Bishop:
-                            AddSliderMoves(board, from, piece, Directions.BishopFiles, Directions.BishopRanks, false, runtime, moves);
+                            AddSliderMoves(
+                                board,
+                                from,
+                                piece,
+                                Directions.BishopFiles,
+                                Directions.BishopRanks,
+                                false,
+                                runtime,
+                                moves);
                             break;
                         case PieceType.Rook:
                             AddSliderMoves(
@@ -100,16 +120,46 @@ namespace ModularChess.Core
                                 moves);
                             break;
                         case PieceType.Queen:
-                            AddSliderMoves(board, from, piece, Directions.BishopFiles, Directions.BishopRanks, false, runtime, moves);
-                            AddSliderMoves(board, from, piece, Directions.RookFiles, Directions.RookRanks, false, runtime, moves);
+                            AddSliderMoves(
+                                board,
+                                from,
+                                piece,
+                                Directions.BishopFiles,
+                                Directions.BishopRanks,
+                                false,
+                                runtime,
+                                moves);
+                            AddSliderMoves(
+                                board,
+                                from,
+                                piece,
+                                Directions.RookFiles,
+                                Directions.RookRanks,
+                                false,
+                                runtime,
+                                moves);
                             if (runtime.IsEmpowered(piece.Id))
                             {
-                                AddLeaperMoves(board, from, piece, Directions.KnightFiles, Directions.KnightRanks, runtime, moves);
+                                AddLeaperMoves(
+                                    board,
+                                    from,
+                                    piece,
+                                    Directions.KnightFiles,
+                                    Directions.KnightRanks,
+                                    runtime,
+                                    moves);
                             }
 
                             break;
                         case PieceType.King:
-                            AddLeaperMoves(board, from, piece, Directions.KingFiles, Directions.KingRanks, runtime, moves);
+                            AddLeaperMoves(
+                                board,
+                                from,
+                                piece,
+                                Directions.KingFiles,
+                                Directions.KingRanks,
+                                runtime,
+                                moves);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -119,8 +169,7 @@ namespace ModularChess.Core
 
             return moves;
         }
-
-        static void AddPawnMoves(
+        private static void AddPawnMoves(
             Board board,
             Square from,
             Piece pawn,
@@ -148,11 +197,12 @@ namespace ModularChess.Core
                 }
             }
 
-            AddPawnCapture(board, from, from.Offset(-1, forward), pawn, enPassantTarget, promotionRank, moves);
-            AddPawnCapture(board, from, from.Offset(1, forward), pawn, enPassantTarget, promotionRank, moves);
+            AddPawnCapture(
+                board, from, from.Offset(-1, forward), pawn, enPassantTarget, promotionRank, moves);
+            AddPawnCapture(
+                board, from, from.Offset(1, forward), pawn, enPassantTarget, promotionRank, moves);
         }
-
-        static void AddPawnAdvance(Square from, Square to, int promotionRank, List<Move> moves)
+        private static void AddPawnAdvance(Square from, Square to, int promotionRank, List<Move> moves)
         {
             if (to.Rank == promotionRank)
             {
@@ -162,8 +212,7 @@ namespace ModularChess.Core
 
             moves.Add(new Move(from, to, MoveKind.Quiet));
         }
-
-        static void AddPawnCapture(
+        private static void AddPawnCapture(
             Board board,
             Square from,
             Square to,
@@ -200,16 +249,14 @@ namespace ModularChess.Core
                 }
             }
         }
-
-        static void AddPromotions(Square from, Square to, PieceType? capturedType, List<Move> moves)
+        private static void AddPromotions(Square from, Square to, PieceType? capturedType, List<Move> moves)
         {
             for (int i = 0; i < PromotionTypes.Length; i++)
             {
                 moves.Add(new Move(from, to, MoveKind.Promotion, PromotionTypes[i], capturedType));
             }
         }
-
-        static void AddLeaperMoves(
+        private static void AddLeaperMoves(
             Board board,
             Square from,
             Piece piece,
@@ -239,8 +286,7 @@ namespace ModularChess.Core
                 }
             }
         }
-
-        static void AddSliderMoves(
+        private static void AddSliderMoves(
             Board board,
             Square from,
             Piece piece,
@@ -285,8 +331,12 @@ namespace ModularChess.Core
                 }
             }
         }
-
-        static void AddModeMoves(Board board, Side side, MatchRules rules, ModeRuntime runtime, List<Move> moves)
+        private static void AddModeMoves(
+            Board board,
+            Side side,
+            MatchRules rules,
+            ModeRuntime runtime,
+            List<Move> moves)
         {
             if (rules == null || rules.IsCoreOnly)
             {
@@ -303,8 +353,7 @@ namespace ModularChess.Core
                 AddBombards(board, side, runtime, moves);
             }
         }
-
-        static void AddBishopSwaps(Board board, Side side, ModeRuntime runtime, List<Move> moves)
+        private static void AddBishopSwaps(Board board, Side side, ModeRuntime runtime, List<Move> moves)
         {
             for (int i = 0; i < 64; i++)
             {
@@ -336,8 +385,7 @@ namespace ModularChess.Core
                 }
             }
         }
-
-        static void AddBombards(Board board, Side side, ModeRuntime runtime, List<Move> moves)
+        private static void AddBombards(Board board, Side side, ModeRuntime runtime, List<Move> moves)
         {
             if (!runtime.Bombard(side))
             {
@@ -382,8 +430,7 @@ namespace ModularChess.Core
                 }
             }
         }
-
-        static bool IsAllowedByRuntime(Board board, Move move, MatchRules rules, ModeRuntime runtime)
+        private static bool IsAllowedByRuntime(Board board, Move move, MatchRules rules, ModeRuntime runtime)
         {
             Piece moving = board.GetPiece(move.From);
             if (moving == null)
@@ -421,8 +468,7 @@ namespace ModularChess.Core
 
             return true;
         }
-
-        static Piece CapturedPiece(Board board, Move move)
+        private static Piece CapturedPiece(Board board, Move move)
         {
             switch (move.Kind)
             {
@@ -441,8 +487,7 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException();
             }
         }
-
-        static Board ApplyForLegality(Board board, Move move, ModeRuntime runtime)
+        private static Board ApplyForLegality(Board board, Move move, ModeRuntime runtime)
         {
             Piece captured = CapturedPiece(board, move);
             if (captured != null
@@ -460,8 +505,7 @@ namespace ModularChess.Core
 
             return board.ApplyUnchecked(move);
         }
-
-        static ModeRuntime RuntimeAfterMove(Board board, Move move, ModeRuntime runtime)
+        private static ModeRuntime RuntimeAfterMove(Board board, Move move, ModeRuntime runtime)
         {
             Piece captured = CapturedPiece(board, move);
             if (captured != null && runtime.ExtraLifeAvailable(captured.Id))
@@ -471,8 +515,7 @@ namespace ModularChess.Core
 
             return runtime;
         }
-
-        static void FilterToKing(Board board, List<Move> legal, Guid kingId)
+        private static void FilterToKing(Board board, List<Move> legal, Guid kingId)
         {
             for (int i = legal.Count - 1; i >= 0; i--)
             {
@@ -483,8 +526,7 @@ namespace ModularChess.Core
                 }
             }
         }
-
-        static void AddCastling(
+        private static void AddCastling(
             Board board,
             Side side,
             CastlingRights rights,
@@ -516,18 +558,19 @@ namespace ModularChess.Core
                 return;
             }
 
-            if (rights.HasKingSide(side) && CanCastle(board, from, kingFile: 6, rookFile: 7, throughFile: 5, side, rules, runtime))
+            if (rights.HasKingSide(side)
+                && CanCastle(board, from, kingFile: 6, rookFile: 7, throughFile: 5, side, rules, runtime))
             {
                 legal.Add(new Move(from, new Square(6, backRank), MoveKind.CastleKingSide));
             }
 
-            if (rights.HasQueenSide(side) && CanCastle(board, from, kingFile: 2, rookFile: 0, throughFile: 3, side, rules, runtime))
+            if (rights.HasQueenSide(side)
+                && CanCastle(board, from, kingFile: 2, rookFile: 0, throughFile: 3, side, rules, runtime))
             {
                 legal.Add(new Move(from, new Square(2, backRank), MoveKind.CastleQueenSide));
             }
         }
-
-        static bool CanCastle(
+        private static bool CanCastle(
             Board board,
             Square kingFrom,
             int kingFile,
@@ -564,5 +607,6 @@ namespace ModularChess.Core
 
             return true;
         }
+        #endregion
     }
 }

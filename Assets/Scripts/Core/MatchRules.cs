@@ -5,12 +5,16 @@ namespace ModularChess.Core
 {
     public sealed class MatchRules
     {
-        public static MatchRules CoreOnly { get; } = new MatchRules(Array.Empty<ModeId>(), MatchSettings.Default);
-
+        #region Fields
+        public static MatchRules CoreOnly { get; } = new MatchRules(
+            Array.Empty<ModeId>(),
+            MatchSettings.Default);
         public IReadOnlyList<ModeId> Modes { get; }
         public MatchSettings Settings { get; }
         public bool IsCoreOnly => Modes.Count == 0;
+        #endregion
 
+        #region Public Methods
         public MatchRules(IReadOnlyList<ModeId> modes, MatchSettings settings)
         {
             Settings = settings ?? MatchSettings.Default;
@@ -28,7 +32,6 @@ namespace ModularChess.Core
 
             Modes = copy;
         }
-
         public bool Has(ModeId id)
         {
             for (int i = 0; i < Modes.Count; i++)
@@ -41,7 +44,6 @@ namespace ModularChess.Core
 
             return false;
         }
-
         public bool Allows(Activity activity)
         {
             for (int i = 0; i < Modes.Count; i++)
@@ -54,5 +56,6 @@ namespace ModularChess.Core
 
             return true;
         }
+        #endregion
     }
 }

@@ -4,6 +4,7 @@ namespace ModularChess.Core
 {
     internal static class AttackMap
     {
+        #region Public Methods
         public static bool IsInCheck(
             Board board,
             Side side,
@@ -24,7 +25,6 @@ namespace ModularChess.Core
 
             return IsAttacked(board, king.Value, side.Opponent(), rules, runtime);
         }
-
         public static bool IsAttacked(
             Board board,
             Square square,
@@ -44,26 +44,25 @@ namespace ModularChess.Core
             }
 
             return IsAttackedByPawn(board, square, bySide, runtime)
-                   || IsAttackedByKnight(board, square, bySide, runtime)
-                   || IsAttackedByKing(board, square, bySide, runtime)
-                   || IsAttackedBySlider(
-                       board,
-                       square,
-                       bySide,
-                       Directions.BishopFiles,
-                       Directions.BishopRanks,
-                       PieceType.Bishop,
-                       runtime)
-                   || IsAttackedBySlider(
-                       board,
-                       square,
-                       bySide,
-                       Directions.RookFiles,
-                       Directions.RookRanks,
-                       PieceType.Rook,
-                       runtime);
+                || IsAttackedByKnight(board, square, bySide, runtime)
+                || IsAttackedByKing(board, square, bySide, runtime)
+                || IsAttackedBySlider(
+                    board,
+                    square,
+                    bySide,
+                    Directions.BishopFiles,
+                    Directions.BishopRanks,
+                    PieceType.Bishop,
+                    runtime)
+                || IsAttackedBySlider(
+                    board,
+                    square,
+                    bySide,
+                    Directions.RookFiles,
+                    Directions.RookRanks,
+                    PieceType.Rook,
+                    runtime);
         }
-
         public static bool CanTarget(ModeRuntime runtime, Piece target)
         {
             if (runtime == null || target == null)
@@ -83,8 +82,10 @@ namespace ModularChess.Core
 
             return true;
         }
+        #endregion
 
-        static bool Attacks(ModeRuntime runtime, Piece piece)
+        #region Private Methods
+        private static bool Attacks(ModeRuntime runtime, Piece piece)
         {
             if (piece == null)
             {
@@ -98,20 +99,17 @@ namespace ModularChess.Core
 
             return true;
         }
-
-        static bool IsEmpowered(ModeRuntime runtime, Piece piece)
+        private static bool IsEmpowered(ModeRuntime runtime, Piece piece)
         {
             return runtime != null && piece != null && runtime.IsEmpowered(piece.Id);
         }
-
-        static bool IsAttackedByPawn(Board board, Square target, Side bySide, ModeRuntime runtime)
+        private static bool IsAttackedByPawn(Board board, Square target, Side bySide, ModeRuntime runtime)
         {
             int rankDelta = bySide == Side.White ? -1 : 1;
             return HasAttacker(board, target.Offset(-1, rankDelta), bySide, PieceType.Pawn, runtime)
-                   || HasAttacker(board, target.Offset(1, rankDelta), bySide, PieceType.Pawn, runtime);
+                || HasAttacker(board, target.Offset(1, rankDelta), bySide, PieceType.Pawn, runtime);
         }
-
-        static bool IsAttackedByKnight(Board board, Square target, Side bySide, ModeRuntime runtime)
+        private static bool IsAttackedByKnight(Board board, Square target, Side bySide, ModeRuntime runtime)
         {
             for (int i = 0; i < Directions.KnightFiles.Length; i++)
             {
@@ -140,12 +138,12 @@ namespace ModularChess.Core
 
             return false;
         }
-
-        static bool IsAttackedByKing(Board board, Square target, Side bySide, ModeRuntime runtime)
+        private static bool IsAttackedByKing(Board board, Square target, Side bySide, ModeRuntime runtime)
         {
             for (int i = 0; i < Directions.KingFiles.Length; i++)
             {
-                if (HasAttacker(board, target.Offset(Directions.KingFiles[i], Directions.KingRanks[i]), bySide, PieceType.King, runtime))
+                Square from = target.Offset(Directions.KingFiles[i], Directions.KingRanks[i]);
+                if (HasAttacker(board, from, bySide, PieceType.King, runtime))
                 {
                     return true;
                 }
@@ -153,8 +151,7 @@ namespace ModularChess.Core
 
             return false;
         }
-
-        static bool IsAttackedBySlider(
+        private static bool IsAttackedBySlider(
             Board board,
             Square target,
             Side bySide,
@@ -185,8 +182,8 @@ namespace ModularChess.Core
                     if (isSlider && Attacks(runtime, piece))
                     {
                         bool rookPass = slider == PieceType.Rook
-                                        && piece.Type == PieceType.Rook
-                                        && IsEmpowered(runtime, piece);
+                            && piece.Type == PieceType.Rook
+                            && IsEmpowered(runtime, piece);
                         if (!passedAlly || rookPass)
                         {
                             return true;
@@ -208,8 +205,12 @@ namespace ModularChess.Core
 
             return false;
         }
-
-        static bool HasAttacker(Board board, Square square, Side side, PieceType type, ModeRuntime runtime)
+        private static bool HasAttacker(
+            Board board,
+            Square square,
+            Side side,
+            PieceType type,
+            ModeRuntime runtime)
         {
             if (!square.IsOnBoard)
             {
@@ -218,9 +219,10 @@ namespace ModularChess.Core
 
             Piece piece = board.GetPiece(square);
             return piece != null
-                   && piece.Side == side
-                   && piece.Type == type
-                   && Attacks(runtime, piece);
+                && piece.Side == side
+                && piece.Type == type
+                && Attacks(runtime, piece);
         }
+        #endregion
     }
 }

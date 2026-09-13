@@ -5,38 +5,8 @@ namespace ModularChess.Core
 {
     public sealed class Board
     {
+        #region Fields
         private readonly Piece[] _squares;
-
-        internal Board(Piece[] squares)
-        {
-            if (squares == null)
-            {
-                throw new ArgumentNullException(nameof(squares));
-            }
-
-            if (squares.Length != Square.BoardSize * Square.BoardSize)
-            {
-                throw new ArgumentException("Board must contain 64 squares.", nameof(squares));
-            }
-
-            _squares = squares;
-        }
-
-        internal static Board Empty()
-        {
-            return new Board(new Piece[Square.BoardSize * Square.BoardSize]);
-        }
-
-        public Piece GetPiece(Square square)
-        {
-            if (!square.IsOnBoard)
-            {
-                throw new ArgumentOutOfRangeException(nameof(square), square, "Square is off the board.");
-            }
-
-            return _squares[square.ToIndex()];
-        }
-
         public IEnumerable<Piece> OccupiedPieces
         {
             get
@@ -51,7 +21,36 @@ namespace ModularChess.Core
                 }
             }
         }
+        #endregion
 
+        #region Public Methods
+        internal Board(Piece[] squares)
+        {
+            if (squares == null)
+            {
+                throw new ArgumentNullException(nameof(squares));
+            }
+
+            if (squares.Length != Square.BoardSize * Square.BoardSize)
+            {
+                throw new ArgumentException("Board must contain 64 squares.", nameof(squares));
+            }
+
+            _squares = squares;
+        }
+        internal static Board Empty()
+        {
+            return new Board(new Piece[Square.BoardSize * Square.BoardSize]);
+        }
+        public Piece GetPiece(Square square)
+        {
+            if (!square.IsOnBoard)
+            {
+                throw new ArgumentOutOfRangeException(nameof(square), square, "Square is off the board.");
+            }
+
+            return _squares[square.ToIndex()];
+        }
         public Square? FindKing(Side side)
         {
             for (int i = 0; i < _squares.Length; i++)
@@ -65,7 +64,6 @@ namespace ModularChess.Core
 
             return null;
         }
-
         public Square? FindSquare(Guid pieceId)
         {
             for (int i = 0; i < _squares.Length; i++)
@@ -79,7 +77,6 @@ namespace ModularChess.Core
 
             return null;
         }
-
         internal Board ApplyUnchecked(Move move)
         {
             Piece moving = GetPiece(move.From);
@@ -125,7 +122,20 @@ namespace ModularChess.Core
 
             return new Board(next);
         }
+        internal Board WithPiece(Square square, Piece piece)
+        {
+            if (!square.IsOnBoard)
+            {
+                throw new ArgumentOutOfRangeException(nameof(square), square, "Square is off the board.");
+            }
 
+            Piece[] next = (Piece[])_squares.Clone();
+            next[square.ToIndex()] = piece;
+            return new Board(next);
+        }
+        #endregion
+
+        #region Private Methods
         private static void ApplyCastle(
             Piece[] squares,
             Piece king,
@@ -146,17 +156,6 @@ namespace ModularChess.Core
             squares[new Square(kingFile, kingFrom.Rank).ToIndex()] = king.AsMoved();
             squares[new Square(rookToFile, kingFrom.Rank).ToIndex()] = rook.AsMoved();
         }
-
-        internal Board WithPiece(Square square, Piece piece)
-        {
-            if (!square.IsOnBoard)
-            {
-                throw new ArgumentOutOfRangeException(nameof(square), square, "Square is off the board.");
-            }
-
-            Piece[] next = (Piece[])_squares.Clone();
-            next[square.ToIndex()] = piece;
-            return new Board(next);
-        }
+        #endregion
     }
 }

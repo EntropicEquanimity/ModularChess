@@ -1,0 +1,38 @@
+---
+description: C# and Unity coding style for Modular Chess. Apply on new scripts and any script we edit. Do not mass-reformat the repo.
+alwaysApply: true
+---
+
+# C# style
+
+Apply when creating a script or editing an existing one. Do not rewrite untouched files.
+
+## Line length
+
+Keep a statement, call, or signature on one line if it is about 100 characters or less. Collection initializers stay on that line when they fit: `new[] { queen.Id, knight.Id }`. Wrap only past that threshold. When wrapping, keep `(` on the same line as the name.
+
+## Spacing
+
+No blank line between members in the same region. One blank line between regions. No blank line after `#region` or before `#endregion`.
+
+## Regions
+
+Omit a region if it would be empty. Order:
+
+1. `Fields` — serialized refs, then private state, then properties
+2. `Unity` — Awake, Start, Update, OnDestroy, and other messages
+3. `Public Methods`
+4. `Private Methods`
+5. `Debug` or another context-specific region only when that file has one
+
+## Comments
+
+No `//`, `/* */`, or commented-out code. Names carry meaning. `#region` / `#endregion` are the only labels. `///` only on public methods that are a stable, often-called API (Core types other assemblies use). Not on Unity messages, private helpers, or one-off UI/Match methods.
+
+## Prefabs
+
+Prefer a prefab over `new GameObject` + `AddComponent` trees. Instantiate and tune the prefab. Plain Core C# stays prefab-free. Do not mass-convert existing bootstrap HUD; only new work and files we edit.
+
+## References
+
+On MonoBehaviours, `[SerializeField]` the reference and assign it on the prefab or scene. No `Find`, `FindObjectOfType`, or hierarchy search for something that can be dragged in. `GetComponent` on `this` or a known child is fine. `RuntimePrefabs.Load` is an editor fallback when a serialized ref is missing, not the normal path. Do not serialize scratch values, counters, or flags.

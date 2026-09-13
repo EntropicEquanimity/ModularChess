@@ -4,11 +4,14 @@ namespace ModularChess.Core
 {
     public sealed class Piece
     {
+        #region Fields
         public Guid Id { get; }
         public PieceType Type { get; }
         public Side Side { get; }
         public bool HasMoved { get; }
+        #endregion
 
+        #region Public Methods
         internal Piece(PieceType type, Side side, bool hasMoved = false, Guid? id = null)
         {
             Id = id ?? Guid.NewGuid();
@@ -16,7 +19,6 @@ namespace ModularChess.Core
             Side = side;
             HasMoved = hasMoved;
         }
-
         internal Piece AsMoved()
         {
             if (HasMoved)
@@ -26,10 +28,10 @@ namespace ModularChess.Core
 
             return new Piece(Type, Side, true, Id);
         }
-
         internal Piece WithType(PieceType type)
         {
             return new Piece(type, Side, true, Id);
         }
+        #endregion
     }
 }

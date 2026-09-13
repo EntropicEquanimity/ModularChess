@@ -2,6 +2,7 @@ namespace ModularChess.Core
 {
     public sealed class MatchSettings
     {
+        #region Fields
         public TimeControl Time { get; }
         public HostColor HostColor { get; }
         public AiStrength AiStrength { get; }
@@ -9,7 +10,10 @@ namespace ModularChess.Core
         public int EmpoweredCount { get; }
         public int MartyrThreshold { get; }
         public int MartyrDraftOptions { get; }
+        public static MatchSettings Default { get; } = new MatchSettings();
+        #endregion
 
+        #region Public Methods
         public MatchSettings(
             TimeControl? time = null,
             HostColor hostColor = HostColor.White,
@@ -27,7 +31,6 @@ namespace ModularChess.Core
             MartyrThreshold = martyrThreshold < 1 ? 6 : martyrThreshold;
             MartyrDraftOptions = martyrDraftOptions < 1 ? 3 : martyrDraftOptions;
         }
-
-        public static MatchSettings Default { get; } = new MatchSettings();
+        #endregion
     }
 }

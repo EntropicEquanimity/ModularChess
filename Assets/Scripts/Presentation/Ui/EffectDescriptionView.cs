@@ -6,13 +6,15 @@ namespace ModularChess.Presentation
 {
     public sealed class EffectDescriptionView : MonoBehaviour
     {
+        #region Fields
         const float HeightPad = 4f;
-
         TMP_Text _name;
         TMP_Text _body;
         LayoutElement _bodyLayout;
         LayoutElement _rootLayout;
+        #endregion
 
+        #region Public Methods
         public void Bind(string effectName, string description)
         {
             EnsureLabels();
@@ -22,7 +24,6 @@ namespace ModularChess.Presentation
                 _body.text = description ?? string.Empty;
             RefreshLayout();
         }
-
         public void RefreshLayout()
         {
             EnsureLabels();
@@ -57,7 +58,9 @@ namespace ModularChess.Presentation
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(root);
         }
+        #endregion
 
+        #region Private Methods
         float MeasureBodyHeight(float width)
         {
             RectTransform rect = _body.rectTransform;
@@ -71,10 +74,9 @@ namespace ModularChess.Presentation
                 height = _body.GetPreferredValues(_body.text, width, float.PositiveInfinity).y;
             if (_body.textInfo != null && _body.textInfo.lineCount > 0)
             {
-                float meshHeight = _body.textInfo.lineCount * _body.fontSize;
                 TMP_LineInfo last = _body.textInfo.lineInfo[_body.textInfo.lineCount - 1];
                 TMP_LineInfo first = _body.textInfo.lineInfo[0];
-                meshHeight = first.ascender - last.descender;
+                float meshHeight = first.ascender - last.descender;
                 if (meshHeight > height)
                     height = meshHeight;
             }
@@ -82,7 +84,6 @@ namespace ModularChess.Presentation
             rect.sizeDelta = oldSize;
             return Mathf.Max(_body.fontSize, height) + HeightPad;
         }
-
         void EnsureLabels()
         {
             if (_body != null && _name != null)
@@ -112,5 +113,6 @@ namespace ModularChess.Presentation
 
             _rootLayout = GetComponent<LayoutElement>();
         }
+        #endregion
     }
 }
