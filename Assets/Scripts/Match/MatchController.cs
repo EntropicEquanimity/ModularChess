@@ -545,6 +545,27 @@ namespace ModularChess.Match
 
         void TimeoutDraft()
         {
+            ApplyRandomDraft();
+        }
+
+        void ResolveAiDraft()
+        {
+            ApplyRandomDraft();
+        }
+
+        bool TryResolveAiDraft()
+        {
+            if (_state == null || !_state.DraftPending)
+                return false;
+            if (_session == null || !_session.IsAi || _state.SideToMove == _session.PlayerSide)
+                return false;
+
+            ApplyRandomDraft();
+            return true;
+        }
+
+        void ApplyRandomDraft()
+        {
             DraftOffer? offer = _state.Runtime.PendingDraft;
             if (offer == null)
                 return;
@@ -555,18 +576,11 @@ namespace ModularChess.Match
             RefreshPresentation();
         }
 
-        void ResolveAiDraft()
-        {
-            DraftOffer? offer = _state.Runtime.PendingDraft;
-            if (offer == null)
-                return;
-            _state = _state.ApplyDraft(offer.Value.First, null, null);
-            RefreshPresentation();
-        }
-
         private void RefreshPresentation()
         {
             if (boardView == null || _state == null)
+                return;
+            if (TryResolveAiDraft())
                 return;
 
             Side viewer = _session != null && _session.Hotseat ? _state.SideToMove : (_session?.PlayerSide ?? Side.White);

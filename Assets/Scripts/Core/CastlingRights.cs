@@ -137,28 +137,23 @@ namespace ModularChess.Core
             {
                 return "-";
             }
-
             string text = string.Empty;
             if (WhiteKingSide)
             {
                 text += "K";
             }
-
             if (WhiteQueenSide)
             {
                 text += "Q";
             }
-
             if (BlackKingSide)
             {
                 text += "k";
             }
-
             if (BlackQueenSide)
             {
                 text += "q";
             }
-
             return text;
         }
         #endregion

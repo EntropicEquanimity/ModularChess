@@ -6,388 +6,1088 @@ using ModularChess.Core;
 using ModularChess.Presentation;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace ModularChess.Match
 {
     public sealed class MatchHud : MonoBehaviour
     {
+        #region Fields
+        const float OptionsDuration = 0.28f;
+        const float StatusFadeIn = 0.28f;
+        const float StatusFadeOut = 0.5f;
+        const float GameOverFade = 2.5f;
+        const float DraftDescHeight = 128f;
+        const float DraftConfirmHeight = 40f;
         [SerializeField] TMP_Text turnText;
         [SerializeField] TMP_Text checkText;
         [SerializeField] TMP_Text moveListText;
         [SerializeField] TMP_Text gameOverText;
         [SerializeField] GameObject gameOverBanner;
-
-        TMP_Text _statusLine;
-        TMP_Text _clockText;
-        Button _endTurnButton;
-        Button _pauseButton;
-        Button _resignButton;
-        Button _leaveButton;
-        Button _setupConfirmButton;
-        TMP_Text _lostMaterialText;
-        Transform _draftRow;
-        RectTransform _draftDescription;
+        [SerializeField] TMP_Text statusLine;
+        [SerializeField] TMP_Text clockText;
+        [SerializeField] TMP_Text lostMaterialText;
+        [SerializeField] Button endTurnButton;
+        [SerializeField] Button pauseButton;
+        [SerializeField] Button resignButton;
+        [SerializeField] Button leaveButton;
+        [SerializeField] Button setupConfirmButton;
+        [SerializeField] Button optionsButton;
+        [SerializeField] RectTransform buttonGroup;
+        [SerializeField] Transform draftRow;
+        [SerializeField] RectTransform draftDescription;
+        [SerializeField] PieceDetailsPanel pieceDetails;
+        [SerializeField] GameObject statusRoot;
         Tween _draftTween;
+        Tween _optionsTween;
+        Tween _statusTween;
+        Tween _gameOverTween;
         Action<MartyrPower> _onDraft;
-        bool _draftPromptShown;
-        PieceDetailsPanel _pieceDetails;
+        Button _draftConfirm;
+        RectTransform _draftDescClip;
+        RectTransform _draftDescBox;
+        TMP_Text _draftDescText;
+        MartyrPower _previewPower;
+        int _previewIndex = -1;
+        bool _wired;
+        bool _optionsOpen;
+        bool _statusVisible;
+        bool _gameOverShown;
+        CanvasGroup _statusGroup;
+        CanvasGroup _gameOverGroup;
+        ScrollRect _moveListScroll;
+        LayoutElement _moveListLayout;
+        float _optionsRestY;
+        public bool OptionsOpen => _optionsOpen;
+        #endregion
 
+        #region Unity
         void Awake()
         {
-            EnsureBuilt();
+            Wire();
         }
-
+        void OnEnable()
+        {
+            Wire();
+            HideTransient();
+        }
+        void OnDisable()
+        {
+            KillTweens();
+            HideOptionsImmediate();
+        }
         void OnDestroy()
         {
-            _draftTween?.Kill();
+            KillTweens();
         }
+        #endregion
 
+        #region Public Methods
         public void Bind(GameState state, IReadOnlyList<Move> moves)
         {
-            EnsureBuilt();
+            Wire();
             if (state == null)
+            {
                 return;
+            }
 
             bool inProgress = state.Status == GameStatus.InProgress;
-            turnText.text = inProgress ? $"{state.SideToMove} to move" : "Match over";
-            checkText.gameObject.SetActive(inProgress && state.IsInCheck);
-            checkText.text = "Check";
+            if (turnText != null)
+            {
+                turnText.text = inProgress ? $"{state.SideToMove} to move" : "Match over";
+            }
+
+            if (checkText != null)
+            {
+                checkText.gameObject.SetActive(inProgress && state.IsInCheck);
+                checkText.text = "Check";
+            }
+
             bool showMoves = PlayerPrefs.GetInt("ShowNotation", 1) == 1;
-            moveListText.gameObject.SetActive(showMoves);
-            moveListText.text = showMoves ? FormatMoveList(moves) : string.Empty;
+            SetMoveList(showMoves ? FormatMoveList(moves) : string.Empty);
 
             string result = FormatResult(state);
-            bool showResult = result.Length > 0;
-            gameOverBanner.SetActive(showResult);
-            gameOverText.text = result;
-        }
+            if (result.Length > 0)
+            {
+                if (gameOverText != null)
+                {
+                    gameOverText.text = result;
+                }
 
+                ShowGameOver();
+            }
+            else
+            {
+                HideGameOverImmediate();
+            }
+        }
         public void BindActions(MatchController controller)
         {
-            EnsureBuilt();
-            _endTurnButton.onClick.RemoveAllListeners();
-            _endTurnButton.onClick.AddListener(controller.RequestEndTurn);
-            _pauseButton.onClick.RemoveAllListeners();
-            _pauseButton.onClick.AddListener(controller.TogglePause);
-            _resignButton.onClick.RemoveAllListeners();
-            _resignButton.onClick.AddListener(controller.Resign);
-            _leaveButton.onClick.RemoveAllListeners();
-            _leaveButton.onClick.AddListener(controller.LeaveToMenu);
-            if (_setupConfirmButton != null)
+            Wire();
+            BindClick(endTurnButton, controller.RequestEndTurn);
+            BindClick(pauseButton, controller.TogglePause);
+            BindClick(resignButton, controller.Resign);
+            BindClick(leaveButton, controller.LeaveToMenu);
+            BindClick(setupConfirmButton, controller.ConfirmSetup);
+            BindClick(optionsButton, ToggleOptions);
+        }
+        public void ToggleOptions()
+        {
+            if (_optionsOpen)
             {
-                _setupConfirmButton.onClick.RemoveAllListeners();
-                _setupConfirmButton.onClick.AddListener(controller.ConfirmSetup);
+                CloseOptions();
+            }
+            else
+            {
+                OpenOptions();
             }
         }
+        public bool CloseOptionsIfOpen()
+        {
+            if (!_optionsOpen)
+            {
+                return false;
+            }
 
+            CloseOptions();
+            return true;
+        }
         public void SetClock(MatchClock clock)
         {
-            EnsureBuilt();
-            if (_clockText == null)
+            Wire();
+            if (clockText == null)
+            {
                 return;
+            }
+
             if (clock == null || clock.IsNone)
             {
-                _clockText.text = string.Empty;
+                clockText.text = string.Empty;
                 return;
             }
 
-            _clockText.text = $"W {clock.Format(Side.White)}   B {clock.Format(Side.Black)}";
+            clockText.text = $"W {clock.Format(Side.White)}   B {clock.Format(Side.Black)}";
         }
-
         public void SetEndTurnVisible(bool visible)
         {
-            EnsureBuilt();
-            if (_endTurnButton != null)
-                _endTurnButton.gameObject.SetActive(visible);
+            SetActive(endTurnButton, visible);
         }
-
         public void SetPauseVisible(bool visible)
         {
-            EnsureBuilt();
-            if (_pauseButton != null)
-                _pauseButton.gameObject.SetActive(visible);
+            SetActive(pauseButton, visible);
         }
-
         public void SetResignVisible(bool visible)
         {
-            EnsureBuilt();
-            if (_resignButton != null)
-                _resignButton.gameObject.SetActive(visible);
+            SetActive(resignButton, visible);
         }
-
         public void SetSetupConfirmVisible(bool visible)
         {
-            EnsureBuilt();
-            if (_setupConfirmButton != null)
-                _setupConfirmButton.gameObject.SetActive(visible);
+            SetActive(setupConfirmButton, visible);
         }
-
         public void SetLostMaterial(int? white, int? black, int threshold)
         {
-            EnsureBuilt();
-            if (_lostMaterialText == null)
-                return;
-            if (white == null || black == null)
+            Wire();
+            if (lostMaterialText == null)
             {
-                _lostMaterialText.text = string.Empty;
                 return;
             }
 
-            _lostMaterialText.text = $"Lost W {white.Value}  B {black.Value}  next {threshold}";
-        }
+            if (white == null || black == null)
+            {
+                lostMaterialText.text = string.Empty;
+                return;
+            }
 
+            lostMaterialText.text = $"Lost W {white.Value}  B {black.Value}  next {threshold}";
+        }
         public void SetStatusLine(string text)
         {
-            EnsureBuilt();
-            if (_statusLine != null)
-                _statusLine.text = text ?? string.Empty;
-        }
+            Wire();
+            string next = text ?? string.Empty;
+            if (statusLine != null)
+            {
+                statusLine.text = next;
+            }
 
+            bool has = next.Length > 0;
+            if (has)
+            {
+                ShowStatus();
+            }
+            else
+            {
+                HideStatus();
+            }
+        }
         public void ShowDraft(GameState state, Action<MartyrPower> onPick)
         {
-            EnsureBuilt();
+            Wire();
             _onDraft = onPick;
-            if (_draftRow == null || state?.Runtime.PendingDraft == null)
+            if (draftRow == null || state?.Runtime.PendingDraft == null)
+            {
                 return;
+            }
 
-            _draftRow.gameObject.SetActive(true);
+            draftRow.gameObject.SetActive(true);
+            draftRow.SetAsLastSibling();
             DraftOffer offer = state.Runtime.PendingDraft.Value;
-            SetDraftButton(0, offer.First);
-            SetDraftButton(1, offer.Second);
-            SetDraftButton(2, offer.Third);
-            ShowDraftDescription();
+            PieceType? battlefield = state.Runtime.PendingBattlefieldType ?? offer.BattlefieldType;
+            SetDraftButton(0, offer.First, battlefield);
+            SetDraftButton(1, offer.Second, battlefield);
+            SetDraftButton(2, offer.Third, battlefield);
         }
-
         public void HideDraft()
         {
-            _draftTween?.Kill();
-            _draftPromptShown = false;
-            if (_draftRow != null)
-                _draftRow.gameObject.SetActive(false);
-            if (_draftDescription != null)
-                _draftDescription.gameObject.SetActive(false);
-        }
+            HideDraftInspect();
+            if (draftRow != null)
+            {
+                draftRow.gameObject.SetActive(false);
+            }
 
+            if (draftDescription != null)
+            {
+                draftDescription.gameObject.SetActive(false);
+            }
+        }
         public void ShowPieceDetails(Piece piece, GameState state, IReadOnlyCollection<Guid> pendingEmpowered)
         {
-            EnsureBuilt();
-            EnsurePieceDetails();
-            if (_pieceDetails == null)
+            Wire();
+            if (pieceDetails == null)
+            {
                 return;
-            _pieceDetails.Show(piece, state, pendingEmpowered);
-        }
+            }
 
+            pieceDetails.Show(piece, state, pendingEmpowered);
+        }
         public void HidePieceDetails()
         {
-            _pieceDetails?.Hide();
+            pieceDetails?.Hide();
         }
+        #endregion
 
-        void ShowDraftDescription()
+        #region Private Methods
+        void Wire()
         {
-            if (_draftDescription == null)
+            if (_wired)
+            {
                 return;
-            _draftDescription.gameObject.SetActive(true);
-            if (_draftPromptShown)
-                return;
-            _draftPromptShown = true;
-            float shownY = _draftDescription.anchoredPosition.y;
-            _draftDescription.anchoredPosition = new Vector2(_draftDescription.anchoredPosition.x, shownY - 64f);
-            _draftTween?.Kill();
-            _draftTween = DOTween.To(
-                    () => _draftDescription.anchoredPosition,
-                    v => _draftDescription.anchoredPosition = v,
-                    new Vector2(_draftDescription.anchoredPosition.x, shownY),
-                    0.28f)
-                .SetEase(Ease.OutCubic)
-                .SetUpdate(true)
-                .SetTarget(_draftDescription);
-        }
+            }
 
-        void SetDraftButton(int index, MartyrPower power)
-        {
-            Transform child = _draftRow.GetChild(index);
-            var button = child.GetComponent<Button>();
-            TMP_Text label = child.GetComponentInChildren<TMP_Text>();
-            if (label != null)
-                label.text = FormatPower(power);
-            button.onClick.RemoveAllListeners();
-            MartyrPower captured = power;
-            button.onClick.AddListener(() => _onDraft?.Invoke(captured));
-        }
-
-        void EnsureBuilt()
-        {
-            RectTransform root = GetComponent<RectTransform>();
-            if (root == null)
-                root = gameObject.AddComponent<RectTransform>();
-
+            _wired = true;
             if (turnText == null)
-                turnText = PlaceLabel(root, "TurnLabel", 16, new Vector2(0.2f, 0.9f), new Vector2(0.8f, 1f));
+            {
+                turnText = FindLabel("TurnLabel");
+            }
+
             if (checkText == null)
             {
-                checkText = PlaceLabel(root, "CheckLabel", 16, new Vector2(0.2f, 0.84f), new Vector2(0.8f, 0.92f));
-                checkText.color = new Color(0.7f, 0.1f, 0.1f, 1f);
-                checkText.gameObject.SetActive(false);
+                checkText = FindLabel("CheckLabel");
             }
 
             if (moveListText == null)
             {
-                moveListText = PlaceLabel(root, "MoveList", 16, new Vector2(0f, 0.08f), new Vector2(0.28f, 0.84f));
-                moveListText.alignment = TextAlignmentOptions.TopLeft;
-                moveListText.textWrappingMode = TextWrappingModes.Normal;
+                moveListText = FindLabel("MoveList");
             }
 
             if (gameOverBanner == null)
             {
-                RectTransform banner = UiFactory.Panel(root, new Vector2(420f, 120f));
-                banner.name = "GameOverBanner";
-                banner.anchorMin = new Vector2(0.5f, 0.5f);
-                banner.anchorMax = new Vector2(0.5f, 0.5f);
-                banner.anchoredPosition = Vector2.zero;
-                banner.gameObject.SetActive(false);
-                gameOverBanner = banner.gameObject;
-            }
-
-            if (gameOverText == null)
-            {
-                gameOverText = gameOverBanner.GetComponentInChildren<TMP_Text>();
-                if (gameOverText == null)
-                    gameOverText = UiFactory.Label(gameOverBanner.transform, string.Empty, 32, TextAlignmentOptions.Center);
-                gameOverText.color = Color.black;
-                Stretch(gameOverText.rectTransform);
-            }
-
-            if (_statusLine == null)
-                _statusLine = PlaceLabel(root, "StatusLine", 16, new Vector2(0.15f, 0f), new Vector2(0.85f, 0.08f));
-            if (_clockText == null)
-                _clockText = PlaceLabel(root, "Clock", 16, new Vector2(0.7f, 0.9f), new Vector2(1f, 1f));
-            if (_lostMaterialText == null)
-            {
-                _lostMaterialText = PlaceLabel(root, "LostMaterial", 16, new Vector2(0f, 0.9f), new Vector2(0.3f, 1f));
-                _lostMaterialText.alignment = TextAlignmentOptions.MidlineLeft;
-            }
-
-            if (_leaveButton == null)
-            {
-                _endTurnButton = PlaceButton(root, "End Turn", new Vector2(0.78f, 0.12f), new Vector2(0.98f, 0.2f));
-                _pauseButton = PlaceButton(root, "Pause", new Vector2(0.78f, 0.22f), new Vector2(0.98f, 0.3f));
-                _resignButton = PlaceButton(root, "Resign", new Vector2(0.78f, 0.32f), new Vector2(0.98f, 0.4f));
-                _leaveButton = PlaceButton(root, "Leave", new Vector2(0.78f, 0.42f), new Vector2(0.98f, 0.5f));
-                _setupConfirmButton = PlaceButton(root, "Confirm Setup", new Vector2(0.78f, 0.52f), new Vector2(0.98f, 0.6f));
-                _endTurnButton.gameObject.SetActive(false);
-                _pauseButton.gameObject.SetActive(false);
-                _setupConfirmButton.gameObject.SetActive(false);
-            }
-
-            if (_setupConfirmButton == null)
-            {
-                _setupConfirmButton = PlaceButton(root, "Confirm Setup", new Vector2(0.78f, 0.52f), new Vector2(0.98f, 0.6f));
-                _setupConfirmButton.gameObject.SetActive(false);
-            }
-
-            if (_draftRow == null)
-            {
-                TMP_Text description = UiFactory.DescriptionBox(root, "Choose one power.", new Vector2(420f, 64f));
-                description.fontSize = 16;
-                _draftDescription = description.rectTransform.parent as RectTransform;
-                if (_draftDescription == null)
-                    _draftDescription = description.rectTransform;
-                _draftDescription.anchorMin = new Vector2(0.5f, 0.22f);
-                _draftDescription.anchorMax = new Vector2(0.5f, 0.22f);
-                _draftDescription.pivot = new Vector2(0.5f, 0f);
-                _draftDescription.anchoredPosition = Vector2.zero;
-                _draftDescription.gameObject.SetActive(false);
-
-                var draft = new GameObject("DraftRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-                draft.transform.SetParent(root, false);
-                var draftRect = draft.GetComponent<RectTransform>();
-                draftRect.anchorMin = new Vector2(0.2f, 0.08f);
-                draftRect.anchorMax = new Vector2(0.8f, 0.2f);
-                draftRect.offsetMin = Vector2.zero;
-                draftRect.offsetMax = Vector2.zero;
-                var layout = draft.GetComponent<HorizontalLayoutGroup>();
-                layout.spacing = 8f;
-                layout.childForceExpandWidth = true;
-                layout.childForceExpandHeight = true;
-                layout.childControlWidth = true;
-                layout.childControlHeight = true;
-                _draftRow = draft.transform;
-                for (int i = 0; i < 3; i++)
+                Transform banner = FindChild(transform, "GameOverBanner");
+                if (banner != null)
                 {
-                    Button button = UiFactory.Button(draftRect, "Power", null, new Vector2(200f, 32f));
-                    var element = button.gameObject.AddComponent<LayoutElement>();
-                    element.minWidth = 200f;
-                    element.flexibleWidth = 1f;
-                    element.minHeight = 32f;
-                    element.preferredHeight = 32f;
+                    gameOverBanner = banner.gameObject;
+                }
+            }
+
+            if (gameOverText == null && gameOverBanner != null)
+            {
+                gameOverText = gameOverBanner.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            if (statusLine == null)
+            {
+                statusLine = FindLabel("StatusLine");
+            }
+
+            if (statusRoot == null)
+            {
+                Transform status = FindChild(transform, "Status");
+                if (status != null)
+                {
+                    statusRoot = status.gameObject;
+                }
+                else if (statusLine != null)
+                {
+                    statusRoot = statusLine.transform.parent != null
+                        ? statusLine.transform.parent.gameObject
+                        : statusLine.gameObject;
+                }
+            }
+
+            if (clockText == null)
+            {
+                clockText = FindLabel("Clock");
+            }
+
+            if (lostMaterialText == null)
+            {
+                lostMaterialText = FindLabel("LostMaterial");
+            }
+
+            if (endTurnButton == null)
+            {
+                endTurnButton = FindButton("End Turn");
+            }
+
+            if (pauseButton == null)
+            {
+                pauseButton = FindButton("Pause");
+            }
+
+            if (resignButton == null)
+            {
+                resignButton = FindButton("Resign");
+            }
+
+            if (leaveButton == null)
+            {
+                leaveButton = FindButton("Leave");
+            }
+
+            if (setupConfirmButton == null)
+            {
+                setupConfirmButton = FindButton("Confirm Setup");
+            }
+
+            if (optionsButton == null)
+            {
+                optionsButton = FindButton("OptionsButton");
+            }
+
+            if (buttonGroup == null)
+            {
+                Transform group = FindChild(transform, "ButtonGroup");
+                if (group != null)
+                {
+                    buttonGroup = group as RectTransform;
+                }
+            }
+
+            if (draftRow == null)
+            {
+                draftRow = FindChild(transform, "DraftRow");
+            }
+
+            if (draftDescription == null)
+            {
+                Transform box = FindChild(transform, "DescriptionBox");
+                if (box != null)
+                {
+                    draftDescription = box as RectTransform;
+                }
+            }
+
+            if (pieceDetails == null)
+            {
+                pieceDetails = GetComponentInChildren<PieceDetailsPanel>(true);
+            }
+
+            if (buttonGroup != null)
+            {
+                _optionsRestY = buttonGroup.anchoredPosition.y;
+            }
+
+            if (statusRoot != null)
+            {
+                _statusGroup = statusRoot.GetComponent<CanvasGroup>();
+                if (_statusGroup == null)
+                {
+                    _statusGroup = statusRoot.AddComponent<CanvasGroup>();
                 }
 
-                draft.SetActive(false);
+                _statusGroup.blocksRaycasts = false;
+                _statusGroup.interactable = false;
             }
 
-            EnsurePieceDetails();
+            if (gameOverBanner != null)
+            {
+                _gameOverGroup = gameOverBanner.GetComponent<CanvasGroup>();
+                if (_gameOverGroup == null)
+                {
+                    _gameOverGroup = gameOverBanner.AddComponent<CanvasGroup>();
+                }
+            }
+
+            WrapMoveList();
+            if (moveListText != null)
+            {
+                moveListText.overflowMode = TextOverflowModes.Overflow;
+                moveListText.extraPadding = false;
+            }
         }
-
-        void EnsurePieceDetails()
+        void HideTransient()
         {
-            if (_pieceDetails != null)
-                return;
+            HideOptionsImmediate();
+            HideDraft();
+            HidePieceDetails();
+            HideGameOverImmediate();
+            if (checkText != null)
+            {
+                checkText.gameObject.SetActive(false);
+            }
 
-            RectTransform root = GetComponent<RectTransform>();
-            if (root == null)
-                return;
+            if (statusRoot != null)
+            {
+                SetGroupAlpha(_statusGroup, 0f);
+                statusRoot.SetActive(false);
+            }
 
-            GameObject prefab = RuntimePrefabs.PieceDetails;
+            _statusVisible = false;
+            if (statusLine != null)
+            {
+                statusLine.text = string.Empty;
+            }
+        }
+        void WrapMoveList()
+        {
+            if (moveListText == null || _moveListScroll != null)
+            {
+                return;
+            }
+
+            GameObject prefab = RuntimePrefabs.ScrollView;
             if (prefab == null)
+            {
                 return;
+            }
 
-            GameObject instance = Instantiate(prefab, root);
-            instance.name = "PieceDetails";
-            var rect = instance.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0f, 0.5f);
-            rect.anchorMax = new Vector2(0f, 0.5f);
-            rect.pivot = new Vector2(0f, 0.5f);
-            rect.anchoredPosition = new Vector2(16f, 40f);
-            rect.sizeDelta = new Vector2(250f, 0f);
-            _pieceDetails = instance.GetComponent<PieceDetailsPanel>();
-            if (_pieceDetails == null)
-                _pieceDetails = instance.AddComponent<PieceDetailsPanel>();
-            _pieceDetails.Hide();
+            RectTransform listRect = moveListText.rectTransform;
+            Transform parent = listRect.parent;
+            int sibling = listRect.GetSiblingIndex();
+            GameObject scrollGo = Instantiate(prefab, parent);
+            scrollGo.name = "MoveListScroll";
+            var scrollRect = scrollGo.GetComponent<RectTransform>();
+            CopyRect(listRect, scrollRect);
+            scrollGo.transform.SetSiblingIndex(sibling);
+
+            _moveListScroll = scrollGo.GetComponent<ScrollRect>();
+            if (_moveListScroll != null)
+            {
+                _moveListScroll.horizontal = false;
+                _moveListScroll.vertical = true;
+            }
+
+            var backdrop = scrollGo.GetComponent<Image>();
+            if (backdrop != null)
+            {
+                Color color = backdrop.color;
+                color.a = 0f;
+                backdrop.color = color;
+            }
+
+            Transform content = FindChild(scrollGo.transform, "Content");
+            if (content == null && _moveListScroll != null)
+            {
+                content = _moveListScroll.content;
+            }
+
+            if (content == null)
+            {
+                return;
+            }
+
+            var layout = content.GetComponent<VerticalLayoutGroup>();
+            if (layout != null)
+            {
+                layout.enabled = false;
+            }
+
+            var fitter = content.GetComponent<ContentSizeFitter>();
+            if (fitter != null)
+            {
+                fitter.enabled = false;
+            }
+
+            listRect.SetParent(content, false);
+            listRect.anchorMin = new Vector2(0f, 1f);
+            listRect.anchorMax = new Vector2(1f, 1f);
+            listRect.pivot = new Vector2(0.5f, 1f);
+            listRect.anchoredPosition = Vector2.zero;
+            listRect.sizeDelta = new Vector2(0f, 0f);
+            moveListText.overflowMode = TextOverflowModes.Overflow;
+            moveListText.extraPadding = false;
+            moveListText.raycastTarget = false;
+            _moveListLayout = listRect.GetComponent<LayoutElement>();
+            if (_moveListLayout == null)
+            {
+                _moveListLayout = listRect.gameObject.AddComponent<LayoutElement>();
+            }
         }
-
-        static TMP_Text PlaceLabel(RectTransform root, string name, int size, Vector2 anchorMin, Vector2 anchorMax)
+        void SetMoveList(string text)
         {
-            TMP_Text label = UiFactory.Label(root, string.Empty, size, TextAlignmentOptions.Center);
-            label.gameObject.name = name;
-            Stretch(label.rectTransform, anchorMin, anchorMax);
-            return label;
-        }
+            if (moveListText == null)
+            {
+                return;
+            }
 
-        static Button PlaceButton(RectTransform root, string label, Vector2 anchorMin, Vector2 anchorMax)
+            bool show = !string.IsNullOrEmpty(text);
+            if (_moveListScroll != null)
+            {
+                _moveListScroll.gameObject.SetActive(show);
+            }
+            else
+            {
+                moveListText.gameObject.SetActive(show);
+            }
+
+            moveListText.text = text ?? string.Empty;
+            if (!show)
+            {
+                return;
+            }
+
+            moveListText.overflowMode = TextOverflowModes.Overflow;
+            moveListText.ForceMeshUpdate();
+            float height = Mathf.Max(moveListText.preferredHeight, moveListText.fontSize);
+            if (_moveListLayout != null)
+            {
+                _moveListLayout.minHeight = height;
+                _moveListLayout.preferredHeight = height;
+            }
+
+            RectTransform listRect = moveListText.rectTransform;
+            listRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            if (_moveListScroll != null && _moveListScroll.content != null)
+            {
+                RectTransform content = _moveListScroll.content;
+                content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+                _moveListScroll.verticalNormalizedPosition = 0f;
+            }
+        }
+        void OpenOptions()
         {
-            Button button = UiFactory.Button(root, label, null, new Vector2(200f, 32f));
-            button.name = label;
-            Stretch(button.GetComponent<RectTransform>(), anchorMin, anchorMax);
-            return button;
-        }
+            Wire();
+            if (buttonGroup == null)
+            {
+                return;
+            }
 
-        static void Stretch(RectTransform rect)
+            _optionsTween?.Kill();
+            _optionsOpen = true;
+            buttonGroup.anchoredPosition = HiddenOptionsPos();
+            buttonGroup.gameObject.SetActive(true);
+            RaiseOptionsChrome();
+            _optionsTween = DOTween.To(
+                    () => buttonGroup.anchoredPosition,
+                    v => buttonGroup.anchoredPosition = v,
+                    ShownOptionsPos(),
+                    OptionsDuration)
+                .SetEase(Ease.OutCubic)
+                .SetUpdate(true)
+                .SetTarget(buttonGroup);
+        }
+        void CloseOptions()
         {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
+            if (buttonGroup == null)
+            {
+                _optionsOpen = false;
+                return;
+            }
 
-        static void Stretch(RectTransform rect, Vector2 anchorMin, Vector2 anchorMax)
+            _optionsOpen = false;
+            _optionsTween?.Kill();
+            _optionsTween = DOTween.To(
+                    () => buttonGroup.anchoredPosition,
+                    v => buttonGroup.anchoredPosition = v,
+                    HiddenOptionsPos(),
+                    OptionsDuration)
+                .SetEase(Ease.InCubic)
+                .SetUpdate(true)
+                .SetTarget(buttonGroup)
+                .OnComplete(() =>
+                {
+                    if (!_optionsOpen && buttonGroup != null)
+                    {
+                        buttonGroup.gameObject.SetActive(false);
+                    }
+                });
+        }
+        void HideOptionsImmediate()
         {
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
+            _optionsTween?.Kill();
+            _optionsOpen = false;
+            if (buttonGroup == null)
+            {
+                return;
+            }
 
+            buttonGroup.anchoredPosition = HiddenOptionsPos();
+            buttonGroup.gameObject.SetActive(false);
+        }
+        void RaiseOptionsChrome()
+        {
+            if (buttonGroup != null)
+            {
+                buttonGroup.SetAsLastSibling();
+            }
+
+            if (optionsButton != null)
+            {
+                optionsButton.transform.SetAsLastSibling();
+            }
+        }
+        Vector2 ShownOptionsPos()
+        {
+            return new Vector2(0f, _optionsRestY);
+        }
+        Vector2 HiddenOptionsPos()
+        {
+            float width = 200f;
+            if (buttonGroup != null)
+            {
+                width = Mathf.Max(buttonGroup.sizeDelta.x, 200f);
+            }
+
+            return new Vector2(width, _optionsRestY);
+        }
+        void ShowStatus()
+        {
+            if (statusRoot == null)
+            {
+                return;
+            }
+
+            statusRoot.SetActive(true);
+            if (_statusVisible)
+            {
+                return;
+            }
+
+            _statusVisible = true;
+            _statusTween?.Kill();
+            _statusTween = DOTween.To(
+                    () => GroupAlpha(_statusGroup),
+                    a => SetGroupAlpha(_statusGroup, a),
+                    1f,
+                    StatusFadeIn)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true)
+                .SetTarget(statusRoot);
+        }
+        void HideStatus()
+        {
+            if (!_statusVisible && (statusRoot == null || !statusRoot.activeSelf))
+            {
+                return;
+            }
+
+            _statusVisible = false;
+            if (statusRoot == null)
+            {
+                return;
+            }
+
+            _statusTween?.Kill();
+            _statusTween = DOTween.To(
+                    () => GroupAlpha(_statusGroup),
+                    a => SetGroupAlpha(_statusGroup, a),
+                    0f,
+                    StatusFadeOut)
+                .SetEase(Ease.InQuad)
+                .SetUpdate(true)
+                .SetTarget(statusRoot)
+                .OnComplete(() =>
+                {
+                    if (statusRoot != null)
+                    {
+                        statusRoot.SetActive(false);
+                    }
+                });
+        }
+        void ShowGameOver()
+        {
+            if (gameOverBanner == null)
+            {
+                return;
+            }
+
+            if (_gameOverShown)
+            {
+                return;
+            }
+
+            _gameOverShown = true;
+            gameOverBanner.SetActive(true);
+            gameOverBanner.transform.SetAsLastSibling();
+            if (_optionsOpen)
+            {
+                RaiseOptionsChrome();
+            }
+            else if (optionsButton != null)
+            {
+                optionsButton.transform.SetAsLastSibling();
+            }
+
+            _gameOverTween?.Kill();
+            if (_gameOverGroup != null)
+            {
+                _gameOverGroup.alpha = 0f;
+                _gameOverGroup.blocksRaycasts = true;
+                _gameOverGroup.interactable = true;
+            }
+
+            _gameOverTween = DOTween.To(
+                    () => GroupAlpha(_gameOverGroup),
+                    a =>
+                    {
+                        if (_gameOverGroup != null)
+                        {
+                            _gameOverGroup.alpha = a;
+                        }
+                    },
+                    1f,
+                    GameOverFade)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true)
+                .SetTarget(gameOverBanner);
+        }
+        void HideGameOverImmediate()
+        {
+            _gameOverTween?.Kill();
+            _gameOverShown = false;
+            if (_gameOverGroup != null)
+            {
+                _gameOverGroup.alpha = 0f;
+                _gameOverGroup.blocksRaycasts = false;
+                _gameOverGroup.interactable = false;
+            }
+
+            if (gameOverBanner != null)
+            {
+                gameOverBanner.SetActive(false);
+            }
+        }
+        void SetDraftButton(int index, MartyrPower power, PieceType? battlefield)
+        {
+            if (draftRow == null || index >= draftRow.childCount)
+            {
+                return;
+            }
+
+            Transform child = draftRow.GetChild(index);
+            var button = child.GetComponent<Button>();
+            TMP_Text label = child.GetComponentInChildren<TMP_Text>();
+            if (label != null)
+            {
+                label.text = FormatPower(power);
+            }
+
+            if (button == null)
+            {
+                return;
+            }
+
+            button.onClick.RemoveAllListeners();
+            EventTrigger trigger = button.GetComponent<EventTrigger>();
+            if (trigger == null)
+            {
+                trigger = button.gameObject.AddComponent<EventTrigger>();
+            }
+
+            trigger.triggers.Clear();
+            MartyrPower captured = power;
+            int capturedIndex = index;
+            PieceType? capturedType = battlefield;
+            button.onClick.AddListener(() => PreviewDraft(capturedIndex, captured, capturedType, child));
+            AddPointer(trigger, EventTriggerType.PointerEnter, () => PreviewDraft(capturedIndex, captured, capturedType, child));
+        }
+        void PreviewDraft(int index, MartyrPower power, PieceType? battlefield, Transform host)
+        {
+            EnsureDraftInspect();
+            if (_draftConfirm == null || host == null)
+            {
+                return;
+            }
+
+            bool same = _previewIndex == index && _draftConfirm.gameObject.activeSelf;
+            _previewIndex = index;
+            _previewPower = power;
+            if (draftRow != null)
+            {
+                draftRow.SetAsLastSibling();
+            }
+            PlaceDraftInspect(host);
+            if (_draftDescText != null)
+            {
+                _draftDescText.text = DescribePower(power, battlefield);
+            }
+
+            _draftConfirm.gameObject.SetActive(true);
+            if (_draftDescClip != null)
+            {
+                _draftDescClip.gameObject.SetActive(true);
+            }
+
+            if (same)
+            {
+                return;
+            }
+
+            SlideDraftDescription();
+        }
+        void ConfirmDraft()
+        {
+            if (_previewIndex < 0)
+            {
+                return;
+            }
+
+            _onDraft?.Invoke(_previewPower);
+        }
+        void EnsureDraftInspect()
+        {
+            if (_draftConfirm != null)
+            {
+                return;
+            }
+
+            _draftConfirm = UiFactory.Button(transform, "Confirm", ConfirmDraft, new Vector2(180f, DraftConfirmHeight));
+            IgnoreLayout(_draftConfirm.transform);
+            _draftConfirm.gameObject.SetActive(false);
+
+            GameObject clipPrefab = RuntimePrefabs.Panel;
+            GameObject clipGo = clipPrefab != null
+                ? Instantiate(clipPrefab, _draftConfirm.transform)
+                : new GameObject("DraftDescClip", typeof(RectTransform));
+            clipGo.name = "DraftDescClip";
+            clipGo.transform.SetParent(_draftConfirm.transform, false);
+            if (clipGo.GetComponent<RectMask2D>() == null)
+            {
+                clipGo.AddComponent<RectMask2D>();
+            }
+
+            var clipImage = clipGo.GetComponent<Image>();
+            if (clipImage != null)
+            {
+                Color color = clipImage.color;
+                color.a = 0f;
+                clipImage.color = color;
+                clipImage.raycastTarget = false;
+            }
+
+            _draftDescClip = clipGo.GetComponent<RectTransform>();
+            IgnoreLayout(_draftDescClip);
+            _draftDescClip.anchorMin = new Vector2(0f, 1f);
+            _draftDescClip.anchorMax = new Vector2(1f, 1f);
+            _draftDescClip.pivot = new Vector2(0.5f, 0f);
+            _draftDescClip.anchoredPosition = Vector2.zero;
+            _draftDescClip.sizeDelta = new Vector2(0f, DraftDescHeight);
+
+            GameObject boxPrefab = RuntimePrefabs.DescriptionBox;
+            if (boxPrefab == null)
+            {
+                return;
+            }
+
+            GameObject boxGo = Instantiate(boxPrefab, _draftDescClip);
+            boxGo.name = "DescriptionBox";
+            _draftDescBox = boxGo.GetComponent<RectTransform>();
+            _draftDescBox.anchorMin = new Vector2(0f, 0f);
+            _draftDescBox.anchorMax = new Vector2(1f, 1f);
+            _draftDescBox.pivot = new Vector2(0.5f, 0f);
+            _draftDescBox.offsetMin = Vector2.zero;
+            _draftDescBox.offsetMax = Vector2.zero;
+            _draftDescText = boxGo.GetComponentInChildren<TMP_Text>(true);
+            if (_draftDescText != null)
+            {
+                _draftDescText.fontSize = 16;
+                _draftDescText.overflowMode = TextOverflowModes.Overflow;
+                _draftDescText.textWrappingMode = TextWrappingModes.Normal;
+                _draftDescText.alignment = TextAlignmentOptions.Top;
+            }
+        }
+        void PlaceDraftInspect(Transform host)
+        {
+            var confirmRect = _draftConfirm.transform as RectTransform;
+            confirmRect.SetParent(host, false);
+            confirmRect.anchorMin = new Vector2(0f, 1f);
+            confirmRect.anchorMax = new Vector2(1f, 1f);
+            confirmRect.pivot = new Vector2(0.5f, 0f);
+            confirmRect.anchoredPosition = new Vector2(0f, 4f);
+            confirmRect.sizeDelta = new Vector2(0f, DraftConfirmHeight);
+            confirmRect.SetAsLastSibling();
+        }
+        void SlideDraftDescription()
+        {
+            if (_draftDescBox == null)
+            {
+                return;
+            }
+
+            _draftTween?.Kill();
+            _draftDescBox.anchoredPosition = HiddenDraftDescPos();
+            _draftTween = DOTween.To(
+                    () => _draftDescBox.anchoredPosition,
+                    v => _draftDescBox.anchoredPosition = v,
+                    ShownDraftDescPos(),
+                    OptionsDuration)
+                .SetEase(Ease.OutCubic)
+                .SetUpdate(true)
+                .SetTarget(_draftDescBox);
+        }
+        void HideDraftInspect()
+        {
+            _draftTween?.Kill();
+            _previewIndex = -1;
+            if (_draftConfirm != null)
+            {
+                _draftConfirm.gameObject.SetActive(false);
+            }
+
+            if (_draftDescClip != null)
+            {
+                _draftDescClip.gameObject.SetActive(false);
+            }
+        }
+        static Vector2 ShownDraftDescPos()
+        {
+            return Vector2.zero;
+        }
+        static Vector2 HiddenDraftDescPos()
+        {
+            return new Vector2(0f, -DraftDescHeight);
+        }
+        static void AddPointer(EventTrigger trigger, EventTriggerType type, UnityEngine.Events.UnityAction action)
+        {
+            var entry = new EventTrigger.Entry { eventID = type };
+            entry.callback.AddListener(_ => action());
+            trigger.triggers.Add(entry);
+        }
+        static void IgnoreLayout(Transform target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var element = target.GetComponent<LayoutElement>();
+            if (element == null)
+            {
+                element = target.gameObject.AddComponent<LayoutElement>();
+            }
+
+            element.ignoreLayout = true;
+        }
+        static string DescribePower(MartyrPower power, PieceType? battlefield)
+        {
+            switch (power)
+            {
+                case MartyrPower.Reinforcements:
+                    return "Place up to 3 summoned pawns on empty squares of your back rank.";
+                case MartyrPower.FleetPawns:
+                    return "Your pawns may step two squares forward from any rank if the path is empty.";
+                case MartyrPower.Bombard:
+                    return "Rooks may capture an enemy 5 or more squares away on a rank or file and stay.";
+                case MartyrPower.UntouchableKing:
+                    return "Your king cannot be targeted for 5 of your turns.";
+                case MartyrPower.StasisField:
+                    return "Freeze an enemy queen for 3 of her turns. She cannot move, attack, or be captured.";
+                case MartyrPower.KnightAscension:
+                    return "All of your knights become rooks now. Later knights stay knights.";
+                case MartyrPower.BattlefieldPromotion:
+                {
+                    string piece = battlefield == PieceType.Bishop ? "Bishop" : "Knight";
+                    return $"Promote one of your pawns to a {piece}.";
+                }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(power), power, null);
+            }
+        }
+        void KillTweens()
+        {
+            _draftTween?.Kill();
+            _optionsTween?.Kill();
+            _statusTween?.Kill();
+            _gameOverTween?.Kill();
+        }
+        TMP_Text FindLabel(string name)
+        {
+            Transform child = FindChild(transform, name);
+            return child != null ? child.GetComponent<TMP_Text>() : null;
+        }
+        Button FindButton(string name)
+        {
+            Transform child = FindChild(transform, name);
+            return child != null ? child.GetComponent<Button>() : null;
+        }
+        static void BindClick(Button button, UnityEngine.Events.UnityAction action)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            button.onClick.RemoveAllListeners();
+            if (action != null)
+            {
+                button.onClick.AddListener(action);
+            }
+        }
+        static void SetActive(Button button, bool visible)
+        {
+            if (button != null)
+            {
+                button.gameObject.SetActive(visible);
+            }
+        }
+        static void CopyRect(RectTransform from, RectTransform to)
+        {
+            if (from == null || to == null)
+            {
+                return;
+            }
+
+            to.anchorMin = from.anchorMin;
+            to.anchorMax = from.anchorMax;
+            to.pivot = from.pivot;
+            to.anchoredPosition = from.anchoredPosition;
+            to.sizeDelta = from.sizeDelta;
+        }
+        static float GroupAlpha(CanvasGroup group)
+        {
+            return group != null ? group.alpha : 1f;
+        }
+        static void SetGroupAlpha(CanvasGroup group, float alpha)
+        {
+            if (group != null)
+            {
+                group.alpha = alpha;
+            }
+        }
+        static Transform FindChild(Transform root, string name)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            if (root.name == name)
+            {
+                return root;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindChild(root.GetChild(i), name);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
         static string FormatPower(MartyrPower power)
         {
             switch (power)
@@ -410,7 +1110,6 @@ namespace ModularChess.Match
                     throw new ArgumentOutOfRangeException(nameof(power), power, null);
             }
         }
-
         static string FormatResult(GameState state)
         {
             switch (state.Status)
@@ -434,11 +1133,12 @@ namespace ModularChess.Match
                     throw new ArgumentOutOfRangeException(nameof(state), state.Status, null);
             }
         }
-
         static string FormatMoveList(IReadOnlyList<Move> moves)
         {
             if (moves == null || moves.Count == 0)
+            {
                 return string.Empty;
+            }
 
             var builder = new StringBuilder();
             for (int i = 0; i < moves.Count; i++)
@@ -446,7 +1146,10 @@ namespace ModularChess.Match
                 if (i % 2 == 0)
                 {
                     if (i > 0)
+                    {
                         builder.Append('\n');
+                    }
+
                     builder.Append((i / 2) + 1);
                     builder.Append(". ");
                 }
@@ -460,7 +1163,6 @@ namespace ModularChess.Match
 
             return builder.ToString();
         }
-
         static string FormatMove(Move move)
         {
             switch (move.Kind)
@@ -482,10 +1184,12 @@ namespace ModularChess.Match
 
             string text = $"{move.From}-{move.To}";
             if (move.PromotionType is PieceType promotion)
+            {
                 text += $"={PromotionLetter(promotion)}";
+            }
+
             return text;
         }
-
         static string PromotionLetter(PieceType type)
         {
             switch (type)
@@ -505,5 +1209,6 @@ namespace ModularChess.Match
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
         }
+        #endregion
     }
 }

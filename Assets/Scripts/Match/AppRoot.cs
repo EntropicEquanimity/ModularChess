@@ -318,38 +318,17 @@ namespace ModularChess.Match
             if (optionsOverlay == null)
                 return;
 
-            Transform group = FindChild(optionsOverlay.transform, "ButtonGroup");
-            if (group == null)
-                return;
+            Transform row = FindChild(optionsOverlay.transform, "OptionSlider");
+            if (row == null)
+            {
+                Transform group = FindChild(optionsOverlay.transform, "ButtonGroup");
+                GameObject prefab = RuntimePrefabs.OptionSlider;
+                if (group == null || prefab == null)
+                    return;
 
-            Transform existing = FindChild(optionsOverlay.transform, "AnimationRow");
-            GameObject rowGo;
-            TMP_Text valueLabel;
-            Slider slider;
-            if (existing != null)
-            {
-                rowGo = existing.gameObject;
-                slider = rowGo.GetComponentInChildren<Slider>(true);
-                valueLabel = FindLabel(rowGo, "AnimationValue");
-            }
-            else
-            {
-                rowGo = new GameObject("AnimationRow", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
-                rowGo.transform.SetParent(group, false);
-                var layout = rowGo.GetComponent<HorizontalLayoutGroup>();
-                layout.spacing = 8;
-                layout.childAlignment = TextAnchor.MiddleLeft;
-                layout.childControlWidth = true;
-                layout.childControlHeight = true;
-                layout.childForceExpandWidth = false;
-                layout.childForceExpandHeight = false;
-                var rowElement = rowGo.GetComponent<LayoutElement>();
-                rowElement.minHeight = 32;
-                rowElement.preferredHeight = 32;
-                rowElement.minWidth = 220;
-                rowElement.preferredWidth = 220;
-                RectTransform rowRect = rowGo.GetComponent<RectTransform>();
-                rowRect.sizeDelta = new Vector2(220f, 32f);
+                GameObject instance = Instantiate(prefab, group);
+                instance.name = "OptionSlider";
+                row = instance.transform;
                 int backIndex = -1;
                 for (int i = 0; i < group.childCount; i++)
                 {
@@ -361,52 +340,20 @@ namespace ModularChess.Match
                 }
 
                 if (backIndex >= 0)
-                    rowGo.transform.SetSiblingIndex(backIndex);
-
-                TMP_Text title = UiFactory.Label(rowGo.transform, "Animation", 16, TextAlignmentOptions.MidlineLeft);
-                title.color = Color.black;
-                title.name = "AnimationLabel";
-                var titleElement = title.gameObject.AddComponent<LayoutElement>();
-                titleElement.minWidth = 96;
-                titleElement.preferredWidth = 96;
-                titleElement.flexibleWidth = 0;
-                titleElement.minHeight = 32;
-                titleElement.preferredHeight = 32;
-
-                slider = UiFactory.Slider(rowGo.transform, AnimationPrefs.SliderValue, null);
-                var sliderElement = slider.gameObject.AddComponent<LayoutElement>();
-                sliderElement.minWidth = 80;
-                sliderElement.preferredWidth = 80;
-                sliderElement.flexibleWidth = 1;
-                sliderElement.minHeight = 32;
-                sliderElement.preferredHeight = 32;
-
-                valueLabel = UiFactory.Label(rowGo.transform, AnimationPrefs.SpeedLabel, 16, TextAlignmentOptions.MidlineRight);
-                valueLabel.color = Color.black;
-                valueLabel.name = "AnimationValue";
-                var valueElement = valueLabel.gameObject.AddComponent<LayoutElement>();
-                valueElement.minWidth = 40;
-                valueElement.preferredWidth = 40;
-                valueElement.flexibleWidth = 0;
-                valueElement.minHeight = 32;
-                valueElement.preferredHeight = 32;
+                    row.SetSiblingIndex(backIndex);
             }
 
-            if (slider == null)
-                return;
-
-            slider.minValue = 0f;
-            slider.maxValue = 1f;
-            slider.SetValueWithoutNotify(AnimationPrefs.SliderValue);
-            if (valueLabel != null)
-                valueLabel.text = AnimationPrefs.SpeedLabel;
-            slider.onValueChanged.RemoveAllListeners();
-            slider.onValueChanged.AddListener(v =>
-            {
-                AnimationPrefs.SliderValue = v;
-                if (valueLabel != null)
-                    valueLabel.text = AnimationPrefs.SpeedLabel;
-            });
+            OptionSliderView view = row.GetComponent<OptionSliderView>();
+            if (view == null)
+                view = row.gameObject.AddComponent<OptionSliderView>();
+            view.Bind(
+                "Animation Speed",
+                AnimationPrefs.MinMultiplier,
+                AnimationPrefs.SkipStep,
+                true,
+                AnimationPrefs.SliderValue,
+                v => AnimationPrefs.SliderValue = v,
+                () => AnimationPrefs.SpeedLabel);
         }
 
         void FillModeToggles()
@@ -743,7 +690,7 @@ namespace ModularChess.Match
 
             if (_match != null && _match.IsPlaying && _board != null && _board.gameObject.activeSelf)
             {
-                _match.TryPauseFromEscape();
+                _hud?.ToggleOptions();
                 return;
             }
 

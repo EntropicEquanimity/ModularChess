@@ -19,6 +19,10 @@ namespace ModularChess.Presentation
         const string EffectDescriptionPath = "Assets/Prefabs/UI/EffectDescription.prefab";
         const string ModeSettingsPopupPath = "Assets/Prefabs/Overlays/ModeSettingsPopup.prefab";
         const string SettingsControlPath = "Assets/Prefabs/UI/SettingsControl.prefab";
+        const string OptionSliderPath = "Assets/Prefabs/UI/OptionSlider.prefab";
+        const string PromotionPopupPath = "Assets/Prefabs/Overlays/PromotionPopup.prefab";
+        const string MatchHudPath = "Assets/Prefabs/Overlays/MatchHud.prefab";
+        const string ScrollViewPath = "Assets/Prefabs/UI/Scroll View.prefab";
 
         public static GameObject Canvas => Load(CanvasPath, "UI/Canvas");
         public static GameObject TextButton => Load(ButtonPath, "UI/TextButton");
@@ -35,6 +39,10 @@ namespace ModularChess.Presentation
         public static GameObject EffectDescription => Load(EffectDescriptionPath, "UI/EffectDescription");
         public static GameObject ModeSettingsPopup => Load(ModeSettingsPopupPath, "Overlays/ModeSettingsPopup");
         public static GameObject SettingsControl => Load(SettingsControlPath, "UI/SettingsControl");
+        public static GameObject OptionSlider => Load(OptionSliderPath, "UI/OptionSlider");
+        public static GameObject PromotionPopup => Load(PromotionPopupPath, "Overlays/PromotionPopup");
+        public static GameObject MatchHud => Load(MatchHudPath, "Overlays/MatchHud");
+        public static GameObject ScrollView => Load(ScrollViewPath, "UI/Scroll View");
 
         static GameObject Load(string assetPath, string resourcesName)
         {
