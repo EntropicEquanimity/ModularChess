@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1900001
 Transform:
   m_ObjectHideFlags: 0
@@ -45,9 +45,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf62e1f96654c8989cc31a7a546289f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  squareSize: 1
+  squareSize: 2
+  theme:
+    LightSquare: {r: 0, g: 0, b: 0, a: 0}
+    DarkSquare: {r: 0, g: 0, b: 0, a: 0}
+    Selected: {r: 0, g: 0, b: 0, a: 0}
+    LegalMove: {r: 0, g: 0, b: 0, a: 0}
+    LastMove: {r: 0, g: 0, b: 0, a: 0}
+    WhitePieceFill: {r: 0, g: 0, b: 0, a: 0}
+    WhitePieceGlyph: {r: 0, g: 0, b: 0, a: 0}
+    WhitePieceOutline: {r: 0, g: 0, b: 0, a: 0}
+    BlackPieceFill: {r: 0, g: 0, b: 0, a: 0}
+    BlackPieceGlyph: {r: 0, g: 0, b: 0, a: 0}
+    BlackPieceOutline: {r: 0, g: 0, b: 0, a: 0}
   allowSelectionWhenFinished: 0
   buildOnAwake: 1
+  piecePrefab: {fileID: 6844280791312596072, guid: f5dc4f970cf564049995caf2cdf4f57c, type: 3}
 --- !u!114 &1900003
 MonoBehaviour:
   m_ObjectHideFlags: 0

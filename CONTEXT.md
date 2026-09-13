@@ -21,11 +21,15 @@ A Play-screen action that enters a Versus Friend Lobby with a Join Code. Not an 
 _Avoid_: Activity, Opponent, watcher
 
 **Play**:
-Main-menu path to pick Versus AI, Versus Friend, or Join. Then Mode multi-select (only Modes allowed for that Activity), each Mode’s settings, then Versus AI starts after confirm or Versus Friend goes to Lobby. Match Settings stay on the left until Start. Main menu also has Shop, a disabled Customize control, Options, Credits, Exit, and Feedback (Google Form).
+Main-menu path to pick Versus AI, Versus Friend, or Join. Then Mode multi-select (only Modes allowed for that Activity), each Mode’s settings, then Versus AI starts after confirm or Versus Friend goes to Lobby. Match Settings stay on the left until Start. Main menu also has Unlocks, a disabled Customize control, Options, Credits, Exit, and Feedback (Google Form). Escape closes the top popup, then the overlay, back toward the main menu.
 _Avoid_: Opponent row
 
+**Exit**:
+Quits the Game. From the main menu, Exit and Escape show a confirmation first. Escape on that confirmation cancels. Not Resign, not Leave, not Pause.
+_Avoid_: Resign, quit as Leave
+
 **Host**:
-The player who authors a Versus Friend Lobby and must own every Mode in that Match's Mode set on their platform store. The friend must have the Mode content (download if missing) but need not own it in MVP; future matchmaking will require both to own. Changing the Mode set means leaving and creating a new Lobby. The Host Starts the Match; Start is allowed only when the other player is in the Lobby and synced. The friend sees the same Start control disabled, labeled “waiting for host.”
+The player who authors a Versus Friend Lobby and must own every Mode in that Match's Mode set on that platform. The friend must have the Mode content (download if missing) but need not own it in MVP; future matchmaking will require both to own. Changing the Mode set means leaving and creating a new Lobby. The Host Starts the Match; Start is allowed only when the other player is in the Lobby and synced. The friend sees the same Start control disabled, labeled “waiting for host.”
 _Avoid_: owner, server
 
 **Lobby**:
@@ -40,21 +44,25 @@ _Avoid_: room ID, matchmaking, watcher, WebGL
 One playthrough of Versus AI or Versus Friend: Core, Match Settings, and one shared Mode set, from setup until a terminal result. Versus AI has no Lobby; the Match starts after Modes and Match Settings are confirmed. On game over, Fog lifts: true Board, true PGN, Empowered marks, and Status.
 _Avoid_: game, game mode, Activity
 
+**Match history**:
+A stored record of a finished Match: Moves as Square from–to plus a small Move kind and promotion PieceType; seconds the Match clock was actually ticking (both Sides; not Setup, Draft, Disconnect, or Pause; increment does not add; none stores 0); the Mode set and those Modes’ settings; Match Settings (main time, increment, resolved Host Side, Versus AI strength); and result (0 White, 1 Black, 2 Draw). No mover PieceType. Written only for a complete Match: Checkmate, Draw (including Stalemate and FIDE draws), Timeout, Resign, and Disconnect (that Side loses). Not Setup Leave. Not the Game. Not live notation. Bombard is one live Move (the Rook stays) and two history actions: from→target, then target→from. An Empowered King’s extra Move is two live Moves and two history actions; no synthetic return.
+_Avoid_: game history, PGN as the store, Host as the winner field, Bombard as a single from–to that looks like a slide-capture
+
 **Rematch**:
 From Results, keep the same Modes and Match Settings. Versus Friend: new Lobby, same Host, same Join Code if the friend is still on Results; Host Starts; new Setup. Random Host color re-rolls. Versus AI: Confirm starts a new Match immediately. Either player may leave to Activity selection. If the friend already left, Host returns to Activity selection.
 _Avoid_: skip Setup, keep last Empowered set
 
 **Match Settings**:
-Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control (including none; default none; Host may pick none, 10+5, 5+3, or custom minutes plus increment including 0; 0+0 is none), Host color (White, Black, or Random; White or Black shows in the Lobby immediately, Random resolves at Start before Setup), Versus AI strength (Easy, Medium, Hard; the AI uses the same Vision as a human — strength is play quality, not omniscience), and whether a Side may End Turn with zero Moves this Turn (default off).
-_Avoid_: Base Settings, Time Pressure, Options, delay clock, hourglass, 0+0 as a second None
+Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control is two Host picks: main time (default none; none, Bullet 1 minute, Blitz 5 minutes, Standard 60 minutes, or Extended 120 minutes) and increment (none, 1, 2, 5, 10, 15, 30, or 60 seconds). When main time is none, increment is none and that control is disabled. 0+0 is none. Host color (White, Black, or Random; White or Black shows in the Lobby immediately, Random resolves at Start before Setup), Versus AI strength (Easy, Medium, Hard; the AI uses the same Vision as a human — strength is play quality, not omniscience), and whether a Side may End Turn with zero Moves this Turn (default off).
+_Avoid_: Base Settings, Time Pressure, Options, delay clock, hourglass, 0+0 as a second None, combined 10+5 labels, custom minutes
 
 **Options**:
 Account and app settings. Includes show notation. Not a Match and not Customization. With Fog of War, notation is per-Side: your Moves are full; opponent Moves are full only if you had Vision on the relevant Squares, otherwise a generic line. After the Match, a full true PGN is available.
 _Avoid_: Match Settings, Customization, live true notation under Fog
 
-**Shop**:
-The catalog of purchasable content. MVP sells Modes. Later also Activities and Customization. Core, Versus AI, Versus Friend, and Join are not sold here. Ownership is per platform store (Steam, App Store, Play), not synced across platforms in MVP. Versus Friend: the Host must own the Mode set; the friend downloads missing content and need not own.
-_Avoid_: Unlock, store, DLC menu, cross-store sync
+**Unlocks**:
+The catalog of Modes the player can Buy. Each Mode is shown owned or not; Buy happens on a covering popup, not on the row. MVP Buys Modes. Later also Activities and Customization. Core, Versus AI, Versus Friend, and Join are not Bought here. Ownership is per platform (Steam, iOS, Android), not synced across platforms in MVP. Versus Friend: the Host must own the Mode set; the friend downloads missing content and need not own.
+_Avoid_: Shop, store, DLC menu
 
 **Game**:
 The product, Modular Chess. Not a playthrough.
@@ -113,7 +121,7 @@ Martyr’s monotonic point total of Pieces that actually left this Side’s Boar
 _Avoid_: net deficit, capture attempts, hidden Martyr bar
 
 **Draft**:
-Martyr’s power pick after Lost Material crosses a threshold (default 6). Happens at the start of this Side’s next Turn, before they Move. The opponent finishes their Turn first, including extra King Moves. One Draft per this Side’s Turn; extra crossings queue and do not expire. Each Draft offers 3 options (Mode tunable). Always 3 cards: if fewer than 3 fresh relevant powers remain, pad with already-unlocked powers (stack/refresh those). Wrap into unlocked stacking when no fresh relevant remain. Cannot skip. 60s; timeout picks uniformly at random among the 3. The Match clock pauses during Draft; Draft has its own 60s. The other player does not see the 3 cards. They see only a wait line: “Other player drafting in progress: 60 seconds left.” Versus AI Drafts instantly; that wait line is not shown. The result is public when it applies. Wrap/stack **refreshes or re-triggers**, it does not add: Untouchable King 5 from now; Stasis 3 from now on the same Queen if she remains, else choose another or dud; Reinforcements another 3; Battlefield another Pawn; Fleet and Bombard already on → no-op; Ascension converts Knights now or no-op. MVP pool is exactly: Reinforcements, Fleet Pawns, Bombard, Untouchable King, Stasis Field, Knight Ascension, Battlefield Promotion. Uncapped unlocks.
+Martyr’s power pick after Lost Material crosses a threshold (default 6). Happens at the start of this Side’s next Turn, before they Move. The opponent finishes their Turn first, including extra King Moves. One Draft per this Side’s Turn; extra crossings queue and do not expire. Each Draft offers 3 options (Mode tunable). Always 3 cards: if fewer than 3 fresh relevant powers remain, pad with already-unlocked powers (stack/refresh those). Wrap into unlocked stacking when no fresh relevant remain. Cannot skip. This Side sees a description above the three options when the Draft opens. 60s; timeout picks uniformly at random among the 3. The Match clock pauses during Draft; Draft has its own 60s. The other player does not see the 3 cards or that description. They see only a wait line: “Other player drafting in progress: 60 seconds left.” Versus AI Drafts instantly; that wait line is not shown. The result is public when it applies. Wrap/stack **refreshes or re-triggers**, it does not add: Untouchable King 5 from now; Stasis 3 from now on the same Queen if she remains, else choose another or dud; Reinforcements another 3; Battlefield another Pawn; Fleet and Bombard already on → no-op; Ascension converts Knights now or no-op. MVP pool is exactly: Reinforcements, Fleet Pawns, Bombard, Untouchable King, Stasis Field, Knight Ascension, Battlefield Promotion. Uncapped unlocks.
 _Avoid_: Setup, shop roll, interrupt mid-Turn, dump all Drafts at once, pad with irrelevant, duration add, extra MVP powers
 
 **Status**:
@@ -189,8 +197,8 @@ Versus Friend, from Turn 1, on your Turn only. Not Setup, not during Draft or Di
 _Avoid_: offer on their Turn, Setup draw spam
 
 **Pause**:
-Versus AI only. Stops the Match clock if any, and the AI. Resume continues the same Match. Not during Setup or Draft. Versus Friend has no Pause. No takebacks, hints, or engine bar in MVP.
-_Avoid_: Friend Pause, Pause as Resign, takeback, hint
+Versus AI only. Stops the Match clock if any, and the AI. Resume continues the same Match. Not during Setup or Draft. Versus Friend has no Pause. Escape Pauses Versus AI when no popup is open and it is not Setup or Draft. No takebacks, hints, or engine bar in MVP.
+_Avoid_: Friend Pause, Pause as Resign, takeback, hint, Escape as Exit during a Match
 
 **Setup**:
 After Start, before Turn 1. Powerful Pieces: each Side must select exactly N Empowered Pieces (default 2), then Confirm. Confirm stays off until N are selected. Duplicate types allowed. Shared 30s clock. Versus AI Confirms instantly; you still have the 30s. Both Confirm early → Turn 1 immediately. Timeout → autopick remaining slots uniformly at random from unselected own Pieces (duplicate types allowed), then reveal. Unconfirm is allowed until both have Confirmed or time runs out; the clock does not reset. Picks stay hidden until both have Confirmed or time runs out; then marks apply and Fog still hides enemy marks on Shadow or Hidden Squares. Your own picks are visible to you. Resign is not allowed. Menu Leave during Setup aborts: no winner, both return to Activity selection. Versus AI Setup Leave returns to the menu.

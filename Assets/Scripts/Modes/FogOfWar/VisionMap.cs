@@ -37,6 +37,11 @@ namespace ModularChess.Core
                 throw new ArgumentNullException(nameof(state));
             }
 
+            if (state.Status != GameStatus.InProgress)
+            {
+                return AllIdentified;
+            }
+
             if (state.Rules == null || !state.Rules.Has(ModeId.FogOfWar))
             {
                 return AllIdentified;

@@ -21,7 +21,7 @@ namespace ModularChess.Core.Tests
         public void EmpoweredKing_KeepsTurnOpen()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
-            GameState state = GameState.FromFen("8/8/8/8/8/8/8/4K3 w - - 0 1", rules);
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/8/4K2R w - - 0 1", rules);
             Piece king = state.Board.GetPiece(new Square(4, 0));
             state = state.ConfirmEmpowered(new[] { king.Id });
             state = MoveTestHelper.Play(state, "e1e2");

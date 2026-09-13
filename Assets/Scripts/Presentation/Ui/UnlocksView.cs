@@ -8,6 +8,7 @@ namespace ModularChess.Presentation
     {
         [SerializeField] Transform content;
         [SerializeField] UnlockRow rowPrefab;
+        UnlocksDetailPopup _detail;
 
         void OnEnable()
         {
@@ -34,8 +35,37 @@ namespace ModularChess.Presentation
             {
                 UnlockRow row = Instantiate(rowPrefab, content);
                 row.gameObject.SetActive(true);
-                row.Bind(modes[i]);
+                row.Bind(modes[i], OpenDetail);
             }
+        }
+
+        public bool CloseDetailIfOpen()
+        {
+            if (_detail != null && _detail.IsOpen)
+            {
+                _detail.Close();
+                return true;
+            }
+
+            return false;
+        }
+
+        public void HideDetailImmediate()
+        {
+            _detail?.HideImmediate();
+        }
+
+        void OpenDetail(ModeId id)
+        {
+            _detail = UnlocksDetailPopup.Ensure(transform);
+            _detail.Open(id, RefreshLocks);
+        }
+
+        void RefreshLocks()
+        {
+            UnlockRow[] rows = content != null ? content.GetComponentsInChildren<UnlockRow>(true) : System.Array.Empty<UnlockRow>();
+            for (int i = 0; i < rows.Length; i++)
+                rows[i].Refresh();
         }
     }
 }

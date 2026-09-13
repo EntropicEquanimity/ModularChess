@@ -295,6 +295,23 @@ namespace ModularChess.Core
             return CloneWithRuntime(next);
         }
 
+        public GameState WithSideToMove(Side side)
+        {
+            return new GameState(
+                Board,
+                side,
+                EnPassantTarget,
+                CastlingRights,
+                HalfmoveClock,
+                FullmoveNumber,
+                History as Move[] ?? CopyHistory(),
+                _positionKeys,
+                Rules,
+                Runtime,
+                Status == GameStatus.InProgress ? null : Status,
+                false);
+        }
+
         public GameState WithTerminal(GameStatus status)
         {
             if (status == GameStatus.InProgress)

@@ -156,6 +156,162 @@ namespace ModularChess.Presentation
             return field;
         }
 
+        public static RectTransform Panel(Transform parent, Vector2 size)
+        {
+            GameObject prefab = RuntimePrefabs.Panel;
+            GameObject go = prefab != null
+                ? Object.Instantiate(prefab, parent)
+                : new GameObject("Panel", typeof(RectTransform), typeof(Image));
+            if (prefab == null)
+                go.transform.SetParent(parent, false);
+            go.name = "Panel";
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.sizeDelta = size;
+            return rect;
+        }
+
+        public static TextMeshProUGUI DescriptionBox(Transform parent, string text, Vector2 size)
+        {
+            GameObject prefab = RuntimePrefabs.DescriptionBox;
+            GameObject go = prefab != null
+                ? Object.Instantiate(prefab, parent)
+                : new GameObject("DescriptionBox", typeof(RectTransform), typeof(Image));
+            if (prefab == null)
+                go.transform.SetParent(parent, false);
+            go.name = "DescriptionBox";
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.sizeDelta = size;
+            TextMeshProUGUI label = go.GetComponentInChildren<TextMeshProUGUI>();
+            if (label == null)
+                label = Label(go.transform, text, 16, TextAlignmentOptions.Center);
+            label.text = text ?? string.Empty;
+            label.color = Color.black;
+            label.extraPadding = false;
+            label.textWrappingMode = TextWrappingModes.Normal;
+            return label;
+        }
+
+        public static Button ImageButton(Transform parent, Sprite sprite, UnityAction onClick)
+        {
+            GameObject prefab = RuntimePrefabs.ImageButton;
+            GameObject go = prefab != null
+                ? Object.Instantiate(prefab, parent)
+                : new GameObject("ImageButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            if (prefab == null)
+                go.transform.SetParent(parent, false);
+            go.name = "ImageButton";
+
+            Image icon = FindIconImage(go.transform);
+            if (icon == null)
+            {
+                var iconGo = new GameObject("Image", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                iconGo.transform.SetParent(go.transform, false);
+                icon = iconGo.GetComponent<Image>();
+            }
+
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            if (sprite != null)
+                icon.sprite = sprite;
+            if (icon.sprite != null)
+                icon.SetNativeSize();
+
+            RectTransform buttonRect = go.GetComponent<RectTransform>();
+            buttonRect.sizeDelta = icon.rectTransform.sizeDelta + new Vector2(16f, 16f);
+
+            Button button = go.GetComponent<Button>();
+            if (button == null)
+                button = go.AddComponent<Button>();
+            button.onClick.RemoveAllListeners();
+            if (onClick != null)
+                button.onClick.AddListener(onClick);
+            return button;
+        }
+
+        public static Slider Slider(Transform parent, float value, UnityAction<float> changed)
+        {
+            var go = new GameObject("Slider", typeof(RectTransform), typeof(Slider));
+            go.transform.SetParent(parent, false);
+            var slider = go.GetComponent<Slider>();
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.wholeNumbers = false;
+
+            Image background = CreateSliderImage(go.transform, "Background", new Color(0.75f, 0.75f, 0.75f, 1f));
+            RectTransform backgroundRect = background.rectTransform;
+            backgroundRect.anchorMin = new Vector2(0f, 0.25f);
+            backgroundRect.anchorMax = new Vector2(1f, 0.75f);
+            backgroundRect.offsetMin = Vector2.zero;
+            backgroundRect.offsetMax = Vector2.zero;
+
+            var fillArea = new GameObject("Fill Area", typeof(RectTransform));
+            fillArea.transform.SetParent(go.transform, false);
+            RectTransform fillAreaRect = fillArea.GetComponent<RectTransform>();
+            fillAreaRect.anchorMin = new Vector2(0f, 0.25f);
+            fillAreaRect.anchorMax = new Vector2(1f, 0.75f);
+            fillAreaRect.offsetMin = new Vector2(4f, 0f);
+            fillAreaRect.offsetMax = new Vector2(-4f, 0f);
+
+            Image fill = CreateSliderImage(fillArea.transform, "Fill", new Color(0.15f, 0.15f, 0.15f, 1f));
+            RectTransform fillRect = fill.rectTransform;
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.offsetMin = Vector2.zero;
+            fillRect.offsetMax = Vector2.zero;
+
+            var handleArea = new GameObject("Handle Slide Area", typeof(RectTransform));
+            handleArea.transform.SetParent(go.transform, false);
+            RectTransform handleAreaRect = handleArea.GetComponent<RectTransform>();
+            handleAreaRect.anchorMin = Vector2.zero;
+            handleAreaRect.anchorMax = Vector2.one;
+            handleAreaRect.offsetMin = new Vector2(8f, 0f);
+            handleAreaRect.offsetMax = new Vector2(-8f, 0f);
+
+            Image handle = CreateSliderImage(handleArea.transform, "Handle", Color.black);
+            RectTransform handleRect = handle.rectTransform;
+            handleRect.sizeDelta = new Vector2(12f, 0f);
+
+            slider.fillRect = fillRect;
+            slider.handleRect = handleRect;
+            slider.targetGraphic = handle;
+            slider.value = Mathf.Clamp01(value);
+            slider.onValueChanged.RemoveAllListeners();
+            if (changed != null)
+                slider.onValueChanged.AddListener(changed);
+            return slider;
+        }
+
+        static Image CreateSliderImage(Transform parent, string name, Color color)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.transform.SetParent(parent, false);
+            Image image = go.GetComponent<Image>();
+            image.sprite = RuntimeSprites.Pixel;
+            image.color = color;
+            image.type = Image.Type.Simple;
+            return image;
+        }
+
+        static Image FindIconImage(Transform root)
+        {
+            Transform named = root.Find("Image");
+            if (named != null)
+            {
+                Image namedImage = named.GetComponent<Image>();
+                if (namedImage != null)
+                    return namedImage;
+            }
+
+            Image[] images = root.GetComponentsInChildren<Image>(true);
+            for (int i = 0; i < images.Length; i++)
+            {
+                if (images[i].transform != root)
+                    return images[i];
+            }
+
+            return null;
+        }
+
         static GameObject CreateFallbackCanvas(Transform parent)
         {
             var go = new GameObject("UICanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));

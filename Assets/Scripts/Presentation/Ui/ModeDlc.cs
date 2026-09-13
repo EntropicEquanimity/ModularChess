@@ -18,6 +18,22 @@ namespace ModularChess.Presentation
             PlayerPrefs.Save();
         }
 
+        public static void UnlockAll()
+        {
+            ModeDefinition[] modes = ModeCatalog.All;
+            for (int i = 0; i < modes.Length; i++)
+                PlayerPrefs.SetInt(Key(modes[i].Id), 1);
+            PlayerPrefs.Save();
+        }
+
+        public static void ClearAll()
+        {
+            ModeDefinition[] modes = ModeCatalog.All;
+            for (int i = 0; i < modes.Length; i++)
+                PlayerPrefs.DeleteKey(Key(modes[i].Id));
+            PlayerPrefs.Save();
+        }
+
         static string Key(ModeId id) => KeyPrefix + (int)id;
     }
 }

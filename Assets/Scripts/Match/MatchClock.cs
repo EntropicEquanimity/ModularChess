@@ -7,6 +7,7 @@ namespace ModularChess.Match
     {
         public float WhiteSeconds { get; private set; }
         public float BlackSeconds { get; private set; }
+        public float ElapsedSeconds { get; private set; }
         public bool Running { get; private set; }
 
         readonly TimeControl _control;
@@ -37,6 +38,8 @@ namespace ModularChess.Match
             {
                 return null;
             }
+
+            ElapsedSeconds += delta;
 
             if (toMove == Side.White)
             {
@@ -78,6 +81,13 @@ namespace ModularChess.Match
             {
                 BlackSeconds += extra;
             }
+        }
+
+        public void ResetToStart()
+        {
+            float baseSeconds = _control.IsNone ? 0f : _control.BaseMinutes * 60f;
+            WhiteSeconds = baseSeconds;
+            BlackSeconds = baseSeconds;
         }
 
         public string Format(Side side)

@@ -6,6 +6,22 @@ namespace ModularChess.Presentation
     {
         static Sprite _pixel;
         static Sprite _circle;
+        static Sprite _lock;
+
+        public static Sprite LockIcon
+        {
+            get
+            {
+                if (_lock != null)
+                    return _lock;
+#if UNITY_EDITOR
+                _lock = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Lock.png");
+#endif
+                if (_lock == null)
+                    _lock = Resources.Load<Sprite>("Lock");
+                return _lock;
+            }
+        }
 
         public static Sprite Pixel
         {

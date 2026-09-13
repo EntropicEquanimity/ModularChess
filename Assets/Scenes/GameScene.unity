@@ -575,10 +575,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: BoardView
       objectReference: {fileID: 0}
-    - target: {fileID: 1900000, guid: 75e3779890ec4681bb70a20b63a485cd, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1900001, guid: 75e3779890ec4681bb70a20b63a485cd, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -618,6 +614,10 @@ PrefabInstance:
     - target: {fileID: 1900001, guid: 75e3779890ec4681bb70a20b63a485cd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1900002, guid: 75e3779890ec4681bb70a20b63a485cd, type: 3}
+      propertyPath: squareSize
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 1900003, guid: 75e3779890ec4681bb70a20b63a485cd, type: 3}
       propertyPath: pickCamera

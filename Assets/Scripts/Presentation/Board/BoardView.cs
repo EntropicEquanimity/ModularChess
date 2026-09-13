@@ -13,11 +13,13 @@ namespace ModularChess.Presentation
         [SerializeField] BoardTheme theme;
         [SerializeField] bool allowSelectionWhenFinished;
         [SerializeField] bool buildOnAwake = true;
+        [SerializeField] PieceView piecePrefab;
 
         readonly Dictionary<Guid, PieceView> _pieces = new Dictionary<Guid, PieceView>();
         readonly SquareView[] _squares = new SquareView[BoardLayout.FileCount * BoardLayout.RankCount];
         readonly HashSet<Guid> _seenIds = new HashSet<Guid>();
         readonly List<Guid> _staleIds = new List<Guid>();
+        readonly List<PieceView> _deferredDestroy = new List<PieceView>();
 
         Transform _squaresRoot;
         Transform _piecesRoot;
@@ -28,9 +30,12 @@ namespace ModularChess.Presentation
         Square? _selected;
         Square? _lastFrom;
         Square? _lastTo;
+        Side _pieceLayoutViewer = Side.White;
+        int _movingCount;
         bool _built;
 
         public GameState BoundState => _state;
+        public bool PiecesBusy => _movingCount > 0;
         public Side ViewerSide
         {
             get => _viewer;
@@ -57,11 +62,13 @@ namespace ModularChess.Presentation
             theme = BoardTheme.Default;
             allowSelectionWhenFinished = false;
             buildOnAwake = true;
+            piecePrefab = LoadDefaultPiecePrefab();
         }
 
         void Awake()
         {
             EnsureTheme();
+            ResolvePiecePrefab();
             if (buildOnAwake)
                 Build();
         }
@@ -84,6 +91,27 @@ namespace ModularChess.Presentation
             SyncPieces();
             PruneSelectionAfterBind();
             RefreshHighlights();
+        }
+
+        public void SetMotionPaused(bool paused)
+        {
+            foreach (KeyValuePair<Guid, PieceView> pair in _pieces)
+            {
+                if (pair.Value != null)
+                    pair.Value.SetMotionPaused(paused);
+            }
+        }
+
+        public void CompleteMotion()
+        {
+            foreach (KeyValuePair<Guid, PieceView> pair in _pieces)
+            {
+                if (pair.Value != null)
+                    pair.Value.CompleteMotion();
+            }
+
+            _movingCount = 0;
+            FlushDeferred();
         }
 
         public void SetSelection(Square? square)
@@ -245,6 +273,9 @@ namespace ModularChess.Presentation
         void SyncPieces()
         {
             _seenIds.Clear();
+            bool snapAll = _pieceLayoutViewer != _viewer;
+            _pieceLayoutViewer = _viewer;
+            int started = 0;
 
             for (int file = 0; file < BoardLayout.FileCount; file++)
             {
@@ -260,19 +291,47 @@ namespace ModularChess.Presentation
                         continue;
 
                     _seenIds.Add(piece.Id);
+                    bool created = false;
                     if (!_pieces.TryGetValue(piece.Id, out PieceView view))
                     {
                         view = CreatePieceView();
                         _pieces.Add(piece.Id, view);
+                        created = true;
                     }
 
+                    bool wasShadow = view.IsShadow;
                     bool shadow = sight == SquareSight.Shadow && piece.Side != _viewer;
                     if (shadow)
                         view.BindShadow(_layout.SquareSize, theme);
                     else
                         view.Bind(piece, _layout.SquareSize, theme);
-                    view.transform.localPosition = _layout.SquareCenterLocal(square, _viewer);
+
+                    Vector3 dest = _layout.SquareCenterLocal(square, _viewer);
                     view.gameObject.SetActive(true);
+
+                    bool identified = sight == SquareSight.Identified || piece.Side == _viewer;
+                    bool animate = !snapAll
+                        && !created
+                        && !shadow
+                        && !wasShadow
+                        && identified
+                        && !AnimationPrefs.Instant
+                        && (view.transform.localPosition - dest).sqrMagnitude > 0.0001f;
+
+                    if (animate)
+                    {
+                        float chebyshev = ChebyshevFromLocal(view.transform.localPosition, dest);
+                        float duration = AnimationPrefs.MoveDuration(0.32f + 0.06f * chebyshev);
+                        if (view.PlayMove(dest, duration, OnPieceMotionEnded))
+                        {
+                            _movingCount++;
+                            started++;
+                        }
+                    }
+                    else
+                    {
+                        view.SnapTo(dest);
+                    }
                 }
             }
 
@@ -286,23 +345,92 @@ namespace ModularChess.Presentation
                     _staleIds.Add(pair.Key);
             }
 
+            bool defer = started > 0 || _movingCount > 0;
             for (int i = 0; i < _staleIds.Count; i++)
             {
                 Guid id = _staleIds[i];
                 PieceView view = _pieces[id];
                 _pieces.Remove(id);
-                if (view != null)
+                if (view == null)
+                    continue;
+                if (defer)
+                    _deferredDestroy.Add(view);
+                else
                     Destroy(view.gameObject);
             }
         }
 
+        void OnPieceMotionEnded()
+        {
+            _movingCount = Mathf.Max(0, _movingCount - 1);
+            if (_movingCount == 0)
+                FlushDeferred();
+        }
+
+        void FlushDeferred()
+        {
+            for (int i = 0; i < _deferredDestroy.Count; i++)
+            {
+                if (_deferredDestroy[i] != null)
+                    Destroy(_deferredDestroy[i].gameObject);
+            }
+
+            _deferredDestroy.Clear();
+        }
+
+        float ChebyshevFromLocal(Vector3 from, Vector3 to)
+        {
+            float dx = Mathf.Abs(to.x - from.x) / _layout.SquareSize;
+            float dy = Mathf.Abs(to.y - from.y) / _layout.SquareSize;
+            return Mathf.Max(1f, Mathf.Max(dx, dy));
+        }
+
         PieceView CreatePieceView()
         {
-            var go = new GameObject("Piece");
-            go.transform.SetParent(_piecesRoot, false);
-            go.transform.localRotation = Quaternion.identity;
-            go.transform.localScale = Vector3.one;
-            return go.AddComponent<PieceView>();
+            PieceView prefab = ResolvePiecePrefab();
+            PieceView view;
+            if (prefab != null)
+            {
+                view = Instantiate(prefab, _piecesRoot);
+            }
+            else
+            {
+                var go = new GameObject("ChessPiece");
+                go.transform.SetParent(_piecesRoot, false);
+                view = go.AddComponent<PieceView>();
+            }
+
+            view.gameObject.SetActive(true);
+            Transform t = view.transform;
+            t.localPosition = Vector3.zero;
+            t.localRotation = Quaternion.identity;
+            return view;
+        }
+
+        PieceView ResolvePiecePrefab()
+        {
+            if (piecePrefab != null)
+                return piecePrefab;
+
+            GameObject loaded = RuntimePrefabs.ChessPiece;
+            if (loaded == null)
+                return null;
+
+            piecePrefab = loaded.GetComponent<PieceView>();
+            return piecePrefab;
+        }
+
+        static PieceView LoadDefaultPiecePrefab()
+        {
+            GameObject loaded = RuntimePrefabs.ChessPiece;
+            return loaded != null ? loaded.GetComponent<PieceView>() : null;
+        }
+
+        void OnDisable()
+        {
+            if (!Application.isPlaying)
+                return;
+            CompleteMotion();
         }
 
         void PruneSelectionAfterBind()

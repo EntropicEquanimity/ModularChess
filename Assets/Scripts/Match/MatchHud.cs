@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using DG.Tweening;
 using ModularChess.Core;
 using ModularChess.Presentation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,35 +12,44 @@ namespace ModularChess.Match
 {
     public sealed class MatchHud : MonoBehaviour
     {
-        [SerializeField] private Text turnText;
-        [SerializeField] private Text checkText;
-        [SerializeField] private Text moveListText;
-        [SerializeField] private Text gameOverText;
-        [SerializeField] private GameObject gameOverBanner;
-        Text _statusLine;
-        Text _clockText;
+        [SerializeField] TMP_Text turnText;
+        [SerializeField] TMP_Text checkText;
+        [SerializeField] TMP_Text moveListText;
+        [SerializeField] TMP_Text gameOverText;
+        [SerializeField] GameObject gameOverBanner;
+
+        TMP_Text _statusLine;
+        TMP_Text _clockText;
         Button _endTurnButton;
         Button _pauseButton;
         Button _resignButton;
         Button _leaveButton;
+        Button _setupConfirmButton;
+        TMP_Text _lostMaterialText;
         Transform _draftRow;
+        RectTransform _draftDescription;
+        Tween _draftTween;
         Action<MartyrPower> _onDraft;
+        bool _draftPromptShown;
 
-        private void Awake()
+        void Awake()
         {
             EnsureBuilt();
+        }
+
+        void OnDestroy()
+        {
+            _draftTween?.Kill();
         }
 
         public void Bind(GameState state, IReadOnlyList<Move> moves)
         {
             EnsureBuilt();
             if (state == null)
-            {
                 return;
-            }
 
             bool inProgress = state.Status == GameStatus.InProgress;
-            turnText.text = inProgress ? $"{state.SideToMove} to move" : "Game over";
+            turnText.text = inProgress ? $"{state.SideToMove} to move" : "Match over";
             checkText.gameObject.SetActive(inProgress && state.IsInCheck);
             checkText.text = "Check";
             bool showMoves = PlayerPrefs.GetInt("ShowNotation", 1) == 1;
@@ -51,148 +62,312 @@ namespace ModularChess.Match
             gameOverText.text = result;
         }
 
-        private void EnsureBuilt()
+        public void BindActions(MatchController controller)
         {
-            if (turnText != null
-                && checkText != null
-                && moveListText != null
-                && gameOverText != null
-                && gameOverBanner != null)
+            EnsureBuilt();
+            _endTurnButton.onClick.RemoveAllListeners();
+            _endTurnButton.onClick.AddListener(controller.RequestEndTurn);
+            _pauseButton.onClick.RemoveAllListeners();
+            _pauseButton.onClick.AddListener(controller.TogglePause);
+            _resignButton.onClick.RemoveAllListeners();
+            _resignButton.onClick.AddListener(controller.Resign);
+            _leaveButton.onClick.RemoveAllListeners();
+            _leaveButton.onClick.AddListener(controller.LeaveToMenu);
+            if (_setupConfirmButton != null)
             {
+                _setupConfirmButton.onClick.RemoveAllListeners();
+                _setupConfirmButton.onClick.AddListener(controller.ConfirmSetup);
+            }
+        }
+
+        public void SetClock(MatchClock clock)
+        {
+            EnsureBuilt();
+            if (_clockText == null)
+                return;
+            if (clock == null || clock.IsNone)
+            {
+                _clockText.text = string.Empty;
                 return;
             }
 
-            Font font = BuiltinFont();
+            _clockText.text = $"W {clock.Format(Side.White)}   B {clock.Format(Side.Black)}";
+        }
+
+        public void SetEndTurnVisible(bool visible)
+        {
+            EnsureBuilt();
+            if (_endTurnButton != null)
+                _endTurnButton.gameObject.SetActive(visible);
+        }
+
+        public void SetPauseVisible(bool visible)
+        {
+            EnsureBuilt();
+            if (_pauseButton != null)
+                _pauseButton.gameObject.SetActive(visible);
+        }
+
+        public void SetResignVisible(bool visible)
+        {
+            EnsureBuilt();
+            if (_resignButton != null)
+                _resignButton.gameObject.SetActive(visible);
+        }
+
+        public void SetSetupConfirmVisible(bool visible)
+        {
+            EnsureBuilt();
+            if (_setupConfirmButton != null)
+                _setupConfirmButton.gameObject.SetActive(visible);
+        }
+
+        public void SetLostMaterial(int? white, int? black, int threshold)
+        {
+            EnsureBuilt();
+            if (_lostMaterialText == null)
+                return;
+            if (white == null || black == null)
+            {
+                _lostMaterialText.text = string.Empty;
+                return;
+            }
+
+            _lostMaterialText.text = $"Lost W {white.Value}  B {black.Value}  next {threshold}";
+        }
+
+        public void SetStatusLine(string text)
+        {
+            EnsureBuilt();
+            if (_statusLine != null)
+                _statusLine.text = text ?? string.Empty;
+        }
+
+        public void ShowDraft(GameState state, Action<MartyrPower> onPick)
+        {
+            EnsureBuilt();
+            _onDraft = onPick;
+            if (_draftRow == null || state?.Runtime.PendingDraft == null)
+                return;
+
+            _draftRow.gameObject.SetActive(true);
+            DraftOffer offer = state.Runtime.PendingDraft.Value;
+            SetDraftButton(0, offer.First);
+            SetDraftButton(1, offer.Second);
+            SetDraftButton(2, offer.Third);
+            ShowDraftDescription();
+        }
+
+        public void HideDraft()
+        {
+            _draftTween?.Kill();
+            _draftPromptShown = false;
+            if (_draftRow != null)
+                _draftRow.gameObject.SetActive(false);
+            if (_draftDescription != null)
+                _draftDescription.gameObject.SetActive(false);
+        }
+
+        void ShowDraftDescription()
+        {
+            if (_draftDescription == null)
+                return;
+            _draftDescription.gameObject.SetActive(true);
+            if (_draftPromptShown)
+                return;
+            _draftPromptShown = true;
+            float shownY = _draftDescription.anchoredPosition.y;
+            _draftDescription.anchoredPosition = new Vector2(_draftDescription.anchoredPosition.x, shownY - 64f);
+            _draftTween?.Kill();
+            _draftTween = DOTween.To(
+                    () => _draftDescription.anchoredPosition,
+                    v => _draftDescription.anchoredPosition = v,
+                    new Vector2(_draftDescription.anchoredPosition.x, shownY),
+                    0.28f)
+                .SetEase(Ease.OutCubic)
+                .SetUpdate(true)
+                .SetTarget(_draftDescription);
+        }
+
+        void SetDraftButton(int index, MartyrPower power)
+        {
+            Transform child = _draftRow.GetChild(index);
+            var button = child.GetComponent<Button>();
+            TMP_Text label = child.GetComponentInChildren<TMP_Text>();
+            if (label != null)
+                label.text = FormatPower(power);
+            button.onClick.RemoveAllListeners();
+            MartyrPower captured = power;
+            button.onClick.AddListener(() => _onDraft?.Invoke(captured));
+        }
+
+        void EnsureBuilt()
+        {
             RectTransform root = GetComponent<RectTransform>();
             if (root == null)
-            {
                 root = gameObject.AddComponent<RectTransform>();
-            }
 
             if (turnText == null)
-            {
-                turnText = CreateText(
-                    "TurnLabel",
-                    root,
-                    font,
-                    36,
-                    TextAnchor.UpperCenter,
-                    Color.white,
-                    new Vector2(0.2f, 0.9f),
-                    new Vector2(0.8f, 1f),
-                    new Vector2(12f, -8f),
-                    new Vector2(-12f, -4f));
-            }
-
+                turnText = PlaceLabel(root, "TurnLabel", 16, new Vector2(0.2f, 0.9f), new Vector2(0.8f, 1f));
             if (checkText == null)
             {
-                checkText = CreateText(
-                    "CheckLabel",
-                    root,
-                    font,
-                    28,
-                    TextAnchor.UpperCenter,
-                    new Color(1f, 0.35f, 0.3f, 1f),
-                    new Vector2(0.2f, 0.84f),
-                    new Vector2(0.8f, 0.92f),
-                    new Vector2(12f, 0f),
-                    new Vector2(-12f, 0f));
+                checkText = PlaceLabel(root, "CheckLabel", 16, new Vector2(0.2f, 0.84f), new Vector2(0.8f, 0.92f));
+                checkText.color = new Color(0.7f, 0.1f, 0.1f, 1f);
                 checkText.gameObject.SetActive(false);
             }
 
             if (moveListText == null)
             {
-                moveListText = CreateText(
-                    "MoveList",
-                    root,
-                    font,
-                    20,
-                    TextAnchor.UpperLeft,
-                    new Color(0.92f, 0.92f, 0.88f, 1f),
-                    new Vector2(0f, 0.08f),
-                    new Vector2(0.28f, 0.84f),
-                    new Vector2(16f, 12f),
-                    new Vector2(-8f, -12f));
-                moveListText.alignment = TextAnchor.UpperLeft;
-                moveListText.horizontalOverflow = HorizontalWrapMode.Wrap;
-                moveListText.verticalOverflow = VerticalWrapMode.Overflow;
+                moveListText = PlaceLabel(root, "MoveList", 16, new Vector2(0f, 0.08f), new Vector2(0.28f, 0.84f));
+                moveListText.alignment = TextAlignmentOptions.TopLeft;
+                moveListText.textWrappingMode = TextWrappingModes.Normal;
             }
 
             if (gameOverBanner == null)
             {
-                GameObject banner = new GameObject("GameOverBanner", typeof(RectTransform), typeof(Image));
-                banner.transform.SetParent(root, false);
-                RectTransform bannerRect = banner.GetComponent<RectTransform>();
-                bannerRect.anchorMin = new Vector2(0.18f, 0.38f);
-                bannerRect.anchorMax = new Vector2(0.82f, 0.62f);
-                bannerRect.offsetMin = Vector2.zero;
-                bannerRect.offsetMax = Vector2.zero;
-                Image background = banner.GetComponent<Image>();
-                background.color = new Color(0f, 0f, 0f, 0.72f);
-                background.raycastTarget = false;
-                banner.SetActive(false);
-                gameOverBanner = banner;
+                RectTransform banner = UiFactory.Panel(root, new Vector2(420f, 120f));
+                banner.name = "GameOverBanner";
+                banner.anchorMin = new Vector2(0.5f, 0.5f);
+                banner.anchorMax = new Vector2(0.5f, 0.5f);
+                banner.anchoredPosition = Vector2.zero;
+                banner.gameObject.SetActive(false);
+                gameOverBanner = banner.gameObject;
             }
 
             if (gameOverText == null)
             {
-                gameOverText = CreateText(
-                    "GameOverLabel",
-                    gameOverBanner.GetComponent<RectTransform>(),
-                    font,
-                    44,
-                    TextAnchor.MiddleCenter,
-                    Color.white,
-                    Vector2.zero,
-                    Vector2.one,
-                    new Vector2(16f, 12f),
-                    new Vector2(-16f, -12f));
+                gameOverText = gameOverBanner.GetComponentInChildren<TMP_Text>();
+                if (gameOverText == null)
+                    gameOverText = UiFactory.Label(gameOverBanner.transform, string.Empty, 32, TextAlignmentOptions.Center);
+                gameOverText.color = Color.black;
+                Stretch(gameOverText.rectTransform);
+            }
+
+            if (_statusLine == null)
+                _statusLine = PlaceLabel(root, "StatusLine", 16, new Vector2(0.15f, 0f), new Vector2(0.85f, 0.08f));
+            if (_clockText == null)
+                _clockText = PlaceLabel(root, "Clock", 16, new Vector2(0.7f, 0.9f), new Vector2(1f, 1f));
+            if (_lostMaterialText == null)
+            {
+                _lostMaterialText = PlaceLabel(root, "LostMaterial", 16, new Vector2(0f, 0.9f), new Vector2(0.3f, 1f));
+                _lostMaterialText.alignment = TextAlignmentOptions.MidlineLeft;
+            }
+
+            if (_leaveButton == null)
+            {
+                _endTurnButton = PlaceButton(root, "End Turn", new Vector2(0.78f, 0.12f), new Vector2(0.98f, 0.2f));
+                _pauseButton = PlaceButton(root, "Pause", new Vector2(0.78f, 0.22f), new Vector2(0.98f, 0.3f));
+                _resignButton = PlaceButton(root, "Resign", new Vector2(0.78f, 0.32f), new Vector2(0.98f, 0.4f));
+                _leaveButton = PlaceButton(root, "Leave", new Vector2(0.78f, 0.42f), new Vector2(0.98f, 0.5f));
+                _setupConfirmButton = PlaceButton(root, "Confirm Setup", new Vector2(0.78f, 0.52f), new Vector2(0.98f, 0.6f));
+                _endTurnButton.gameObject.SetActive(false);
+                _pauseButton.gameObject.SetActive(false);
+                _setupConfirmButton.gameObject.SetActive(false);
+            }
+
+            if (_setupConfirmButton == null)
+            {
+                _setupConfirmButton = PlaceButton(root, "Confirm Setup", new Vector2(0.78f, 0.52f), new Vector2(0.98f, 0.6f));
+                _setupConfirmButton.gameObject.SetActive(false);
+            }
+
+            if (_draftRow == null)
+            {
+                TMP_Text description = UiFactory.DescriptionBox(root, "Choose one power.", new Vector2(420f, 64f));
+                description.fontSize = 16;
+                _draftDescription = description.rectTransform.parent as RectTransform;
+                if (_draftDescription == null)
+                    _draftDescription = description.rectTransform;
+                _draftDescription.anchorMin = new Vector2(0.5f, 0.22f);
+                _draftDescription.anchorMax = new Vector2(0.5f, 0.22f);
+                _draftDescription.pivot = new Vector2(0.5f, 0f);
+                _draftDescription.anchoredPosition = Vector2.zero;
+                _draftDescription.gameObject.SetActive(false);
+
+                var draft = new GameObject("DraftRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+                draft.transform.SetParent(root, false);
+                var draftRect = draft.GetComponent<RectTransform>();
+                draftRect.anchorMin = new Vector2(0.2f, 0.08f);
+                draftRect.anchorMax = new Vector2(0.8f, 0.2f);
+                draftRect.offsetMin = Vector2.zero;
+                draftRect.offsetMax = Vector2.zero;
+                var layout = draft.GetComponent<HorizontalLayoutGroup>();
+                layout.spacing = 8f;
+                layout.childForceExpandWidth = true;
+                layout.childForceExpandHeight = true;
+                layout.childControlWidth = true;
+                layout.childControlHeight = true;
+                _draftRow = draft.transform;
+                for (int i = 0; i < 3; i++)
+                {
+                    Button button = UiFactory.Button(draftRect, "Power", null, new Vector2(200f, 32f));
+                    var element = button.gameObject.AddComponent<LayoutElement>();
+                    element.minWidth = 200f;
+                    element.flexibleWidth = 1f;
+                    element.minHeight = 32f;
+                    element.preferredHeight = 32f;
+                }
+
+                draft.SetActive(false);
             }
         }
 
-        private static Text CreateText(
-            string objectName,
-            Transform parent,
-            Font font,
-            int fontSize,
-            TextAnchor alignment,
-            Color color,
-            Vector2 anchorMin,
-            Vector2 anchorMax,
-            Vector2 offsetMin,
-            Vector2 offsetMax)
+        static TMP_Text PlaceLabel(RectTransform root, string name, int size, Vector2 anchorMin, Vector2 anchorMax)
         {
-            GameObject textObject = new GameObject(objectName, typeof(RectTransform), typeof(Text), typeof(Shadow));
-            textObject.transform.SetParent(parent, false);
+            TMP_Text label = UiFactory.Label(root, string.Empty, size, TextAlignmentOptions.Center);
+            label.gameObject.name = name;
+            Stretch(label.rectTransform, anchorMin, anchorMax);
+            return label;
+        }
 
-            RectTransform rect = textObject.GetComponent<RectTransform>();
+        static Button PlaceButton(RectTransform root, string label, Vector2 anchorMin, Vector2 anchorMax)
+        {
+            Button button = UiFactory.Button(root, label, null, new Vector2(200f, 32f));
+            button.name = label;
+            Stretch(button.GetComponent<RectTransform>(), anchorMin, anchorMax);
+            return button;
+        }
+
+        static void Stretch(RectTransform rect)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+        }
+
+        static void Stretch(RectTransform rect, Vector2 anchorMin, Vector2 anchorMax)
+        {
             rect.anchorMin = anchorMin;
             rect.anchorMax = anchorMax;
-            rect.offsetMin = offsetMin;
-            rect.offsetMax = offsetMax;
-
-            Text text = textObject.GetComponent<Text>();
-            text.font = font;
-            text.fontSize = fontSize;
-            text.alignment = alignment;
-            text.color = color;
-            text.raycastTarget = false;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-
-            Shadow shadow = textObject.GetComponent<Shadow>();
-            shadow.effectColor = new Color(0f, 0f, 0f, 0.75f);
-            shadow.effectDistance = new Vector2(1.5f, -1.5f);
-
-            return text;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
         }
 
-        private static Font BuiltinFont()
+        static string FormatPower(MartyrPower power)
         {
-            return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            switch (power)
+            {
+                case MartyrPower.Reinforcements:
+                    return "Reinforcements";
+                case MartyrPower.FleetPawns:
+                    return "Fleet Pawns";
+                case MartyrPower.Bombard:
+                    return "Bombard";
+                case MartyrPower.UntouchableKing:
+                    return "Untouchable King";
+                case MartyrPower.StasisField:
+                    return "Stasis Field";
+                case MartyrPower.KnightAscension:
+                    return "Knight Ascension";
+                case MartyrPower.BattlefieldPromotion:
+                    return "Battlefield Promotion";
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(power), power, null);
+            }
         }
 
-        private static string FormatResult(GameState state)
+        static string FormatResult(GameState state)
         {
             switch (state.Status)
             {
@@ -216,23 +391,18 @@ namespace ModularChess.Match
             }
         }
 
-        private static string FormatMoveList(IReadOnlyList<Move> moves)
+        static string FormatMoveList(IReadOnlyList<Move> moves)
         {
             if (moves == null || moves.Count == 0)
-            {
                 return string.Empty;
-            }
 
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             for (int i = 0; i < moves.Count; i++)
             {
                 if (i % 2 == 0)
                 {
                     if (i > 0)
-                    {
                         builder.Append('\n');
-                    }
-
                     builder.Append((i / 2) + 1);
                     builder.Append(". ");
                 }
@@ -247,7 +417,7 @@ namespace ModularChess.Match
             return builder.ToString();
         }
 
-        private static string FormatMove(Move move)
+        static string FormatMove(Move move)
         {
             switch (move.Kind)
             {
@@ -268,14 +438,11 @@ namespace ModularChess.Match
 
             string text = $"{move.From}-{move.To}";
             if (move.PromotionType is PieceType promotion)
-            {
                 text += $"={PromotionLetter(promotion)}";
-            }
-
             return text;
         }
 
-        private static string PromotionLetter(PieceType type)
+        static string PromotionLetter(PieceType type)
         {
             switch (type)
             {
@@ -293,179 +460,6 @@ namespace ModularChess.Match
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
-        }
-
-        public void BindActions(MatchController controller)
-        {
-            EnsureBuilt();
-            EnsureActions();
-            _endTurnButton.onClick.RemoveAllListeners();
-            _endTurnButton.onClick.AddListener(controller.RequestEndTurn);
-            _pauseButton.onClick.RemoveAllListeners();
-            _pauseButton.onClick.AddListener(controller.TogglePause);
-            _resignButton.onClick.RemoveAllListeners();
-            _resignButton.onClick.AddListener(controller.Resign);
-            _leaveButton.onClick.RemoveAllListeners();
-            _leaveButton.onClick.AddListener(controller.LeaveToMenu);
-        }
-
-        public void SetClock(MatchClock clock)
-        {
-            EnsureBuilt();
-            EnsureActions();
-            if (_clockText == null)
-            {
-                return;
-            }
-
-            if (clock == null || clock.IsNone)
-            {
-                _clockText.text = string.Empty;
-                return;
-            }
-
-            _clockText.text = $"W {clock.Format(Side.White)}   B {clock.Format(Side.Black)}";
-        }
-
-        public void SetEndTurnVisible(bool visible)
-        {
-            EnsureActions();
-            if (_endTurnButton != null)
-            {
-                _endTurnButton.gameObject.SetActive(visible);
-            }
-        }
-
-        public void SetStatusLine(string text)
-        {
-            EnsureActions();
-            if (_statusLine != null)
-            {
-                _statusLine.text = text ?? string.Empty;
-            }
-        }
-
-        public void ShowDraft(GameState state, Action<MartyrPower> onPick)
-        {
-            EnsureActions();
-            _onDraft = onPick;
-            if (_draftRow == null || state?.Runtime.PendingDraft == null)
-            {
-                return;
-            }
-
-            _draftRow.gameObject.SetActive(true);
-            DraftOffer offer = state.Runtime.PendingDraft.Value;
-            SetDraftButton(0, offer.First);
-            SetDraftButton(1, offer.Second);
-            SetDraftButton(2, offer.Third);
-        }
-
-        public void HideDraft()
-        {
-            if (_draftRow != null)
-            {
-                _draftRow.gameObject.SetActive(false);
-            }
-        }
-
-        void SetDraftButton(int index, MartyrPower power)
-        {
-            Transform child = _draftRow.GetChild(index);
-            var button = child.GetComponent<Button>();
-            var label = child.GetComponentInChildren<Text>();
-            if (label != null)
-            {
-                label.text = power.ToString();
-            }
-
-            button.onClick.RemoveAllListeners();
-            MartyrPower captured = power;
-            button.onClick.AddListener(() => _onDraft?.Invoke(captured));
-        }
-
-        void EnsureActions()
-        {
-            if (_leaveButton != null)
-            {
-                return;
-            }
-
-            RectTransform root = GetComponent<RectTransform>();
-            Font font = BuiltinFont();
-            _statusLine = CreateText(
-                "StatusLine",
-                root,
-                font,
-                22,
-                TextAnchor.LowerCenter,
-                Color.white,
-                new Vector2(0.15f, 0f),
-                new Vector2(0.85f, 0.08f),
-                new Vector2(8f, 8f),
-                new Vector2(-8f, 4f));
-            _clockText = CreateText(
-                "Clock",
-                root,
-                font,
-                22,
-                TextAnchor.UpperRight,
-                Color.white,
-                new Vector2(0.7f, 0.9f),
-                new Vector2(1f, 1f),
-                new Vector2(8f, -8f),
-                new Vector2(-16f, -4f));
-
-            _endTurnButton = CreateHudButton(root, "End Turn", new Vector2(0.82f, 0.12f), new Vector2(0.98f, 0.2f));
-            _pauseButton = CreateHudButton(root, "Pause", new Vector2(0.82f, 0.22f), new Vector2(0.98f, 0.3f));
-            _resignButton = CreateHudButton(root, "Resign", new Vector2(0.82f, 0.32f), new Vector2(0.98f, 0.4f));
-            _leaveButton = CreateHudButton(root, "Leave", new Vector2(0.82f, 0.42f), new Vector2(0.98f, 0.5f));
-            _endTurnButton.gameObject.SetActive(false);
-
-            var draft = new GameObject("DraftRow", typeof(RectTransform));
-            draft.transform.SetParent(root, false);
-            var draftRect = draft.GetComponent<RectTransform>();
-            draftRect.anchorMin = new Vector2(0.2f, 0.08f);
-            draftRect.anchorMax = new Vector2(0.8f, 0.2f);
-            draftRect.offsetMin = Vector2.zero;
-            draftRect.offsetMax = Vector2.zero;
-            var layout = draft.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 8f;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = true;
-            _draftRow = draft.transform;
-            for (int i = 0; i < 3; i++)
-            {
-                CreateHudButton(draftRect, "Power", new Vector2(0f, 0f), new Vector2(1f, 1f));
-            }
-
-            draft.SetActive(false);
-        }
-
-        static Button CreateHudButton(Transform parent, string label, Vector2 anchorMin, Vector2 anchorMax)
-        {
-            var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(parent, false);
-            var rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            go.GetComponent<Image>().color = new Color(0.15f, 0.16f, 0.2f, 0.9f);
-            var text = CreateText(
-                "Label",
-                rect,
-                BuiltinFont(),
-                20,
-                TextAnchor.MiddleCenter,
-                Color.white,
-                Vector2.zero,
-                Vector2.one,
-                Vector2.zero,
-                Vector2.zero);
-            text.raycastTarget = false;
-            text.text = label;
-            return go.GetComponent<Button>();
         }
     }
 }

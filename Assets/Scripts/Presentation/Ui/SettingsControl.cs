@@ -1,0 +1,64 @@
+using System;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace ModularChess.Presentation
+{
+    public sealed class SettingsControl : MonoBehaviour
+    {
+        [SerializeField] TMP_Text nameLabel;
+        [SerializeField] TMP_Text valueLabel;
+        [SerializeField] Button minusButton;
+        [SerializeField] Button plusButton;
+
+        Func<int> _get;
+        Action<int> _set;
+        int _min;
+        int _max;
+
+        public void Bind(string label, Func<int> get, Action<int> set, int min, int max)
+        {
+            _get = get;
+            _set = set;
+            _min = min;
+            _max = max;
+
+            if (nameLabel != null)
+                nameLabel.text = label;
+
+            if (minusButton != null)
+            {
+                minusButton.onClick.RemoveAllListeners();
+                minusButton.onClick.AddListener(() => Step(-1));
+            }
+
+            if (plusButton != null)
+            {
+                plusButton.onClick.RemoveAllListeners();
+                plusButton.onClick.AddListener(() => Step(1));
+            }
+
+            Refresh();
+        }
+
+        void Step(int delta)
+        {
+            if (_get == null || _set == null)
+                return;
+            _set(Mathf.Clamp(_get() + delta, _min, _max));
+            Refresh();
+        }
+
+        void Refresh()
+        {
+            int value = _get != null ? _get() : 0;
+            if (valueLabel != null)
+                valueLabel.text = value.ToString();
+            if (minusButton != null)
+                minusButton.interactable = value > _min;
+            if (plusButton != null)
+                plusButton.interactable = value < _max;
+        }
+    }
+}

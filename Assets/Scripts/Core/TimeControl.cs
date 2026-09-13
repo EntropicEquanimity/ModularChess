@@ -27,9 +27,13 @@ namespace ModularChess.Core
 
         public static TimeControl None => new TimeControl(0, 0);
 
-        public static TimeControl TenPlusFive => new TimeControl(10, 5);
+        public static TimeControl Bullet => new TimeControl(1, 0);
 
-        public static TimeControl FivePlusThree => new TimeControl(5, 3);
+        public static TimeControl Blitz => new TimeControl(5, 0);
+
+        public static TimeControl Standard => new TimeControl(60, 0);
+
+        public static TimeControl Extended => new TimeControl(120, 0);
 
         public bool Equals(TimeControl other)
         {

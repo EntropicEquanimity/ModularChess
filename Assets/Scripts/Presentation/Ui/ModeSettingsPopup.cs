@@ -17,17 +17,20 @@ namespace ModularChess.Presentation
     public sealed class ModeSettingsPopup : MonoBehaviour
     {
         const float Duration = 0.28f;
-        const float PanelWidth = 240f;
-        const float PanelHeight = 320f;
 
-        RectTransform _clip;
-        RectTransform _panel;
-        Image _blocker;
-        TMP_Text _title;
-        TMP_Text _summary;
-        Transform _fields;
+        [SerializeField] RectTransform clip;
+        [SerializeField] RectTransform panel;
+        [SerializeField] Image blocker;
+        [SerializeField] Button blockerButton;
+        [SerializeField] Button closeButton;
+        [SerializeField] TMP_Text title;
+        [SerializeField] TMP_Text summary;
+        [SerializeField] GameObject fields;
+        [SerializeField] GameObject settingsControlPrefab;
+
         Tween _tween;
         bool _open;
+        bool _wired;
 
         public bool IsOpen => _open;
 
@@ -37,12 +40,14 @@ namespace ModularChess.Presentation
             if (existing != null)
                 return existing;
 
-            var go = new GameObject("ModeSettingsPopup", typeof(RectTransform), typeof(ModeSettingsPopup));
-            go.transform.SetParent(overlayRoot, false);
-            ModeSettingsPopup popup = go.GetComponent<ModeSettingsPopup>();
-            popup.Build();
+            GameObject prefab = RuntimePrefabs.ModeSettingsPopup;
+            if (prefab == null)
+                return null;
+
+            GameObject go = UnityEngine.Object.Instantiate(prefab, overlayRoot);
+            go.name = "ModeSettingsPopup";
             go.SetActive(false);
-            return popup;
+            return go.GetComponent<ModeSettingsPopup>();
         }
 
         public void Open(ModeId id, HostModeSettings settings, RectTransform slideFrom)
@@ -50,6 +55,7 @@ namespace ModularChess.Presentation
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
 
+            Wire();
             _tween?.Kill();
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
@@ -58,12 +64,12 @@ namespace ModularChess.Presentation
             _open = true;
 
             Vector2 hidden = HiddenPos();
-            Vector2 shown = Vector2.zero;
-            _panel.anchoredPosition = hidden;
+            Vector2 shown = ShownPos();
+            panel.anchoredPosition = hidden;
             SetBlockerAlpha(0f);
             Sequence sequence = DOTween.Sequence().SetUpdate(true).SetTarget(this);
-            sequence.Join(DOTween.To(() => _panel.anchoredPosition, v => _panel.anchoredPosition = v, shown, Duration).SetEase(Ease.OutCubic));
-            sequence.Join(DOTween.To(() => _blocker.color.a, SetBlockerAlpha, 0.45f, Duration).SetEase(Ease.OutQuad));
+            sequence.Join(DOTween.To(() => panel.anchoredPosition, v => panel.anchoredPosition = v, shown, Duration).SetEase(Ease.OutCubic));
+            sequence.Join(DOTween.To(() => blocker.color.a, SetBlockerAlpha, 0.45f, Duration).SetEase(Ease.OutQuad));
             _tween = sequence;
         }
 
@@ -74,9 +80,15 @@ namespace ModularChess.Presentation
 
             _open = false;
             _tween?.Kill();
+            if (panel == null)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             Sequence sequence = DOTween.Sequence().SetUpdate(true).SetTarget(this);
-            sequence.Join(DOTween.To(() => _panel.anchoredPosition, v => _panel.anchoredPosition = v, HiddenPos(), Duration).SetEase(Ease.InCubic));
-            sequence.Join(DOTween.To(() => _blocker.color.a, SetBlockerAlpha, 0f, Duration).SetEase(Ease.InQuad));
+            sequence.Join(DOTween.To(() => panel.anchoredPosition, v => panel.anchoredPosition = v, HiddenPos(), Duration).SetEase(Ease.InCubic));
+            sequence.Join(DOTween.To(() => blocker.color.a, SetBlockerAlpha, 0f, Duration).SetEase(Ease.InQuad));
             sequence.OnComplete(() => gameObject.SetActive(false));
             _tween = sequence;
         }
@@ -85,10 +97,15 @@ namespace ModularChess.Presentation
         {
             _tween?.Kill();
             _open = false;
-            if (_panel != null)
-                _panel.anchoredPosition = HiddenPos();
+            if (panel != null)
+                panel.anchoredPosition = HiddenPos();
             SetBlockerAlpha(0f);
             gameObject.SetActive(false);
+        }
+
+        void Awake()
+        {
+            Wire();
         }
 
         void OnDisable()
@@ -102,173 +119,174 @@ namespace ModularChess.Presentation
             _tween?.Kill();
         }
 
-        void Build()
+        void Wire()
         {
-            var root = (RectTransform)transform;
-            root.anchorMin = Vector2.zero;
-            root.anchorMax = Vector2.one;
-            root.pivot = new Vector2(0.5f, 0.5f);
-            root.offsetMin = Vector2.zero;
-            root.offsetMax = Vector2.zero;
+            if (_wired)
+                return;
 
-            var blockerGo = new GameObject("Blocker", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            blockerGo.transform.SetParent(transform, false);
-            _blocker = blockerGo.GetComponent<Image>();
-            _blocker.color = new Color(0f, 0f, 0f, 0f);
-            _blocker.raycastTarget = true;
-            var blockerRect = (RectTransform)blockerGo.transform;
-            blockerRect.anchorMin = Vector2.zero;
-            blockerRect.anchorMax = Vector2.one;
-            blockerRect.offsetMin = Vector2.zero;
-            blockerRect.offsetMax = Vector2.zero;
+            if (clip == null)
+                clip = transform.Find("Clip") as RectTransform;
+            if (panel == null && clip != null)
+                panel = clip.Find("Panel") as RectTransform;
+            if (blocker == null)
+            {
+                Transform blockerTransform = transform.Find("Blocker");
+                if (blockerTransform != null)
+                    blocker = blockerTransform.GetComponent<Image>();
+            }
 
-            var clipGo = new GameObject("Clip", typeof(RectTransform), typeof(RectMask2D));
-            clipGo.transform.SetParent(transform, false);
-            _clip = (RectTransform)clipGo.transform;
-            _clip.anchorMin = new Vector2(0.5f, 0.5f);
-            _clip.anchorMax = new Vector2(0.5f, 0.5f);
-            _clip.pivot = new Vector2(0f, 0.5f);
-            _clip.sizeDelta = new Vector2(PanelWidth, PanelHeight);
+            if (blockerButton == null && blocker != null)
+                blockerButton = blocker.GetComponent<Button>();
+            if (closeButton == null && panel != null)
+            {
+                Transform closeTransform = panel.Find("Close");
+                if (closeTransform != null)
+                    closeButton = closeTransform.GetComponent<Button>();
+            }
 
-            var panelGo = new GameObject("Panel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(VerticalLayoutGroup));
-            panelGo.transform.SetParent(_clip, false);
-            _panel = (RectTransform)panelGo.transform;
-            _panel.anchorMin = new Vector2(0f, 0.5f);
-            _panel.anchorMax = new Vector2(0f, 0.5f);
-            _panel.pivot = new Vector2(0f, 0.5f);
-            _panel.sizeDelta = new Vector2(PanelWidth, PanelHeight);
-            _panel.anchoredPosition = HiddenPos();
-            var panelImage = panelGo.GetComponent<Image>();
-            panelImage.color = new Color(0.1f, 0.1f, 0.12f, 1f);
-            panelImage.raycastTarget = true;
-            var layout = panelGo.GetComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(12, 12, 12, 12);
-            layout.spacing = 8;
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.childControlWidth = true;
-            layout.childControlHeight = false;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
+            if (title == null && panel != null)
+            {
+                Transform titleTransform = panel.Find("Label");
+                if (titleTransform != null)
+                    title = titleTransform.GetComponent<TMP_Text>();
+            }
 
-            _title = UiFactory.Label(_panel, "Mode", 16, TextAlignmentOptions.Center);
-            StretchLabel(_title, 32);
+            if (summary == null && panel != null)
+            {
+                Transform summaryTransform = panel.Find("DescriptionBox/Text");
+                if (summaryTransform != null)
+                    summary = summaryTransform.GetComponent<TMP_Text>();
+            }
 
-            _summary = UiFactory.Label(_panel, string.Empty, 16, TextAlignmentOptions.TopLeft);
-            _summary.enableWordWrapping = true;
-            StretchLabel(_summary, 80);
+            if (fields == null && panel != null)
+            {
+                Transform fieldsTransform = panel.Find("Fields");
+                if (fieldsTransform != null)
+                    fields = fieldsTransform.gameObject;
+            }
 
-            var fieldsGo = new GameObject("Fields", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(LayoutElement));
-            fieldsGo.transform.SetParent(_panel, false);
-            _fields = fieldsGo.transform;
-            var fieldsLayout = fieldsGo.GetComponent<VerticalLayoutGroup>();
-            fieldsLayout.spacing = 8;
-            fieldsLayout.childAlignment = TextAnchor.UpperCenter;
-            fieldsLayout.childControlWidth = true;
-            fieldsLayout.childControlHeight = false;
-            fieldsLayout.childForceExpandWidth = true;
-            fieldsLayout.childForceExpandHeight = false;
-            var fieldsElement = fieldsGo.GetComponent<LayoutElement>();
-            fieldsElement.flexibleHeight = 1;
-            fieldsElement.minHeight = 40;
+            if (settingsControlPrefab == null)
+                settingsControlPrefab = RuntimePrefabs.SettingsControl;
 
-            Button close = UiFactory.Button(_panel, "Close", Close, new Vector2(200f, 32f));
-            var closeElement = close.gameObject.AddComponent<LayoutElement>();
-            closeElement.minWidth = 200f;
-            closeElement.preferredWidth = 200f;
-            closeElement.minHeight = 32f;
-            closeElement.preferredHeight = 32f;
+            if (blockerButton != null)
+            {
+                blockerButton.onClick.RemoveAllListeners();
+                blockerButton.onClick.AddListener(Close);
+            }
+
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveAllListeners();
+                closeButton.onClick.AddListener(Close);
+            }
+
+            _wired = true;
         }
 
         void Fill(ModeId id, HostModeSettings settings)
         {
             ModeDefinition def = ModeCatalog.Get(id);
-            _title.text = def.DisplayName;
-            _summary.text = def.Summary;
+            if (title != null)
+                title.text = def.DisplayName;
+            if (summary != null)
+                summary.text = def.Summary;
 
-            for (int i = _fields.childCount - 1; i >= 0; i--)
-                DestroyImmediate(_fields.GetChild(i).gameObject);
+            Transform content = FieldsContent();
+            if (content != null)
+            {
+                for (int i = content.childCount - 1; i >= 0; i--)
+                    DestroyImmediate(content.GetChild(i).gameObject);
+            }
+
+            bool hasFields = id != ModeId.FogOfWar;
+            if (fields != null)
+                fields.SetActive(hasFields);
+            if (!hasFields)
+                return;
 
             switch (id)
             {
                 case ModeId.FogOfWar:
-                    break;
+                    return;
                 case ModeId.PowerfulPieces:
-                    AddStepper("Empowered Pieces", () => settings.EmpoweredCount, v => settings.EmpoweredCount = v, 1, 8);
+                    AddStepper(content, "Empowered Pieces", () => settings.EmpoweredCount, v => settings.EmpoweredCount = v, 1, 8);
                     break;
                 case ModeId.Martyr:
-                    AddStepper("Lost Material", () => settings.MartyrThreshold, v => settings.MartyrThreshold = v, 1, 18);
-                    AddStepper("Draft options", () => settings.MartyrDraftOptions, v => settings.MartyrDraftOptions = v, 1, 5);
+                    AddStepper(content, "Lost Material", () => settings.MartyrThreshold, v => settings.MartyrThreshold = v, 1, 18);
+                    AddStepper(content, "Draft options", () => settings.MartyrDraftOptions, v => settings.MartyrDraftOptions = v, 1, 5);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(id), id, null);
             }
+
+            FitFieldsToContent();
         }
 
-        void AddStepper(string label, Func<int> get, Action<int> set, int min, int max)
+        void AddStepper(Transform content, string label, Func<int> get, Action<int> set, int min, int max)
         {
-            var row = new GameObject(label, typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(LayoutElement));
-            row.transform.SetParent(_fields, false);
-            var column = row.GetComponent<VerticalLayoutGroup>();
-            column.spacing = 4;
-            column.childAlignment = TextAnchor.MiddleCenter;
-            column.childControlWidth = true;
-            column.childControlHeight = false;
-            column.childForceExpandWidth = true;
-            column.childForceExpandHeight = false;
-            row.GetComponent<LayoutElement>().minHeight = 56;
+            if (content == null || settingsControlPrefab == null)
+                return;
 
-            UiFactory.Label(row.transform, label, 16, TextAlignmentOptions.Center);
+            GameObject go = Instantiate(settingsControlPrefab, content);
+            go.name = label;
+            go.SetActive(true);
+            SettingsControl control = go.GetComponent<SettingsControl>();
+            if (control == null)
+                control = go.AddComponent<SettingsControl>();
+            control.Bind(label, get, set, min, max);
+        }
 
-            var controls = new GameObject("Controls", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
-            controls.transform.SetParent(row.transform, false);
-            var horizontal = controls.GetComponent<HorizontalLayoutGroup>();
-            horizontal.spacing = 8;
-            horizontal.childAlignment = TextAnchor.MiddleCenter;
-            horizontal.childControlWidth = false;
-            horizontal.childControlHeight = false;
-            horizontal.childForceExpandWidth = false;
-            horizontal.childForceExpandHeight = false;
-            controls.GetComponent<LayoutElement>().minHeight = 32;
+        void FitFieldsToContent()
+        {
+            Transform content = FieldsContent();
+            if (fields == null || content == null)
+                return;
 
-            TMP_Text valueLabel = null;
-            void Refresh()
+            var contentRect = (RectTransform)content;
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
+
+            float height = LayoutUtility.GetPreferredHeight(contentRect);
+            if (height <= 0f)
+                height = contentRect.rect.height;
+            if (height <= 0f)
             {
-                if (valueLabel != null)
-                    valueLabel.text = get().ToString();
+                int n = contentRect.childCount;
+                height = n * 40f + 8f;
             }
 
-            Button minus = UiFactory.Button(controls.transform, "-", () =>
-            {
-                set(Mathf.Max(min, get() - 1));
-                Refresh();
-            }, new Vector2(32f, 32f));
-            minus.GetComponent<RectTransform>().sizeDelta = new Vector2(32f, 32f);
+            var element = fields.GetComponent<LayoutElement>();
+            if (element == null)
+                element = fields.AddComponent<LayoutElement>();
+            element.minHeight = height;
+            element.preferredHeight = height;
 
-            valueLabel = UiFactory.Label(controls.transform, get().ToString(), 16, TextAlignmentOptions.Center);
-            var valueRect = valueLabel.rectTransform;
-            valueRect.sizeDelta = new Vector2(48f, 32f);
+            var fieldsRect = (RectTransform)fields.transform;
+            fieldsRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
 
-            Button plus = UiFactory.Button(controls.transform, "+", () =>
-            {
-                set(Mathf.Min(max, get() + 1));
-                Refresh();
-            }, new Vector2(32f, 32f));
-            plus.GetComponent<RectTransform>().sizeDelta = new Vector2(32f, 32f);
+            if (panel != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(panel);
+        }
+
+        Transform FieldsContent()
+        {
+            if (fields == null)
+                return null;
+            ScrollRect scroll = fields.GetComponent<ScrollRect>();
+            if (scroll != null && scroll.content != null)
+                return scroll.content;
+            Transform viewport = fields.transform.Find("Viewport");
+            if (viewport != null)
+                return viewport.Find("Content");
+            return null;
         }
 
         void PlaceClip(RectTransform slideFrom)
         {
-            if (_clip == null)
+            if (clip == null || slideFrom == null)
                 return;
 
-            _clip.sizeDelta = new Vector2(PanelWidth, PanelHeight);
-            if (slideFrom == null)
-            {
-                _clip.anchoredPosition = Vector2.zero;
-                return;
-            }
-
-            var parent = (RectTransform)_clip.parent;
+            var parent = (RectTransform)clip.parent;
             var corners = new Vector3[4];
             slideFrom.GetWorldCorners(corners);
             Vector3 rightMid = (corners[2] + corners[3]) * 0.5f;
@@ -282,31 +300,32 @@ namespace ModularChess.Presentation
                 return;
 
             Vector2 pivotOffset = new Vector2(
-                (_clip.anchorMin.x - parent.pivot.x) * parent.rect.width,
-                (_clip.anchorMin.y - parent.pivot.y) * parent.rect.height);
-            _clip.anchoredPosition = local - pivotOffset;
+                (clip.anchorMin.x - parent.pivot.x) * parent.rect.width,
+                clip.anchoredPosition.y);
+            clip.anchoredPosition = new Vector2(local.x - pivotOffset.x, clip.anchoredPosition.y);
         }
 
         void SetBlockerAlpha(float alpha)
         {
-            if (_blocker == null)
+            if (blocker == null)
                 return;
-            Color color = _blocker.color;
+            Color color = blocker.color;
             color.a = alpha;
-            _blocker.color = color;
+            blocker.color = color;
         }
 
-        static Vector2 HiddenPos()
+        Vector2 HiddenPos()
         {
-            return new Vector2(-PanelWidth, 0f);
+            float width = panel != null ? Mathf.Max(panel.rect.width, panel.sizeDelta.x) : 240f;
+            Vector2 shown = ShownPos();
+            return new Vector2(-width, shown.y);
         }
 
-        static void StretchLabel(TMP_Text label, float height)
+        Vector2 ShownPos()
         {
-            var element = label.gameObject.AddComponent<LayoutElement>();
-            element.minHeight = height;
-            element.preferredHeight = height;
-            label.raycastTarget = false;
+            if (panel == null)
+                return Vector2.zero;
+            return new Vector2(0f, panel.anchoredPosition.y);
         }
     }
 }

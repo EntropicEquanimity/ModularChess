@@ -25,6 +25,10 @@ namespace ModularChess.Match
         readonly List<Guid> _whitePicks = new List<Guid>();
         readonly List<Guid> _blackPicks = new List<Guid>();
         MatchClock _clock;
+        bool _historyWritten;
+        bool _draftTiming;
+        float _draftRemaining;
+        float _aiWait = -1f;
         public event Action LeftMatch;
 
         public GameState State => _state;
@@ -60,39 +64,53 @@ namespace ModularChess.Match
             Unsubscribe();
         }
 
+        public bool IsPaused => _paused;
+        public bool InSetup => _inSetup;
+        public bool DraftPending => _state != null && _state.DraftPending;
+        public MatchSession Session => _session;
+
         private void Update()
         {
-            if (_session == null || _state == null || _paused)
+            if (_session == null || _state == null)
+                return;
+
+            if (_paused)
             {
+                hud?.SetClock(_clock);
                 return;
             }
 
             if (_inSetup)
             {
                 _setupRemaining -= Time.deltaTime;
+                hud?.SetStatusLine($"Setup {Mathf.CeilToInt(_setupRemaining)}s  White {_whitePicks.Count}/{_session.Rules.Settings.EmpoweredCount}  Black {_blackPicks.Count}/{_session.Rules.Settings.EmpoweredCount}");
                 if (_setupRemaining <= 0f)
-                {
                     FinishSetup(timeout: true);
-                }
-
                 return;
             }
 
-            if (_state.DraftPending && _session.IsAi && _state.SideToMove != _session.PlayerSide)
+            if (_state.DraftPending)
             {
-                ResolveAiDraft();
+                TickDraft();
                 return;
             }
+
+            _draftTiming = false;
 
             if (_clock != null && _state.Status == GameStatus.InProgress && !_state.DraftPending)
             {
                 Side? flagged = _clock.Tick(Time.deltaTime, _state.SideToMove);
+                hud?.SetClock(_clock);
                 if (flagged != null)
                 {
                     _state = _state.WithTerminal(GameStatus.Timeout);
                     RefreshPresentation();
                     return;
                 }
+            }
+            else
+            {
+                hud?.SetClock(_clock);
             }
 
             if (_session.IsAi
@@ -101,7 +119,19 @@ namespace ModularChess.Match
                 && _state.SideToMove != _session.PlayerSide
                 && _pendingPromotions == null)
             {
+                if (boardView != null && boardView.PiecesBusy)
+                    return;
+                if (_aiWait < 0f)
+                    _aiWait = UnityEngine.Random.Range(1f, 3f);
+                _aiWait -= Time.deltaTime;
+                if (_aiWait > 0f)
+                    return;
+                _aiWait = -1f;
                 PlayAi();
+            }
+            else
+            {
+                _aiWait = -1f;
             }
         }
 
@@ -116,6 +146,12 @@ namespace ModularChess.Match
             _blackPicks.Clear();
             _paused = false;
             _clock = new MatchClock(session.Rules.Settings.Time);
+            _historyWritten = false;
+            _draftTiming = false;
+            _draftRemaining = 0f;
+            _aiWait = -1f;
+            boardView?.CompleteMotion();
+            boardView?.SetMotionPaused(false);
             hud?.BindActions(this);
             if (promotionPicker != null)
                 promotionPicker.Hide();
@@ -147,11 +183,14 @@ namespace ModularChess.Match
             if (_state != null && _state.Status == GameStatus.InProgress)
             {
                 _state = _state.WithTerminal(_inSetup ? GameStatus.Aborted : GameStatus.Resign);
+                WriteHistory();
             }
 
             _session = null;
             _inSetup = false;
             _clock?.Stop();
+            _aiWait = -1f;
+            boardView?.CompleteMotion();
             LeftMatch?.Invoke();
         }
 
@@ -163,6 +202,60 @@ namespace ModularChess.Match
             RefreshPresentation();
         }
 
+        public bool TryPauseFromEscape()
+        {
+            if (_session == null || !_session.IsAi || _inSetup || _state == null || _state.DraftPending)
+                return false;
+            if (_state.Status != GameStatus.InProgress)
+                return false;
+            TogglePause();
+            return true;
+        }
+
+        public void DebugWin()
+        {
+            if (!CanDebugEnd())
+                return;
+            Side winner = _session.Hotseat ? _state.SideToMove : _session.PlayerSide;
+            if (_state.SideToMove == winner)
+                _state = _state.WithSideToMove(winner.Opponent());
+            _state = _state.WithTerminal(GameStatus.Checkmate);
+            RefreshPresentation();
+        }
+
+        public void DebugLose()
+        {
+            if (!CanDebugEnd())
+                return;
+            Side loser = _session.Hotseat ? _state.SideToMove : _session.PlayerSide;
+            if (_state.SideToMove != loser)
+                _state = _state.WithSideToMove(loser);
+            _state = _state.WithTerminal(GameStatus.Resign);
+            RefreshPresentation();
+        }
+
+        public void DebugResetTimer()
+        {
+            _clock?.ResetToStart();
+            hud?.SetClock(_clock);
+        }
+
+        bool CanDebugEnd()
+        {
+            return _state != null && !_inSetup && _state.Status == GameStatus.InProgress;
+        }
+
+        void WriteHistory()
+        {
+            if (_historyWritten || _session == null || _state == null)
+                return;
+            if (_state.Status == GameStatus.InProgress || _state.Status == GameStatus.Aborted)
+                return;
+            _historyWritten = true;
+            int seconds = _clock != null ? Mathf.FloorToInt(_clock.ElapsedSeconds) : 0;
+            MatchHistoryStore.Record(_session, _state, seconds);
+        }
+
         public void TogglePause()
         {
             if (_session == null || !_session.IsAi || _inSetup || _state == null || _state.DraftPending)
@@ -172,6 +265,7 @@ namespace ModularChess.Match
                 _clock?.Stop();
             else
                 _clock?.Start();
+            boardView?.SetMotionPaused(_paused);
             hud?.SetStatusLine(_paused ? "Paused" : string.Empty);
         }
 
@@ -275,14 +369,17 @@ namespace ModularChess.Match
             else if (picks.Count < _session.Rules.Settings.EmpoweredCount)
                 picks.Add(piece.Id);
 
-            if (_whitePicks.Count >= _session.Rules.Settings.EmpoweredCount
-                && _blackPicks.Count >= _session.Rules.Settings.EmpoweredCount)
-            {
-                FinishSetup(timeout: false);
-                return;
-            }
-
             RefreshPresentation();
+        }
+
+        public void ConfirmSetup()
+        {
+            if (!_inSetup || _session == null)
+                return;
+            int n = _session.Rules.Settings.EmpoweredCount;
+            if (_whitePicks.Count < n || _blackPicks.Count < n)
+                return;
+            FinishSetup(timeout: false);
         }
 
         void FinishSetup(bool timeout)
@@ -334,6 +431,8 @@ namespace ModularChess.Match
                 return false;
             if (_session != null && _session.IsAi && _state.SideToMove != _session.PlayerSide)
                 return false;
+            if (boardView != null && boardView.PiecesBusy)
+                return false;
             return true;
         }
 
@@ -371,7 +470,8 @@ namespace ModularChess.Match
         private void BeginPromotion(List<Move> promotions)
         {
             _pendingPromotions = promotions;
-            promotionPicker.Show(_state.SideToMove);
+            if (promotionPicker != null)
+                promotionPicker.Show(_state.SideToMove);
         }
 
         private void Commit(Move move)
@@ -380,7 +480,7 @@ namespace ModularChess.Match
             _state = _state.Apply(move);
             _pendingPromotions = null;
             ClearSelection();
-            promotionPicker.Hide();
+            promotionPicker?.Hide();
             if (_state.SideToMove != moved)
                 _clock?.AddIncrement(moved);
             RefreshPresentation();
@@ -390,7 +490,9 @@ namespace ModularChess.Match
         {
             if (_state.TurnOpen)
             {
+                Side ended = _state.SideToMove;
                 _state = _state.EndTurn();
+                _clock?.AddIncrement(ended);
                 RefreshPresentation();
                 return;
             }
@@ -399,6 +501,41 @@ namespace ModularChess.Match
             if (move == null)
                 return;
             Commit(move.Value);
+        }
+
+        void TickDraft()
+        {
+            if (_session != null && _session.IsAi && _state.SideToMove != _session.PlayerSide)
+            {
+                ResolveAiDraft();
+                return;
+            }
+
+            if (!_draftTiming)
+            {
+                _draftTiming = true;
+                _draftRemaining = 60f;
+                RefreshPresentation();
+            }
+
+            _draftRemaining -= Time.deltaTime;
+            int left = Mathf.Max(0, Mathf.CeilToInt(_draftRemaining));
+            hud?.SetStatusLine($"Draft: pick a power  {left}s");
+            hud?.SetClock(_clock);
+            if (_draftRemaining <= 0f)
+                TimeoutDraft();
+        }
+
+        void TimeoutDraft()
+        {
+            DraftOffer? offer = _state.Runtime.PendingDraft;
+            if (offer == null)
+                return;
+            MartyrPower[] options = { offer.Value.First, offer.Value.Second, offer.Value.Third };
+            MartyrPower power = options[UnityEngine.Random.Range(0, options.Length)];
+            _draftTiming = false;
+            _state = _state.ApplyDraft(power, null, null);
+            RefreshPresentation();
         }
 
         void ResolveAiDraft()
@@ -439,18 +576,36 @@ namespace ModularChess.Match
 
             hud.Bind(_state, _state.History);
             hud.SetClock(_clock);
-            hud.SetEndTurnVisible(_state.CanEndTurn());
+            hud.SetEndTurnVisible(!_inSetup && _state.CanEndTurn());
+            hud.SetPauseVisible(!_inSetup && _session != null && _session.IsAi && _state.Status == GameStatus.InProgress);
+            hud.SetResignVisible(!_inSetup && _state.Status == GameStatus.InProgress);
+            int n = _session != null ? _session.Rules.Settings.EmpoweredCount : 0;
+            hud.SetSetupConfirmVisible(_inSetup && _whitePicks.Count >= n && _blackPicks.Count >= n);
+            if (_session != null && _session.Rules.Has(ModeId.Martyr))
+            {
+                hud.SetLostMaterial(
+                    _state.Runtime.LostMaterial(Side.White),
+                    _state.Runtime.LostMaterial(Side.Black),
+                    _session.Rules.Settings.MartyrThreshold);
+            }
+            else
+            {
+                hud.SetLostMaterial(null, null, 0);
+            }
+
+            if (_state.Status != GameStatus.InProgress)
+                WriteHistory();
             if (_inSetup)
             {
                 hud.SetStatusLine($"Setup {Mathf.CeilToInt(_setupRemaining)}s  White {_whitePicks.Count}/{_session.Rules.Settings.EmpoweredCount}  Black {_blackPicks.Count}/{_session.Rules.Settings.EmpoweredCount}");
             }
             else if (_state.DraftPending)
             {
-                hud.SetStatusLine(_session != null && _session.IsAi && _state.SideToMove != _session.PlayerSide
-                    ? string.Empty
-                    : "Draft: pick a power");
+                int left = _draftTiming ? Mathf.Max(0, Mathf.CeilToInt(_draftRemaining)) : 60;
+                hud.SetStatusLine($"Draft: pick a power  {left}s");
                 hud.ShowDraft(_state, power =>
                 {
+                    _draftTiming = false;
                     _state = _state.ApplyDraft(power, null, null);
                     RefreshPresentation();
                 });
@@ -458,6 +613,8 @@ namespace ModularChess.Match
             else
             {
                 hud.HideDraft();
+                if (!_paused)
+                    hud.SetStatusLine(string.Empty);
             }
         }
     }

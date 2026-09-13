@@ -118,7 +118,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   content: {fileID: 8260001008}
-  rowPrefab: {fileID: 9101000005, guid: c1a2b3c4d5e647f8a9b0c1d2e3f4a5b6, type: 3}
+  rowPrefab: {fileID: 9101000005, guid: eeea926d66cbb3046841cbc74c5765d1, type: 3}
 --- !u!1 &8260001001
 GameObject:
   m_ObjectHideFlags: 0

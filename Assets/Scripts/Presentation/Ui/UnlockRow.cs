@@ -1,6 +1,7 @@
 using ModularChess.Core;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace ModularChess.Presentation
@@ -8,39 +9,58 @@ namespace ModularChess.Presentation
     public sealed class UnlockRow : MonoBehaviour
     {
         [SerializeField] TMP_Text nameLabel;
-        [SerializeField] Button buyButton;
+        [SerializeField] Image statusIcon;
+        [SerializeField] Sprite lockedSprite;
+        [SerializeField] Sprite unlockedSprite;
 
         ModeId _id;
+        Button _rowButton;
 
-        public void Bind(ModeDefinition definition)
+        public void Bind(ModeDefinition definition, UnityAction<ModeId> opened)
         {
             _id = definition.Id;
             if (nameLabel != null)
-                nameLabel.text = definition.DisplayName;
-            if (buyButton != null)
             {
-                buyButton.onClick.RemoveAllListeners();
-                buyButton.onClick.AddListener(Buy);
+                nameLabel.text = definition.DisplayName;
+                nameLabel.raycastTarget = false;
             }
 
+            if (statusIcon != null)
+                statusIcon.raycastTarget = false;
+
+            EnsureRowButton(opened);
             Refresh();
         }
 
-        void Buy()
+        public void Refresh()
         {
-            ModeDlc.Purchase(_id);
-            Refresh();
-        }
-
-        void Refresh()
-        {
-            bool owned = ModeDlc.IsOwned(_id);
-            if (buyButton == null)
+            if (statusIcon == null)
                 return;
-            buyButton.interactable = !owned;
-            TMP_Text label = buyButton.GetComponentInChildren<TMP_Text>();
-            if (label != null)
-                label.text = owned ? "Owned" : "Buy";
+
+            Sprite sprite = ModeDlc.IsOwned(_id) ? unlockedSprite : lockedSprite;
+            if (sprite != null)
+                statusIcon.sprite = sprite;
+        }
+
+        void EnsureRowButton(UnityAction<ModeId> opened)
+        {
+            _rowButton = GetComponent<Button>();
+            if (_rowButton == null)
+                _rowButton = gameObject.AddComponent<Button>();
+
+            Image hit = GetComponent<Image>();
+            if (hit == null)
+            {
+                hit = gameObject.AddComponent<Image>();
+                hit.color = new Color(1f, 1f, 1f, 0f);
+            }
+
+            hit.raycastTarget = true;
+            _rowButton.targetGraphic = hit;
+            _rowButton.transition = Selectable.Transition.None;
+            _rowButton.onClick.RemoveAllListeners();
+            ModeId captured = _id;
+            _rowButton.onClick.AddListener(() => opened?.Invoke(captured));
         }
     }
 }

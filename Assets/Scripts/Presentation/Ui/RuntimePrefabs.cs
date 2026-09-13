@@ -9,12 +9,26 @@ namespace ModularChess.Presentation
         const string TogglePath = "Assets/Prefabs/UI/Toggle.prefab";
         const string DropdownPath = "Assets/Prefabs/UI/Dropdown.prefab";
         const string InputPath = "Assets/Prefabs/UI/InputField.prefab";
+        const string DescriptionPath = "Assets/Prefabs/UI/DescriptionBox.prefab";
+        const string ImageButtonPath = "Assets/Prefabs/UI/ImageButton.prefab";
+        const string PanelPath = "Assets/Prefabs/UI/Panel.prefab";
+        const string SelectionRowPath = "Assets/Prefabs/UI/SelectionRow.prefab";
+        const string ChessPiecePath = "Assets/Prefabs/Game/ChessPiece.prefab";
+        const string ModeSettingsPopupPath = "Assets/Prefabs/Overlays/ModeSettingsPopup.prefab";
+        const string SettingsControlPath = "Assets/Prefabs/UI/SettingsControl.prefab";
 
         public static GameObject Canvas => Load(CanvasPath, "UI/Canvas");
         public static GameObject TextButton => Load(ButtonPath, "UI/TextButton");
         public static GameObject Toggle => Load(TogglePath, "UI/Toggle");
         public static GameObject Dropdown => Load(DropdownPath, "UI/Dropdown");
         public static GameObject InputField => Load(InputPath, "UI/InputField");
+        public static GameObject DescriptionBox => Load(DescriptionPath, "UI/DescriptionBox");
+        public static GameObject ImageButton => Load(ImageButtonPath, "UI/ImageButton");
+        public static GameObject Panel => Load(PanelPath, "UI/Panel");
+        public static GameObject SelectionRow => Load(SelectionRowPath, "UI/SelectionRow");
+        public static GameObject ChessPiece => Load(ChessPiecePath, "Game/ChessPiece");
+        public static GameObject ModeSettingsPopup => Load(ModeSettingsPopupPath, "Overlays/ModeSettingsPopup");
+        public static GameObject SettingsControl => Load(SettingsControlPath, "UI/SettingsControl");
 
         static GameObject Load(string assetPath, string resourcesName)
         {

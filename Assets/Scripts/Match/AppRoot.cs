@@ -4,6 +4,7 @@ using ModularChess.Core;
 using ModularChess.Presentation;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace ModularChess.Match
@@ -37,10 +38,13 @@ namespace ModularChess.Match
         HostColor _hostColor = HostColor.White;
         AiStrength _aiStrength = AiStrength.Medium;
         int _timePreset;
+        int _incrementPreset;
         LocalLobby _lobby;
         static LocalLobby _openLobby;
         bool _prepConfirmArmed;
         ModeSettingsPopup _modeSettingsPopup;
+        OverlayDialogs _dialogs;
+        readonly List<float> _gravePresses = new List<float>();
 
         public void Initialize()
         {
@@ -58,6 +62,38 @@ namespace ModularChess.Match
             BindOverlays();
             ShowMainMenu();
             HideBoard();
+        }
+
+        void Update()
+        {
+            if (_dialogs == null)
+                _dialogs = OverlayDialogs.Ensure(transform);
+
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+                return;
+
+            if (keyboard[Key.Backquote].wasPressedThisFrame)
+                HandleGrave();
+            if (keyboard.escapeKey.wasPressedThisFrame)
+                HandleEscape();
+        }
+
+        void HandleGrave()
+        {
+            float now = Time.unscaledTime;
+            _gravePresses.Add(now);
+            _gravePresses.RemoveAll(t => now - t > 1f);
+            if (_gravePresses.Count < 4)
+                return;
+            _gravePresses.Clear();
+            if (_dialogs.DebugOpen)
+            {
+                _dialogs.HideDebugImmediate();
+                return;
+            }
+
+            _dialogs.ShowDebug(DebugResetSave, DebugUnlockAll, DebugWin, DebugLose, DebugResetTimer);
         }
 
         void ResolveReferences()
@@ -97,7 +133,7 @@ namespace ModularChess.Match
             BindButton(mainMenu, "OptionsButton", ShowOptions);
             BindButton(mainMenu, "CreditsButton", ShowCredits);
             BindButton(mainMenu, "FeedbackButton", OpenFeedback);
-            BindButton(mainMenu, "ExitButton", ExitGame);
+            BindButton(mainMenu, "ExitButton", ShowQuitConfirm);
             Button customize = FindButton(mainMenu, "CustomizeButton");
             if (customize != null)
                 customize.interactable = false;
@@ -136,12 +172,17 @@ namespace ModularChess.Match
                     PlayerPrefs.Save();
                 });
             }
+
+            EnsureAnimationSlider();
         }
 
         void ShowOverlay(GameObject overlay)
         {
             if (overlay != matchSettingsOverlay)
                 _modeSettingsPopup?.HideImmediate();
+            UnlocksView unlocks = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
+            if (overlay != unlocksOverlay)
+                unlocks?.HideDetailImmediate();
 
             HideBoard();
             if (mainMenu != null)
@@ -157,6 +198,8 @@ namespace ModularChess.Match
         void HideOverlays()
         {
             _modeSettingsPopup?.HideImmediate();
+            UnlocksView unlocks = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
+            unlocks?.HideDetailImmediate();
             GameObject[] overlays = OverlayList();
             for (int i = 0; i < overlays.Length; i++)
             {
@@ -237,7 +280,20 @@ namespace ModularChess.Match
             if (matchSettingsOverlay == null)
                 return;
 
-            BindDropdown(matchSettingsOverlay, "TimeDropdown", new[] { "None", "10+5", "5+3" }, _timePreset, v => _timePreset = v);
+            BindDropdown(
+                matchSettingsOverlay,
+                "TimeDropdown",
+                new[] { "None", "Bullet (1 min)", "Blitz (5 min)", "Standard (60 min)", "Extended (120 min)" },
+                _timePreset,
+                OnTimePresetChanged);
+            EnsureIncrementDropdown();
+            BindDropdown(
+                matchSettingsOverlay,
+                "IncrementDropdown",
+                new[] { "None", "1 second", "2 seconds", "5 seconds", "10 seconds", "15 seconds", "30 seconds", "60 seconds" },
+                _incrementPreset,
+                v => _incrementPreset = v);
+            RefreshIncrementInteractable();
             BindDropdown(matchSettingsOverlay, "HostColorDropdown", new[] { "White", "Black", "Random" }, (int)_hostColor, v => _hostColor = (HostColor)v);
 
             Transform aiGroup = FindChild(matchSettingsOverlay.transform, "AiGroup");
@@ -255,6 +311,102 @@ namespace ModularChess.Match
             }
 
             FillModeToggles();
+        }
+
+        void EnsureAnimationSlider()
+        {
+            if (optionsOverlay == null)
+                return;
+
+            Transform group = FindChild(optionsOverlay.transform, "ButtonGroup");
+            if (group == null)
+                return;
+
+            Transform existing = FindChild(optionsOverlay.transform, "AnimationRow");
+            GameObject rowGo;
+            TMP_Text valueLabel;
+            Slider slider;
+            if (existing != null)
+            {
+                rowGo = existing.gameObject;
+                slider = rowGo.GetComponentInChildren<Slider>(true);
+                valueLabel = FindLabel(rowGo, "AnimationValue");
+            }
+            else
+            {
+                rowGo = new GameObject("AnimationRow", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
+                rowGo.transform.SetParent(group, false);
+                var layout = rowGo.GetComponent<HorizontalLayoutGroup>();
+                layout.spacing = 8;
+                layout.childAlignment = TextAnchor.MiddleLeft;
+                layout.childControlWidth = true;
+                layout.childControlHeight = true;
+                layout.childForceExpandWidth = false;
+                layout.childForceExpandHeight = false;
+                var rowElement = rowGo.GetComponent<LayoutElement>();
+                rowElement.minHeight = 32;
+                rowElement.preferredHeight = 32;
+                rowElement.minWidth = 220;
+                rowElement.preferredWidth = 220;
+                RectTransform rowRect = rowGo.GetComponent<RectTransform>();
+                rowRect.sizeDelta = new Vector2(220f, 32f);
+                int backIndex = -1;
+                for (int i = 0; i < group.childCount; i++)
+                {
+                    if (group.GetChild(i).name == "BackButton")
+                    {
+                        backIndex = i;
+                        break;
+                    }
+                }
+
+                if (backIndex >= 0)
+                    rowGo.transform.SetSiblingIndex(backIndex);
+
+                TMP_Text title = UiFactory.Label(rowGo.transform, "Animation", 16, TextAlignmentOptions.MidlineLeft);
+                title.color = Color.black;
+                title.name = "AnimationLabel";
+                var titleElement = title.gameObject.AddComponent<LayoutElement>();
+                titleElement.minWidth = 96;
+                titleElement.preferredWidth = 96;
+                titleElement.flexibleWidth = 0;
+                titleElement.minHeight = 32;
+                titleElement.preferredHeight = 32;
+
+                slider = UiFactory.Slider(rowGo.transform, AnimationPrefs.SliderValue, null);
+                var sliderElement = slider.gameObject.AddComponent<LayoutElement>();
+                sliderElement.minWidth = 80;
+                sliderElement.preferredWidth = 80;
+                sliderElement.flexibleWidth = 1;
+                sliderElement.minHeight = 32;
+                sliderElement.preferredHeight = 32;
+
+                valueLabel = UiFactory.Label(rowGo.transform, AnimationPrefs.SpeedLabel, 16, TextAlignmentOptions.MidlineRight);
+                valueLabel.color = Color.black;
+                valueLabel.name = "AnimationValue";
+                var valueElement = valueLabel.gameObject.AddComponent<LayoutElement>();
+                valueElement.minWidth = 40;
+                valueElement.preferredWidth = 40;
+                valueElement.flexibleWidth = 0;
+                valueElement.minHeight = 32;
+                valueElement.preferredHeight = 32;
+            }
+
+            if (slider == null)
+                return;
+
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.SetValueWithoutNotify(AnimationPrefs.SliderValue);
+            if (valueLabel != null)
+                valueLabel.text = AnimationPrefs.SpeedLabel;
+            slider.onValueChanged.RemoveAllListeners();
+            slider.onValueChanged.AddListener(v =>
+            {
+                AnimationPrefs.SliderValue = v;
+                if (valueLabel != null)
+                    valueLabel.text = AnimationPrefs.SpeedLabel;
+            });
         }
 
         void FillModeToggles()
@@ -285,7 +437,7 @@ namespace ModularChess.Match
             for (int i = content.childCount - 1; i >= 0; i--)
                 Destroy(content.GetChild(i).gameObject);
 
-            GameObject togglePrefab = RuntimePrefabs.Toggle;
+            GameObject rowPrefab = RuntimePrefabs.SelectionRow;
             ModeDefinition[] modes = ModeCatalog.All;
             for (int i = 0; i < modes.Length; i++)
             {
@@ -294,33 +446,29 @@ namespace ModularChess.Match
                     continue;
 
                 bool owned = ModeDlc.IsOwned(def.Id);
-                GameObject row = new GameObject(def.Id.ToString(), typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
-                row.transform.SetParent(content, false);
-                var rowLayout = row.GetComponent<HorizontalLayoutGroup>();
-                rowLayout.spacing = 4;
-                rowLayout.childAlignment = TextAnchor.MiddleLeft;
-                rowLayout.childControlWidth = true;
-                rowLayout.childControlHeight = true;
-                rowLayout.childForceExpandWidth = false;
-                rowLayout.childForceExpandHeight = true;
-                var rowElement = row.GetComponent<LayoutElement>();
-                rowElement.minHeight = 32;
-                rowElement.preferredHeight = 32;
-                rowElement.minWidth = 200;
-                rowElement.flexibleWidth = 1;
-
-                GameObject toggleGo;
-                if (togglePrefab != null)
+                GameObject row;
+                if (rowPrefab != null)
                 {
-                    toggleGo = Object.Instantiate(togglePrefab, row.transform);
+                    row = Object.Instantiate(rowPrefab, content);
                 }
                 else
                 {
-                    toggleGo = new GameObject(def.DisplayName, typeof(RectTransform), typeof(Toggle));
-                    toggleGo.transform.SetParent(row.transform, false);
+                    row = new GameObject(def.Id.ToString(), typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
+                    row.transform.SetParent(content, false);
                 }
-                toggleGo.name = def.DisplayName;
-                toggleGo.SetActive(true);
+
+                row.name = def.Id.ToString();
+                row.SetActive(true);
+                FitModeRow(row);
+
+                Toggle toggle = row.GetComponentInChildren<Toggle>(true);
+                if (toggle == null)
+                {
+                    Destroy(row);
+                    continue;
+                }
+
+                GameObject toggleGo = toggle.gameObject;
                 var toggleElement = toggleGo.GetComponent<LayoutElement>();
                 if (toggleElement == null)
                     toggleElement = toggleGo.AddComponent<LayoutElement>();
@@ -328,25 +476,45 @@ namespace ModularChess.Match
                 toggleElement.flexibleWidth = 1;
                 toggleElement.minHeight = 32;
                 toggleElement.preferredHeight = 32;
+                toggleElement.flexibleHeight = 0;
 
-                Toggle toggle = toggleGo.GetComponent<Toggle>();
                 TMP_Text text = toggleGo.GetComponentInChildren<TMP_Text>();
                 if (text != null)
                 {
                     text.text = owned ? def.DisplayName : def.DisplayName + " (Unlocks)";
-                    text.enableWordWrapping = false;
+                    text.color = Color.black;
+                    text.fontSize = 16;
+                    text.textWrappingMode = TextWrappingModes.NoWrap;
                     text.overflowMode = TextOverflowModes.Ellipsis;
-                    RectTransform textRect = text.rectTransform;
-                    textRect.anchorMin = new Vector2(0f, 0f);
-                    textRect.anchorMax = new Vector2(1f, 1f);
-                    textRect.offsetMin = new Vector2(28f, 0f);
-                    textRect.offsetMax = new Vector2(-4f, 0f);
                 }
 
                 ModeId captured = def.Id;
                 toggle.interactable = owned;
                 toggle.isOn = owned && _selectedModes.Contains(captured);
                 toggle.onValueChanged.RemoveAllListeners();
+
+                var group = row.GetComponent<CanvasGroup>();
+                if (group == null)
+                    group = row.AddComponent<CanvasGroup>();
+                group.alpha = owned ? 1f : 0.45f;
+                group.interactable = owned;
+                group.blocksRaycasts = true;
+
+                Transform settingsTransform = row.transform.Find("SettingsButton");
+                Button settings = settingsTransform != null
+                    ? settingsTransform.GetComponent<Button>()
+                    : row.GetComponentInChildren<Button>(true);
+                if (settings == null)
+                    settings = UiFactory.Button(row.transform, "...", null, new Vector2(32f, 32f));
+                settings.name = "SettingsButton";
+                settings.onClick.RemoveAllListeners();
+                settings.onClick.AddListener(() => OpenModeSettings(captured, scroll));
+
+                void RefreshSettingsAccess()
+                {
+                    settings.interactable = owned && toggle.isOn;
+                }
+
                 if (owned)
                 {
                     toggle.onValueChanged.AddListener(value =>
@@ -355,11 +523,20 @@ namespace ModularChess.Match
                             _selectedModes.Add(captured);
                         if (!value)
                             _selectedModes.Remove(captured);
+                        RefreshSettingsAccess();
                     });
                 }
 
-                Button settings = UiFactory.Button(row.transform, "...", () => OpenModeSettings(captured, scroll), new Vector2(32f, 32f));
-                settings.name = "SettingsButton";
+                RefreshSettingsAccess();
+                TMP_Text settingsLabel = settings.GetComponentInChildren<TMP_Text>();
+                if (settingsLabel != null)
+                {
+                    settingsLabel.fontSize = 16;
+                    settingsLabel.textWrappingMode = TextWrappingModes.NoWrap;
+                    settingsLabel.overflowMode = TextOverflowModes.Overflow;
+                }
+
+                settings.GetComponent<RectTransform>().sizeDelta = new Vector2(32f, 32f);
                 var settingsElement = settings.gameObject.GetComponent<LayoutElement>();
                 if (settingsElement == null)
                     settingsElement = settings.gameObject.AddComponent<LayoutElement>();
@@ -368,13 +545,43 @@ namespace ModularChess.Match
                 settingsElement.flexibleWidth = 0;
                 settingsElement.minHeight = 32;
                 settingsElement.preferredHeight = 32;
+                settingsElement.flexibleHeight = 0;
 
                 _spawnedModeToggles.Add(row);
             }
         }
 
+        static void FitModeRow(GameObject row)
+        {
+            var rowLayout = row.GetComponent<HorizontalLayoutGroup>();
+            if (rowLayout != null)
+            {
+                rowLayout.spacing = 4;
+                rowLayout.childAlignment = TextAnchor.MiddleLeft;
+                rowLayout.childControlWidth = true;
+                rowLayout.childControlHeight = true;
+                rowLayout.childForceExpandWidth = false;
+                rowLayout.childForceExpandHeight = false;
+            }
+
+            var rowElement = row.GetComponent<LayoutElement>();
+            if (rowElement == null)
+                rowElement = row.AddComponent<LayoutElement>();
+            rowElement.minHeight = 32;
+            rowElement.preferredHeight = 32;
+            rowElement.flexibleHeight = 0;
+            rowElement.minWidth = 200;
+            rowElement.flexibleWidth = 1;
+
+            RectTransform rect = row.GetComponent<RectTransform>();
+            if (rect != null)
+                rect.sizeDelta = new Vector2(rect.sizeDelta.x, 32f);
+        }
+
         void OpenModeSettings(ModeId id, ScrollRect scroll)
         {
+            if (!ModeDlc.IsOwned(id) || !_selectedModes.Contains(id))
+                return;
             if (matchSettingsOverlay != null)
                 _modeSettingsPopup = ModeSettingsPopup.Ensure(matchSettingsOverlay.transform);
             if (_modeSettingsPopup == null)
@@ -511,6 +718,162 @@ namespace ModularChess.Match
             Application.OpenURL(FeedbackUrl);
         }
 
+        void ShowQuitConfirm()
+        {
+            if (_dialogs == null)
+                _dialogs = OverlayDialogs.Ensure(transform);
+            _dialogs.ShowQuit(ExitGame, () => _dialogs.HideQuit());
+        }
+
+        void HandleEscape()
+        {
+            if (_dialogs == null)
+                _dialogs = OverlayDialogs.Ensure(transform);
+            if (_dialogs.CloseTop())
+                return;
+            if (_modeSettingsPopup != null && _modeSettingsPopup.IsOpen)
+            {
+                _modeSettingsPopup.Close();
+                return;
+            }
+
+            UnlocksView unlocks = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
+            if (unlocks != null && unlocks.CloseDetailIfOpen())
+                return;
+
+            if (_match != null && _match.IsPlaying && _board != null && _board.gameObject.activeSelf)
+            {
+                _match.TryPauseFromEscape();
+                return;
+            }
+
+            if (IsActive(matchSettingsOverlay))
+            {
+                ShowPlay();
+                return;
+            }
+
+            if (IsActive(lobbyOverlay))
+            {
+                LeaveLobby();
+                return;
+            }
+
+            if (IsActive(joinOverlay) || IsActive(playOverlay))
+            {
+                if (IsActive(joinOverlay))
+                    ShowPlay();
+                else
+                    ShowMainMenu();
+                return;
+            }
+
+            if (IsActive(unlocksOverlay) || IsActive(optionsOverlay) || IsActive(creditsOverlay))
+            {
+                ShowMainMenu();
+                return;
+            }
+
+            if (mainMenu != null && mainMenu.activeSelf)
+                ShowQuitConfirm();
+        }
+
+        static bool IsActive(GameObject go)
+        {
+            return go != null && go.activeSelf;
+        }
+
+        void OnTimePresetChanged(int value)
+        {
+            _timePreset = value;
+            if (value == 0)
+                _incrementPreset = 0;
+            RefreshIncrementInteractable();
+        }
+
+        void RefreshIncrementInteractable()
+        {
+            Transform child = matchSettingsOverlay != null ? FindChild(matchSettingsOverlay.transform, "IncrementDropdown") : null;
+            TMP_Dropdown dropdown = child != null ? child.GetComponent<TMP_Dropdown>() : null;
+            if (dropdown == null)
+                return;
+            bool on = _timePreset != 0;
+            dropdown.interactable = on;
+            if (!on)
+            {
+                dropdown.value = 0;
+                _incrementPreset = 0;
+            }
+        }
+
+        void EnsureIncrementDropdown()
+        {
+            if (matchSettingsOverlay == null)
+                return;
+            if (FindChild(matchSettingsOverlay.transform, "IncrementDropdown") != null)
+                return;
+            Transform time = FindChild(matchSettingsOverlay.transform, "TimeDropdown");
+            if (time == null)
+                return;
+            TMP_Dropdown created = UiFactory.Dropdown(time.parent, new[] { "None" }, 0, null);
+            created.name = "IncrementDropdown";
+            created.gameObject.name = "IncrementDropdown";
+            var rect = created.GetComponent<RectTransform>();
+            var timeRect = time.GetComponent<RectTransform>();
+            rect.sizeDelta = timeRect != null ? timeRect.sizeDelta : new Vector2(200f, 32f);
+            var element = created.gameObject.GetComponent<LayoutElement>();
+            if (element == null)
+                element = created.gameObject.AddComponent<LayoutElement>();
+            element.minWidth = 200f;
+            element.preferredWidth = 200f;
+            element.minHeight = 32f;
+            element.preferredHeight = 32f;
+            element.flexibleWidth = 0f;
+            element.flexibleHeight = 0f;
+            created.transform.SetSiblingIndex(time.GetSiblingIndex() + 1);
+        }
+
+        void DebugUnlockAll()
+        {
+            ModeDlc.UnlockAll();
+            UnlocksView view = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
+            view?.Refresh();
+            if (matchSettingsOverlay != null && matchSettingsOverlay.activeSelf)
+                FillModeToggles();
+        }
+
+        void DebugWin()
+        {
+            _match?.DebugWin();
+            _dialogs?.HideDebugImmediate();
+        }
+
+        void DebugLose()
+        {
+            _match?.DebugLose();
+            _dialogs?.HideDebugImmediate();
+        }
+
+        void DebugResetTimer()
+        {
+            _match?.DebugResetTimer();
+        }
+
+        void DebugResetSave()
+        {
+            bool inMatch = _match != null && _match.IsPlaying;
+            bool afterSetup = inMatch && !_match.InSetup;
+            if (afterSetup)
+                _match.Resign();
+
+            ModeDlc.ClearAll();
+            MatchHistoryStore.Delete();
+            PlayerPrefs.DeleteAll();
+            PlayerPrefs.Save();
+            _dialogs?.HideDebugImmediate();
+            ExitGame();
+        }
+
         void ExitGame()
         {
 #if UNITY_EDITOR
@@ -530,15 +893,55 @@ namespace ModularChess.Match
 
         TimeControl TimeFromPreset()
         {
+            int minutes;
             switch (_timePreset)
             {
                 case 1:
-                    return TimeControl.TenPlusFive;
+                    minutes = 1;
+                    break;
                 case 2:
-                    return TimeControl.FivePlusThree;
+                    minutes = 5;
+                    break;
+                case 3:
+                    minutes = 60;
+                    break;
+                case 4:
+                    minutes = 120;
+                    break;
                 default:
                     return TimeControl.None;
             }
+
+            int increment;
+            switch (_incrementPreset)
+            {
+                case 1:
+                    increment = 1;
+                    break;
+                case 2:
+                    increment = 2;
+                    break;
+                case 3:
+                    increment = 5;
+                    break;
+                case 4:
+                    increment = 10;
+                    break;
+                case 5:
+                    increment = 15;
+                    break;
+                case 6:
+                    increment = 30;
+                    break;
+                case 7:
+                    increment = 60;
+                    break;
+                default:
+                    increment = 0;
+                    break;
+            }
+
+            return new TimeControl(minutes, increment);
         }
 
         static Side ResolveColor(HostColor color)
