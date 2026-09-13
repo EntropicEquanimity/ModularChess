@@ -30,6 +30,9 @@ namespace ModularChess.Presentation
         int _glyphOrder;
         bool _cachedVisuals;
 
+        static readonly Color AlliedAura = new Color(0.22f, 0.82f, 0.32f, 0.55f);
+        static readonly Color EnemyAura = new Color(0.9f, 0.18f, 0.18f, 0.55f);
+
         public Guid PieceId { get; private set; }
         public bool IsShadow { get; private set; }
         public bool IsMoving => _motion != null && _motion.IsActive();
@@ -60,6 +63,29 @@ namespace ModularChess.Presentation
             _body.enabled = true;
             _glyph.enabled = false;
             _body.color = theme.BlackPieceFill;
+        }
+
+        public void SetEmpoweredAura(bool show, bool allied)
+        {
+            if (_body == null || IsShadow)
+                return;
+
+            if (!show)
+            {
+                _body.enabled = _bodyEnabled;
+                _body.color = _bodyColor;
+                return;
+            }
+
+            _body.enabled = true;
+            _body.color = allied ? AlliedAura : EnemyAura;
+        }
+
+        public void SetSelectedOutline(bool selected)
+        {
+            if (_outline == null || IsShadow)
+                return;
+            _outline.enabled = selected || _outlineEnabled;
         }
 
         public void SnapTo(Vector3 localPosition)

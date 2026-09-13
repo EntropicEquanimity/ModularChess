@@ -283,7 +283,7 @@ namespace ModularChess.Match
             BindDropdown(
                 matchSettingsOverlay,
                 "TimeDropdown",
-                new[] { "None", "Bullet (1 min)", "Blitz (5 min)", "Standard (60 min)", "Extended (120 min)" },
+                new[] { "None", "Bullet (1 min)", "Blitz (5 min)", "Rapid (15 min)", "Standard (30 min)", "Extended (120 min)" },
                 _timePreset,
                 OnTimePresetChanged);
             EnsureIncrementDropdown();
@@ -903,9 +903,12 @@ namespace ModularChess.Match
                     minutes = 5;
                     break;
                 case 3:
-                    minutes = 60;
+                    minutes = 15;
                     break;
                 case 4:
+                    minutes = 30;
+                    break;
+                case 5:
                     minutes = 120;
                     break;
                 default:

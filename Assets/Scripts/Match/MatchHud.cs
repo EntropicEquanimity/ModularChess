@@ -31,6 +31,7 @@ namespace ModularChess.Match
         Tween _draftTween;
         Action<MartyrPower> _onDraft;
         bool _draftPromptShown;
+        PieceDetailsPanel _pieceDetails;
 
         void Awake()
         {
@@ -166,6 +167,20 @@ namespace ModularChess.Match
                 _draftRow.gameObject.SetActive(false);
             if (_draftDescription != null)
                 _draftDescription.gameObject.SetActive(false);
+        }
+
+        public void ShowPieceDetails(Piece piece, GameState state, IReadOnlyCollection<Guid> pendingEmpowered)
+        {
+            EnsureBuilt();
+            EnsurePieceDetails();
+            if (_pieceDetails == null)
+                return;
+            _pieceDetails.Show(piece, state, pendingEmpowered);
+        }
+
+        public void HidePieceDetails()
+        {
+            _pieceDetails?.Hide();
         }
 
         void ShowDraftDescription()
@@ -310,6 +325,35 @@ namespace ModularChess.Match
 
                 draft.SetActive(false);
             }
+
+            EnsurePieceDetails();
+        }
+
+        void EnsurePieceDetails()
+        {
+            if (_pieceDetails != null)
+                return;
+
+            RectTransform root = GetComponent<RectTransform>();
+            if (root == null)
+                return;
+
+            GameObject prefab = RuntimePrefabs.PieceDetails;
+            if (prefab == null)
+                return;
+
+            GameObject instance = Instantiate(prefab, root);
+            instance.name = "PieceDetails";
+            var rect = instance.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0f, 0.5f);
+            rect.anchorMax = new Vector2(0f, 0.5f);
+            rect.pivot = new Vector2(0f, 0.5f);
+            rect.anchoredPosition = new Vector2(16f, 40f);
+            rect.sizeDelta = new Vector2(250f, 0f);
+            _pieceDetails = instance.GetComponent<PieceDetailsPanel>();
+            if (_pieceDetails == null)
+                _pieceDetails = instance.AddComponent<PieceDetailsPanel>();
+            _pieceDetails.Hide();
         }
 
         static TMP_Text PlaceLabel(RectTransform root, string name, int size, Vector2 anchorMin, Vector2 anchorMax)

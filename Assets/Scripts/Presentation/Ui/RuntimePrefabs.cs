@@ -14,6 +14,9 @@ namespace ModularChess.Presentation
         const string PanelPath = "Assets/Prefabs/UI/Panel.prefab";
         const string SelectionRowPath = "Assets/Prefabs/UI/SelectionRow.prefab";
         const string ChessPiecePath = "Assets/Prefabs/Game/ChessPiece.prefab";
+        const string ChessboardTilePath = "Assets/Prefabs/Game/ChessboardTile.prefab";
+        const string PieceDetailsPath = "Assets/Prefabs/UI/UnitDetails.prefab";
+        const string EffectDescriptionPath = "Assets/Prefabs/UI/EffectDescription.prefab";
         const string ModeSettingsPopupPath = "Assets/Prefabs/Overlays/ModeSettingsPopup.prefab";
         const string SettingsControlPath = "Assets/Prefabs/UI/SettingsControl.prefab";
 
@@ -27,6 +30,9 @@ namespace ModularChess.Presentation
         public static GameObject Panel => Load(PanelPath, "UI/Panel");
         public static GameObject SelectionRow => Load(SelectionRowPath, "UI/SelectionRow");
         public static GameObject ChessPiece => Load(ChessPiecePath, "Game/ChessPiece");
+        public static GameObject ChessboardTile => Load(ChessboardTilePath, "Game/ChessboardTile");
+        public static GameObject PieceDetails => Load(PieceDetailsPath, "UI/UnitDetails");
+        public static GameObject EffectDescription => Load(EffectDescriptionPath, "UI/EffectDescription");
         public static GameObject ModeSettingsPopup => Load(ModeSettingsPopupPath, "Overlays/ModeSettingsPopup");
         public static GameObject SettingsControl => Load(SettingsControlPath, "UI/SettingsControl");
 

@@ -53,7 +53,7 @@ From Results, keep the same Modes and Match Settings. Versus Friend: new Lobby, 
 _Avoid_: skip Setup, keep last Empowered set
 
 **Match Settings**:
-Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control is two Host picks: main time (default none; none, Bullet 1 minute, Blitz 5 minutes, Standard 60 minutes, or Extended 120 minutes) and increment (none, 1, 2, 5, 10, 15, 30, or 60 seconds). When main time is none, increment is none and that control is disabled. 0+0 is none. Host color (White, Black, or Random; White or Black shows in the Lobby immediately, Random resolves at Start before Setup), Versus AI strength (Easy, Medium, Hard; the AI uses the same Vision as a human — strength is play quality, not omniscience), and whether a Side may End Turn with zero Moves this Turn (default off).
+Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control is two Host picks: main time (default none; none, Bullet 1 minute, Blitz 5 minutes, Rapid 15 minutes, Standard 30 minutes, or Extended 120 minutes) and increment (none, 1, 2, 5, 10, 15, 30, or 60 seconds). When main time is none, increment is none and that control is disabled. 0+0 is none. Host color (White, Black, or Random; White or Black shows in the Lobby immediately, Random resolves at Start before Setup), Versus AI strength (Easy, Medium, Hard; the AI uses the same Vision as a human — strength is play quality, not omniscience), and whether a Side may End Turn with zero Moves this Turn (default off).
 _Avoid_: Base Settings, Time Pressure, Options, delay clock, hourglass, 0+0 as a second None, combined 10+5 labels, custom minutes
 
 **Options**:

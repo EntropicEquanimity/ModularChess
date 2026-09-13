@@ -31,7 +31,9 @@ namespace ModularChess.Core
 
         public static TimeControl Blitz => new TimeControl(5, 0);
 
-        public static TimeControl Standard => new TimeControl(60, 0);
+        public static TimeControl Rapid => new TimeControl(15, 0);
+
+        public static TimeControl Standard => new TimeControl(30, 0);
 
         public static TimeControl Extended => new TimeControl(120, 0);
 

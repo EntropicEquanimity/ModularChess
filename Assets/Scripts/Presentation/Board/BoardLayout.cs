@@ -75,5 +75,6 @@ namespace ModularChess.Presentation
         public const int PieceOutline = 4;
         public const int PieceBody = 5;
         public const int PieceGlyph = 6;
+        public const int Cover = 10;
     }
 }

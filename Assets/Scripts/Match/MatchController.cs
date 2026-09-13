@@ -29,6 +29,8 @@ namespace ModularChess.Match
         bool _draftTiming;
         float _draftRemaining;
         float _aiWait = -1f;
+        Square? _hovered;
+        Guid? _pinnedPieceId;
         public event Action LeftMatch;
 
         public GameState State => _state;
@@ -83,7 +85,7 @@ namespace ModularChess.Match
             if (_inSetup)
             {
                 _setupRemaining -= Time.deltaTime;
-                hud?.SetStatusLine($"Setup {Mathf.CeilToInt(_setupRemaining)}s  White {_whitePicks.Count}/{_session.Rules.Settings.EmpoweredCount}  Black {_blackPicks.Count}/{_session.Rules.Settings.EmpoweredCount}");
+                hud?.SetStatusLine(SetupStatusLine());
                 if (_setupRemaining <= 0f)
                     FinishSetup(timeout: true);
                 return;
@@ -144,6 +146,8 @@ namespace ModularChess.Match
             ClearSelection();
             _whitePicks.Clear();
             _blackPicks.Clear();
+            _hovered = null;
+            _pinnedPieceId = null;
             _paused = false;
             _clock = new MatchClock(session.Rules.Settings.Time);
             _historyWritten = false;
@@ -190,7 +194,12 @@ namespace ModularChess.Match
             _inSetup = false;
             _clock?.Stop();
             _aiWait = -1f;
+            _hovered = null;
+            _pinnedPieceId = null;
+            boardView?.ClearTargeting();
+            boardView?.SetPendingEmpowered(null);
             boardView?.CompleteMotion();
+            hud?.HidePieceDetails();
             LeftMatch?.Invoke();
         }
 
@@ -285,6 +294,7 @@ namespace ModularChess.Match
             if (_subscribed || boardView == null)
                 return;
             boardView.SquareClicked += OnSquareClicked;
+            boardView.SquareHovered += OnSquareHovered;
             if (promotionPicker != null)
                 promotionPicker.PromotionChosen += OnPromotionChosen;
             _subscribed = true;
@@ -295,7 +305,10 @@ namespace ModularChess.Match
             if (!_subscribed)
                 return;
             if (boardView != null)
+            {
                 boardView.SquareClicked -= OnSquareClicked;
+                boardView.SquareHovered -= OnSquareHovered;
+            }
             if (promotionPicker != null)
                 promotionPicker.PromotionChosen -= OnPromotionChosen;
             _subscribed = false;
@@ -303,6 +316,7 @@ namespace ModularChess.Match
 
         private void OnSquareClicked(Square square)
         {
+            PinFromClick(square);
             if (_inSetup)
             {
                 HandleSetupClick(square);
@@ -310,7 +324,10 @@ namespace ModularChess.Match
             }
 
             if (!CanAcceptBoardInput())
+            {
+                RefreshPieceDetails();
                 return;
+            }
 
             if (_selected.HasValue)
             {
@@ -359,7 +376,7 @@ namespace ModularChess.Match
             if (_state == null)
                 return;
             Piece piece = _state.Board.GetPiece(square);
-            Side picker = _session.Hotseat ? (_whitePicks.Count >= _session.Rules.Settings.EmpoweredCount ? Side.Black : Side.White) : _session.PlayerSide;
+            Side picker = SetupPicker();
             if (piece == null || piece.Side != picker)
                 return;
 
@@ -555,6 +572,16 @@ namespace ModularChess.Match
             Side viewer = _session != null && _session.Hotseat ? _state.SideToMove : (_session?.PlayerSide ?? Side.White);
             VisionMap vision = VisionMap.Compute(_state, viewer);
             boardView.ViewerSide = viewer;
+            if (_inSetup)
+            {
+                boardView.SetPendingEmpowered(PendingEmpoweredIds());
+            }
+            else
+            {
+                boardView.SetPendingEmpowered(null);
+                boardView.ClearTargeting();
+            }
+
             boardView.Bind(_state, vision, viewer);
             if (_selected.HasValue)
                 boardView.SetSelection(_selected);
@@ -570,6 +597,9 @@ namespace ModularChess.Match
             {
                 boardView.ClearLastMove();
             }
+
+            if (_inSetup)
+                ApplySetupTargeting();
 
             if (hud == null)
                 return;
@@ -597,7 +627,7 @@ namespace ModularChess.Match
                 WriteHistory();
             if (_inSetup)
             {
-                hud.SetStatusLine($"Setup {Mathf.CeilToInt(_setupRemaining)}s  White {_whitePicks.Count}/{_session.Rules.Settings.EmpoweredCount}  Black {_blackPicks.Count}/{_session.Rules.Settings.EmpoweredCount}");
+                hud.SetStatusLine(SetupStatusLine());
             }
             else if (_state.DraftPending)
             {
@@ -616,6 +646,107 @@ namespace ModularChess.Match
                 if (!_paused)
                     hud.SetStatusLine(string.Empty);
             }
+
+            RefreshPieceDetails();
+        }
+
+        void OnSquareHovered(Square? square)
+        {
+            _hovered = square;
+            RefreshPieceDetails();
+        }
+
+        void PinFromClick(Square square)
+        {
+            Piece piece = InspectablePiece(square);
+            _pinnedPieceId = piece != null ? piece.Id : (Guid?)null;
+        }
+
+        void ApplySetupTargeting()
+        {
+            if (boardView == null)
+                return;
+            if (!_inSetup)
+            {
+                boardView.ClearTargeting();
+                return;
+            }
+
+            Side picker = SetupPicker();
+            var valid = new List<Square>();
+            for (int file = 0; file < BoardLayout.FileCount; file++)
+            {
+                for (int rank = 0; rank < BoardLayout.RankCount; rank++)
+                {
+                    var square = new Square(file, rank);
+                    Piece piece = _state.Board.GetPiece(square);
+                    if (piece != null && piece.Side == picker)
+                        valid.Add(square);
+                }
+            }
+
+            boardView.SetTargeting(valid);
+        }
+
+        Side SetupPicker()
+        {
+            if (_session != null && _session.Hotseat)
+                return _whitePicks.Count >= _session.Rules.Settings.EmpoweredCount ? Side.Black : Side.White;
+            return _session?.PlayerSide ?? Side.White;
+        }
+
+        List<Guid> PendingEmpoweredIds()
+        {
+            List<Guid> picks = SetupPicker() == Side.White ? _whitePicks : _blackPicks;
+            return new List<Guid>(picks);
+        }
+
+        string SetupStatusLine()
+        {
+            int n = _session.Rules.Settings.EmpoweredCount;
+            Side picker = SetupPicker();
+            int count = picker == Side.White ? _whitePicks.Count : _blackPicks.Count;
+            return $"Setup {Mathf.CeilToInt(_setupRemaining)}s  {count}/{n}";
+        }
+
+        void RefreshPieceDetails()
+        {
+            if (hud == null || _state == null)
+                return;
+
+            Piece piece = null;
+            if (_hovered.HasValue)
+                piece = InspectablePiece(_hovered.Value);
+            if (piece == null && _pinnedPieceId.HasValue)
+            {
+                Square? square = _state.Board.FindSquare(_pinnedPieceId.Value);
+                if (square.HasValue)
+                    piece = InspectablePiece(square.Value);
+            }
+
+            if (piece == null)
+            {
+                hud.HidePieceDetails();
+                return;
+            }
+
+            hud.ShowPieceDetails(piece, _state, _inSetup ? PendingEmpoweredIds() : null);
+        }
+
+        Piece InspectablePiece(Square square)
+        {
+            if (_state == null || !square.IsOnBoard)
+                return null;
+            Piece piece = _state.Board.GetPiece(square);
+            if (piece == null)
+                return null;
+
+            Side viewer = _session != null && _session.Hotseat ? _state.SideToMove : (_session?.PlayerSide ?? Side.White);
+            if (piece.Side == viewer)
+                return piece;
+
+            VisionMap vision = VisionMap.Compute(_state, viewer);
+            return vision[square] == SquareSight.Identified ? piece : null;
         }
     }
 }

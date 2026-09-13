@@ -40,11 +40,17 @@ namespace ModularChess.Presentation
                 return;
 
             Pointer pointer = Pointer.current;
-            if (pointer == null || !pointer.press.wasPressedThisFrame)
+            if (pointer == null)
                 return;
 
             Vector2 screen = pointer.position.ReadValue();
-            if (IsPromotionOpen() || IsBlockedByUi(screen))
+            bool uiBlocked = IsBlockedByUi(screen);
+            if (!uiBlocked && !IsPromotionOpen())
+                UpdateHover(screen);
+
+            if (!pointer.press.wasPressedThisFrame)
+                return;
+            if (IsPromotionOpen() || uiBlocked)
                 return;
 
             Camera camera = pickCamera != null ? pickCamera : Camera.main;
@@ -57,6 +63,23 @@ namespace ModularChess.Presentation
                 return;
 
             _board.NotifySquareClicked(square);
+        }
+
+        void UpdateHover(Vector2 screen)
+        {
+            Camera camera = pickCamera != null ? pickCamera : Camera.main;
+            if (camera == null || !camera.pixelRect.Contains(screen))
+            {
+                _board.NotifySquareHovered(null);
+                return;
+            }
+
+            float depth = Mathf.Abs(camera.transform.position.z - _board.transform.position.z);
+            Vector3 world = camera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
+            if (_board.TryPickSquare(world, out Square square))
+                _board.NotifySquareHovered(square);
+            else
+                _board.NotifySquareHovered(null);
         }
 
         bool IsPromotionOpen()

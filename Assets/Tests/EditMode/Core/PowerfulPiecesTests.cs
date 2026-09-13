@@ -31,5 +31,17 @@ namespace ModularChess.Core.Tests
             state = state.EndTurn();
             Assert.AreEqual(Side.Black, state.SideToMove);
         }
+
+        [Test]
+        public void EmpoweredPowers_DescribeEveryCorePieceType()
+        {
+            Assert.AreEqual("Empowered", EmpoweredPowers.EffectName);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(EmpoweredPowers.Describe(PieceType.Pawn)));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(EmpoweredPowers.Describe(PieceType.Knight)));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(EmpoweredPowers.Describe(PieceType.Bishop)));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(EmpoweredPowers.Describe(PieceType.Rook)));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(EmpoweredPowers.Describe(PieceType.Queen)));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(EmpoweredPowers.Describe(PieceType.King)));
+        }
     }
 }
