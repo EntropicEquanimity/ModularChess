@@ -43,11 +43,13 @@ namespace ModularChess.Match
             promotionPicker = picker;
             hud = matchHud;
             Subscribe();
+            HookLanguage();
         }
 
         public void Initialize()
         {
             Subscribe();
+            HookLanguage();
         }
 
         private void Start()
@@ -59,11 +61,13 @@ namespace ModularChess.Match
             if (hud == null)
                 hud = FindAnyObjectByType<MatchHud>();
             Subscribe();
+            HookLanguage();
         }
 
         private void OnDestroy()
         {
             Unsubscribe();
+            Loc.Changed -= OnLanguageChanged;
         }
 
         public bool IsPaused => _paused;
@@ -275,7 +279,7 @@ namespace ModularChess.Match
             else
                 _clock?.Start();
             boardView?.SetMotionPaused(_paused);
-            hud?.SetStatusLine(_paused ? "Paused" : string.Empty);
+            hud?.SetStatusLine(_paused ? Loc.Get("match.paused") : string.Empty);
         }
 
         public void RequestEndTurn()
@@ -314,6 +318,20 @@ namespace ModularChess.Match
             _subscribed = false;
         }
 
+        void HookLanguage()
+        {
+            Loc.Changed -= OnLanguageChanged;
+            Loc.Changed += OnLanguageChanged;
+        }
+
+        void OnLanguageChanged()
+        {
+            if (_state != null)
+                RefreshPresentation();
+            if (_paused)
+                hud?.SetStatusLine(Loc.Get("match.paused"));
+        }
+
         private void OnSquareClicked(Square square)
         {
             PinFromClick(square);
@@ -349,6 +367,7 @@ namespace ModularChess.Match
                 List<Move> destinations = MovesTo(square);
                 if (destinations.Count == 0)
                 {
+                    GameAudio.PlayIllegal();
                     ClearSelection();
                     RefreshPresentation();
                     return;
@@ -368,7 +387,10 @@ namespace ModularChess.Match
             {
                 Select(square);
                 RefreshPresentation();
+                return;
             }
+
+            GameAudio.PlayIllegal();
         }
 
         void HandleSetupClick(Square square)
@@ -385,7 +407,13 @@ namespace ModularChess.Match
                 picks.Remove(piece.Id);
             else if (picks.Count < _session.Rules.Settings.EmpoweredCount)
                 picks.Add(piece.Id);
+            else
+            {
+                GameAudio.PlayIllegal();
+                return;
+            }
 
+            GameAudio.PlaySelect();
             RefreshPresentation();
         }
 
@@ -463,6 +491,7 @@ namespace ModularChess.Match
         {
             _selected = square;
             _movesFromSelection = _state.LegalMovesFrom(square);
+            GameAudio.PlaySelect();
         }
 
         private void ClearSelection()
@@ -494,13 +523,40 @@ namespace ModularChess.Match
         private void Commit(Move move)
         {
             Side moved = _state.SideToMove;
+            PlayMoveSfx(move, moved);
             _state = _state.Apply(move);
             _pendingPromotions = null;
             ClearSelection();
             promotionPicker?.Hide();
             if (_state.SideToMove != moved)
                 _clock?.AddIncrement(moved);
+            if (_state.IsInCheck || _state.Status == GameStatus.Checkmate)
+                GameAudio.PlayCheck();
             RefreshPresentation();
+        }
+
+        void PlayMoveSfx(Move move, Side mover)
+        {
+            Side viewer = _session != null && _session.Hotseat
+                ? mover
+                : (_session?.PlayerSide ?? Side.White);
+            bool own = _session == null || _session.Hotseat || mover == viewer;
+            VisionMap vision = VisionMap.Compute(_state, viewer);
+            bool identified = own || vision.IsIdentified(move.From) || vision.IsIdentified(move.To);
+            if (!identified)
+            {
+                GameAudio.PlayHidden();
+                return;
+            }
+
+            bool capture = move.Kind == MoveKind.Capture
+                || move.Kind == MoveKind.EnPassant
+                || move.Kind == MoveKind.Bombard
+                || move.CapturedType != null;
+            if (capture)
+                GameAudio.PlayCapture();
+            else
+                GameAudio.PlayMove();
         }
 
         void PlayAi()
@@ -537,7 +593,7 @@ namespace ModularChess.Match
 
             _draftRemaining -= Time.deltaTime;
             int left = Mathf.Max(0, Mathf.CeilToInt(_draftRemaining));
-            hud?.SetStatusLine($"Draft: pick a power  {left}s");
+            hud?.SetStatusLine(Loc.Format("match.draft", left));
             hud?.SetClock(_clock);
             if (_draftRemaining <= 0f)
                 TimeoutDraft();
@@ -646,7 +702,7 @@ namespace ModularChess.Match
             else if (_state.DraftPending)
             {
                 int left = _draftTiming ? Mathf.Max(0, Mathf.CeilToInt(_draftRemaining)) : 60;
-                hud.SetStatusLine($"Draft: pick a power  {left}s");
+                hud.SetStatusLine(Loc.Format("match.draft", left));
                 hud.ShowDraft(_state, power =>
                 {
                     _draftTiming = false;
@@ -720,7 +776,7 @@ namespace ModularChess.Match
             int n = _session.Rules.Settings.EmpoweredCount;
             Side picker = SetupPicker();
             int count = picker == Side.White ? _whitePicks.Count : _blackPicks.Count;
-            return $"Setup {Mathf.CeilToInt(_setupRemaining)}s  {count}/{n}";
+            return Loc.Format("match.setup", Mathf.CeilToInt(_setupRemaining), count, n);
         }
 
         void RefreshPieceDetails()

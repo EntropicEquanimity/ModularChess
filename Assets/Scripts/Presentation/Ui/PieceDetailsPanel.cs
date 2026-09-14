@@ -24,24 +24,24 @@ namespace ModularChess.Presentation
             EnsureName();
             gameObject.SetActive(true);
             if (_pieceName != null)
-                _pieceName.text = piece.Type.ToString();
+                _pieceName.text = Loc.PieceName(piece.Type);
 
             int row = 0;
             bool empowered = state.Runtime.IsEmpowered(piece.Id)
                 || Contains(pendingEmpowered, piece.Id);
             if (empowered)
             {
-                BindRow(row++, EmpoweredPowers.EffectName, EmpoweredPowers.Describe(piece.Type));
+                BindRow(row++, Loc.Get("piece.empowered"), Loc.EmpoweredDescription(piece.Type));
             }
 
             if (state.Runtime.ExtraLifeAvailable(piece.Id) && piece.Type != PieceType.Knight)
             {
-                BindRow(row++, "Extra Life", "The first Capture of this Piece is negated. Then Extra Life is gone.");
+                BindRow(row++, Loc.Get("piece.extraLife"), Loc.Get("piece.extraLife.body"));
             }
 
             if (state.Runtime.IsSummoned(piece.Id))
             {
-                BindRow(row++, "Summoned", "Created by Martyr. Counts 0 Lost Material if it leaves.");
+                BindRow(row++, Loc.Get("piece.summoned"), Loc.Get("piece.summoned.body"));
             }
 
             if (state.Runtime.TryGetStatus(piece.Id, out PieceStatus status))
@@ -140,9 +140,9 @@ namespace ModularChess.Presentation
             switch (kind)
             {
                 case StatusKind.Invulnerable:
-                    return "Invulnerable";
+                    return Loc.Get("status.invulnerable");
                 case StatusKind.Stasis:
-                    return "Stasis";
+                    return Loc.Get("status.stasis");
                 default:
                     throw new System.ArgumentOutOfRangeException(nameof(kind), kind, null);
             }
@@ -153,9 +153,9 @@ namespace ModularChess.Presentation
             switch (status.Kind)
             {
                 case StatusKind.Invulnerable:
-                    return $"Cannot be targeted. {status.RemainingTurns} Turns remaining.";
+                    return Loc.Format("status.invulnerable.body", status.RemainingTurns);
                 case StatusKind.Stasis:
-                    return $"Cannot Move, be targeted, or attack. {status.RemainingTurns} Turns remaining.";
+                    return Loc.Format("status.stasis.body", status.RemainingTurns);
                 default:
                     throw new System.ArgumentOutOfRangeException(nameof(status.Kind), status.Kind, null);
             }

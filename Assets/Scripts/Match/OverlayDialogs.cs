@@ -42,7 +42,7 @@ namespace ModularChess.Match
         {
             HideDebugImmediate();
             if (_quit == null)
-                _quit = BuildPanel("QuitConfirm", "Quit the Game?", new[] { "Yes", "Close" });
+                _quit = BuildPanel("QuitConfirm", "dialog.quit.title", new[] { "dialog.yes", "dialog.close" });
             BindButtons(_quit, new[] { confirm, cancel });
             _quit.SetActive(true);
             transform.SetAsLastSibling();
@@ -66,8 +66,16 @@ namespace ModularChess.Match
             {
                 _debug = BuildPanel(
                     "DebugMenu",
-                    "Debug",
-                    new[] { "Reset Save Data", "Unlock all Modes", "Win", "Lose", "Reset Timer", "Close" });
+                    "dialog.debug",
+                    new[]
+                    {
+                        "dialog.resetSave",
+                        "dialog.unlockAll",
+                        "dialog.win",
+                        "dialog.lose",
+                        "dialog.resetTimer",
+                        "dialog.close"
+                    });
             }
 
             BindButtons(_debug, new[] { resetSave, unlockAll, win, lose, resetTimer, HideDebugImmediate });
@@ -98,9 +106,9 @@ namespace ModularChess.Match
             return false;
         }
 
-        GameObject BuildPanel(string name, string title, string[] buttons)
+        GameObject BuildPanel(string name, string titleKey, string[] buttonKeys)
         {
-            RectTransform panel = UiFactory.Panel(transform, new Vector2(420f, 40f + buttons.Length * 40f + 48f));
+            RectTransform panel = UiFactory.Panel(transform, new Vector2(420f, 40f + buttonKeys.Length * 40f + 48f));
             panel.name = name;
             panel.anchorMin = new Vector2(0.5f, 0.5f);
             panel.anchorMax = new Vector2(0.5f, 0.5f);
@@ -112,15 +120,17 @@ namespace ModularChess.Match
             layout.childControlWidth = true;
             layout.childControlHeight = false;
             layout.childForceExpandWidth = true;
-            TMP_Text heading = UiFactory.Label(panel, title, 32, TextAlignmentOptions.Center);
+            TMP_Text heading = UiFactory.Label(panel, Loc.Get(titleKey), 32, TextAlignmentOptions.Center);
             heading.color = Color.black;
+            LocalizedText.Bind(heading, titleKey);
             var headingElement = heading.gameObject.AddComponent<LayoutElement>();
             headingElement.minHeight = 40f;
             headingElement.preferredHeight = 40f;
-            for (int i = 0; i < buttons.Length; i++)
+            for (int i = 0; i < buttonKeys.Length; i++)
             {
-                Button button = UiFactory.Button(panel, buttons[i], null, new Vector2(200f, 32f));
-                button.name = buttons[i];
+                Button button = UiFactory.Button(panel, Loc.Get(buttonKeys[i]), null, new Vector2(200f, 32f));
+                button.name = buttonKeys[i];
+                LocalizedText.Bind(button, buttonKeys[i]);
                 var element = button.gameObject.AddComponent<LayoutElement>();
                 element.minWidth = 200f;
                 element.preferredWidth = 200f;
@@ -139,8 +149,7 @@ namespace ModularChess.Match
             for (int i = 0; i < count; i++)
             {
                 buttons[i].onClick.RemoveAllListeners();
-                if (actions[i] != null)
-                    buttons[i].onClick.AddListener(actions[i]);
+                GameAudio.Bind(buttons[i], actions[i]);
             }
         }
     }

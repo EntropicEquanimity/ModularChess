@@ -31,6 +31,8 @@ namespace ModularChess.Presentation
         Tween _tween;
         bool _open;
         bool _wired;
+        ModeId _id;
+        HostModeSettings _settings;
 
         public bool IsOpen => _open;
 
@@ -56,6 +58,8 @@ namespace ModularChess.Presentation
                 throw new ArgumentNullException(nameof(settings));
 
             Wire();
+            _id = id;
+            _settings = settings;
             _tween?.Kill();
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
@@ -110,12 +114,14 @@ namespace ModularChess.Presentation
 
         void OnDisable()
         {
+            Loc.Changed -= OnLanguageChanged;
             _tween?.Kill();
             _open = false;
         }
 
         void OnDestroy()
         {
+            Loc.Changed -= OnLanguageChanged;
             _tween?.Kill();
         }
 
@@ -169,27 +175,30 @@ namespace ModularChess.Presentation
                 settingsControlPrefab = RuntimePrefabs.SettingsControl;
 
             if (blockerButton != null)
-            {
-                blockerButton.onClick.RemoveAllListeners();
-                blockerButton.onClick.AddListener(Close);
-            }
-
+                GameAudio.Bind(blockerButton, Close);
             if (closeButton != null)
             {
-                closeButton.onClick.RemoveAllListeners();
-                closeButton.onClick.AddListener(Close);
+                GameAudio.Bind(closeButton, Close);
+                LocalizedText.Bind(closeButton, "mode.settings.close");
             }
 
+            Loc.Changed -= OnLanguageChanged;
+            Loc.Changed += OnLanguageChanged;
             _wired = true;
+        }
+
+        void OnLanguageChanged()
+        {
+            if (_open && _settings != null)
+                Fill(_id, _settings);
         }
 
         void Fill(ModeId id, HostModeSettings settings)
         {
-            ModeDefinition def = ModeCatalog.Get(id);
             if (title != null)
-                title.text = def.DisplayName;
+                title.text = Loc.ModeName(id);
             if (summary != null)
-                summary.text = def.Summary;
+                summary.text = Loc.ModeSummary(id);
 
             Transform content = FieldsContent();
             if (content != null)
@@ -209,11 +218,11 @@ namespace ModularChess.Presentation
                 case ModeId.FogOfWar:
                     return;
                 case ModeId.PowerfulPieces:
-                    AddStepper(content, "Empowered Pieces", () => settings.EmpoweredCount, v => settings.EmpoweredCount = v, 1, 8);
+                    AddStepper(content, Loc.Get("mode.setting.empowered"), () => settings.EmpoweredCount, v => settings.EmpoweredCount = v, 1, 8);
                     break;
                 case ModeId.Martyr:
-                    AddStepper(content, "Lost Material", () => settings.MartyrThreshold, v => settings.MartyrThreshold = v, 1, 18);
-                    AddStepper(content, "Draft options", () => settings.MartyrDraftOptions, v => settings.MartyrDraftOptions = v, 1, 5);
+                    AddStepper(content, Loc.Get("mode.setting.lost"), () => settings.MartyrThreshold, v => settings.MartyrThreshold = v, 1, 18);
+                    AddStepper(content, Loc.Get("mode.setting.draft"), () => settings.MartyrDraftOptions, v => settings.MartyrDraftOptions = v, 1, 5);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(id), id, null);

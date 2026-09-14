@@ -12,7 +12,13 @@ namespace ModularChess.Presentation
 
         void OnEnable()
         {
+            Loc.Changed += Refresh;
             Refresh();
+        }
+
+        void OnDisable()
+        {
+            Loc.Changed -= Refresh;
         }
 
         public void Refresh()

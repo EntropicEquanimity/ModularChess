@@ -18,9 +18,7 @@ namespace ModularChess.Presentation
             if (buyButton == null)
                 return;
 
-            buyButton.onClick.RemoveAllListeners();
-            if (onBuy != null)
-                buyButton.onClick.AddListener(onBuy);
+            GameAudio.Bind(buyButton, onBuy);
         }
     }
 }

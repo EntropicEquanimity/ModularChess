@@ -23,6 +23,7 @@ namespace ModularChess.Match
         [SerializeField] GameObject unlocksOverlay;
         [SerializeField] GameObject optionsOverlay;
         [SerializeField] GameObject creditsOverlay;
+        [SerializeField] GameObject accountCreationOverlay;
         [SerializeField] MatchController match;
         [SerializeField] BoardView board;
         [SerializeField] MatchHud hud;
@@ -45,9 +46,11 @@ namespace ModularChess.Match
         ModeSettingsPopup _modeSettingsPopup;
         OverlayDialogs _dialogs;
         readonly List<float> _gravePresses = new List<float>();
+        bool _locHooked;
 
         public void Initialize()
         {
+            GameAudio.Ensure();
             ResolveReferences();
             BindMainMenu();
             BindOverlays();
@@ -60,8 +63,15 @@ namespace ModularChess.Match
                 _match.LeftMatch += ShowMainMenu;
             BindMainMenu();
             BindOverlays();
-            ShowMainMenu();
-            HideBoard();
+            GameAudio.Ensure();
+            EnterApp();
+        }
+
+        void OnDestroy()
+        {
+            Loc.Changed -= OnLanguageChanged;
+            if (_match != null)
+                _match.LeftMatch -= ShowMainMenu;
         }
 
         void Update()
@@ -107,6 +117,13 @@ namespace ModularChess.Match
                 if (found != null)
                     mainMenu = found.gameObject;
             }
+
+            if (accountCreationOverlay == null)
+            {
+                Transform found = transform.Find("AccountCreation");
+                if (found != null)
+                    accountCreationOverlay = found.gameObject;
+            }
         }
 
         GameObject[] OverlayList()
@@ -119,7 +136,8 @@ namespace ModularChess.Match
                 joinOverlay,
                 unlocksOverlay,
                 optionsOverlay,
-                creditsOverlay
+                creditsOverlay,
+                accountCreationOverlay
             };
         }
 
@@ -137,6 +155,8 @@ namespace ModularChess.Match
             Button customize = FindButton(mainMenu, "CustomizeButton");
             if (customize != null)
                 customize.interactable = false;
+            BindMenuLoc();
+            HookLanguage();
             _menuBound = true;
         }
 
@@ -168,12 +188,21 @@ namespace ModularChess.Match
                 notation.isOn = PlayerPrefs.GetInt(ShowNotationKey, 1) == 1;
                 notation.onValueChanged.AddListener(on =>
                 {
+                    GameAudio.PlayUi();
                     PlayerPrefs.SetInt(ShowNotationKey, on ? 1 : 0);
                     PlayerPrefs.Save();
                 });
+                LocalizedText.Bind(notation, "options.notation");
             }
 
             EnsureAnimationSlider();
+            EnsureVolumeSliders();
+            EnsureLanguageDropdown();
+            EnsureNameLabel();
+            BindAccountCreation();
+            BindMenuLoc();
+            ApplyWebGlPlayLimits();
+            HookLanguage();
         }
 
         void ShowOverlay(GameObject overlay)
@@ -227,17 +256,47 @@ namespace ModularChess.Match
                 _hud.gameObject.SetActive(true);
         }
 
+        void EnterApp()
+        {
+            HideBoard();
+            if (PlayerIdentity.HasName)
+                ShowMainMenu();
+            else
+                ShowAccountCreation();
+        }
+
         public void ShowMainMenu()
         {
+            if (!PlayerIdentity.HasName)
+            {
+                ShowAccountCreation();
+                return;
+            }
+
             HideBoard();
             HideOverlays();
             if (mainMenu != null)
                 mainMenu.SetActive(true);
+            GameAudio.PlayMenuMusic();
+        }
+
+        void ShowAccountCreation()
+        {
+            if (PlayerIdentity.HasName)
+            {
+                ShowMainMenu();
+                return;
+            }
+
+            BindAccountCreation();
+            ShowOverlay(accountCreationOverlay);
+            GameAudio.PlayMenuMusic();
         }
 
         void ShowPlay()
         {
             ShowOverlay(playOverlay);
+            ApplyWebGlPlayLimits();
         }
 
         void ShowUnlocks()
@@ -251,6 +310,7 @@ namespace ModularChess.Match
         void ShowOptions()
         {
             ShowOverlay(optionsOverlay);
+            EnsureNameLabel();
         }
 
         void ShowCredits()
@@ -283,31 +343,66 @@ namespace ModularChess.Match
             BindDropdown(
                 matchSettingsOverlay,
                 "TimeDropdown",
-                new[] { "None", "Bullet (1 min)", "Blitz (5 min)", "Rapid (15 min)", "Standard (30 min)", "Extended (120 min)" },
+                new[]
+                {
+                    Loc.Get("settings.time.none"),
+                    Loc.Get("settings.time.bullet"),
+                    Loc.Get("settings.time.blitz"),
+                    Loc.Get("settings.time.rapid"),
+                    Loc.Get("settings.time.standard"),
+                    Loc.Get("settings.time.extended")
+                },
                 _timePreset,
                 OnTimePresetChanged);
             EnsureIncrementDropdown();
             BindDropdown(
                 matchSettingsOverlay,
                 "IncrementDropdown",
-                new[] { "None", "1 second", "2 seconds", "5 seconds", "10 seconds", "15 seconds", "30 seconds", "60 seconds" },
+                new[]
+                {
+                    Loc.Get("settings.inc.none"),
+                    Loc.Get("settings.inc.1"),
+                    Loc.Get("settings.inc.2"),
+                    Loc.Get("settings.inc.5"),
+                    Loc.Get("settings.inc.10"),
+                    Loc.Get("settings.inc.15"),
+                    Loc.Get("settings.inc.30"),
+                    Loc.Get("settings.inc.60")
+                },
                 _incrementPreset,
                 v => _incrementPreset = v);
             RefreshIncrementInteractable();
-            BindDropdown(matchSettingsOverlay, "HostColorDropdown", new[] { "White", "Black", "Random" }, (int)_hostColor, v => _hostColor = (HostColor)v);
+            BindDropdown(
+                matchSettingsOverlay,
+                "HostColorDropdown",
+                new[]
+                {
+                    Loc.Get("settings.color.white"),
+                    Loc.Get("settings.color.black"),
+                    Loc.Get("settings.color.random")
+                },
+                (int)_hostColor,
+                v => _hostColor = (HostColor)v);
 
             Transform aiGroup = FindChild(matchSettingsOverlay.transform, "AiGroup");
             if (aiGroup != null)
                 aiGroup.gameObject.SetActive(_activity == Activity.VersusAi);
             if (_activity == Activity.VersusAi)
-                BindDropdown(matchSettingsOverlay, "AiDropdown", new[] { "Easy", "Medium", "Hard" }, (int)_aiStrength, v => _aiStrength = (AiStrength)v);
+                BindDropdown(
+                    matchSettingsOverlay,
+                    "AiDropdown",
+                    new[] { Loc.Get("settings.ai.easy"), Loc.Get("settings.ai.medium"), Loc.Get("settings.ai.hard") },
+                    (int)_aiStrength,
+                    v => _aiStrength = (AiStrength)v);
 
             Button confirm = FindButton(matchSettingsOverlay, "ConfirmButton");
             if (confirm != null)
             {
                 TMP_Text label = confirm.GetComponentInChildren<TMP_Text>();
                 if (label != null)
-                    label.text = _activity == Activity.VersusAi ? "Start" : "Create Lobby";
+                    label.text = _activity == Activity.VersusAi
+                        ? Loc.Get("settings.start")
+                        : Loc.Get("settings.createLobby");
             }
 
             FillModeToggles();
@@ -347,13 +442,70 @@ namespace ModularChess.Match
             if (view == null)
                 view = row.gameObject.AddComponent<OptionSliderView>();
             view.Bind(
-                "Animation Speed",
+                Loc.Get("options.anim"),
                 AnimationPrefs.MinMultiplier,
                 AnimationPrefs.SkipStep,
                 true,
                 AnimationPrefs.SliderValue,
                 v => AnimationPrefs.SliderValue = v,
-                () => AnimationPrefs.SpeedLabel);
+                () => AnimationPrefs.Instant
+                    ? Loc.Get("options.anim.off")
+                    : Loc.Format("options.anim.times", Mathf.RoundToInt(AnimationPrefs.Multiplier)));
+        }
+
+        void EnsureVolumeSliders()
+        {
+            BindVolumeSlider("MusicSlider", Loc.Get("options.music"), true);
+            BindVolumeSlider("SfxSlider", Loc.Get("options.sfx"), false);
+        }
+
+        void BindVolumeSlider(string name, string label, bool music)
+        {
+            if (optionsOverlay == null)
+                return;
+            Transform row = FindChild(optionsOverlay.transform, name);
+            if (row == null)
+            {
+                Transform group = FindChild(optionsOverlay.transform, "ButtonGroup");
+                GameObject prefab = RuntimePrefabs.OptionSlider;
+                if (group == null || prefab == null)
+                    return;
+                GameObject instance = Instantiate(prefab, group);
+                instance.name = name;
+                row = instance.transform;
+                int backIndex = -1;
+                for (int i = 0; i < group.childCount; i++)
+                {
+                    if (group.GetChild(i).name == "BackButton")
+                    {
+                        backIndex = i;
+                        break;
+                    }
+                }
+
+                if (backIndex >= 0)
+                    row.SetSiblingIndex(backIndex);
+            }
+
+            OptionSliderView view = row.GetComponent<OptionSliderView>();
+            if (view == null)
+                view = row.gameObject.AddComponent<OptionSliderView>();
+            int current = music ? AudioPrefs.Music : AudioPrefs.Sfx;
+            view.Bind(
+                label,
+                AudioPrefs.Min,
+                AudioPrefs.Max,
+                true,
+                current,
+                v =>
+                {
+                    int value = Mathf.RoundToInt(v);
+                    if (music)
+                        AudioPrefs.Music = value;
+                    else
+                        AudioPrefs.Sfx = value;
+                },
+                () => Loc.Format("options.volume", music ? AudioPrefs.Music : AudioPrefs.Sfx));
         }
 
         void FillModeToggles()
@@ -428,7 +580,9 @@ namespace ModularChess.Match
                 TMP_Text text = toggleGo.GetComponentInChildren<TMP_Text>();
                 if (text != null)
                 {
-                    text.text = owned ? def.DisplayName : def.DisplayName + " (Unlocks)";
+                    text.text = owned
+                        ? Loc.ModeName(def.Id)
+                        : Loc.Format("mode.unlocks.suffix", Loc.ModeName(def.Id));
                     text.color = Color.black;
                     text.fontSize = 16;
                     text.textWrappingMode = TextWrappingModes.NoWrap;
@@ -454,8 +608,7 @@ namespace ModularChess.Match
                 if (settings == null)
                     settings = UiFactory.Button(row.transform, "...", null, new Vector2(32f, 32f));
                 settings.name = "SettingsButton";
-                settings.onClick.RemoveAllListeners();
-                settings.onClick.AddListener(() => OpenModeSettings(captured, scroll));
+                GameAudio.Bind(settings, () => OpenModeSettings(captured, scroll));
 
                 void RefreshSettingsAccess()
                 {
@@ -466,6 +619,7 @@ namespace ModularChess.Match
                 {
                     toggle.onValueChanged.AddListener(value =>
                     {
+                        GameAudio.PlayUi();
                         if (value && !_selectedModes.Contains(captured))
                             _selectedModes.Add(captured);
                         if (!value)
@@ -602,17 +756,17 @@ namespace ModularChess.Match
 
             TMP_Text code = FindLabel(lobbyOverlay, "JoinCodeLabel");
             if (code != null)
-                code.text = "Join Code: " + _lobby.Code;
+                code.text = Loc.Format("lobby.code", _lobby.Code);
             TMP_Text status = FindLabel(lobbyOverlay, "StatusLabel");
             if (status != null)
-                status.text = _lobby.FriendSeated ? "Friend seated" : "Waiting for friend";
+                status.text = _lobby.FriendSeated ? Loc.Get("lobby.seated") : Loc.Get("lobby.waiting");
             Button start = FindButton(lobbyOverlay, "StartButton");
             if (start != null)
             {
                 start.interactable = _lobby.FriendSeated;
                 TMP_Text label = start.GetComponentInChildren<TMP_Text>();
                 if (label != null)
-                    label.text = _lobby.FriendSeated ? "Start" : "waiting for host";
+                    label.text = _lobby.FriendSeated ? Loc.Get("lobby.start") : Loc.Get("lobby.waitingHost");
             }
         }
 
@@ -678,6 +832,11 @@ namespace ModularChess.Match
                 _dialogs = OverlayDialogs.Ensure(transform);
             if (_dialogs.CloseTop())
                 return;
+            if (IsActive(accountCreationOverlay))
+            {
+                ShowQuitConfirm();
+                return;
+            }
             if (_modeSettingsPopup != null && _modeSettingsPopup.IsOpen)
             {
                 _modeSettingsPopup.Close();
@@ -762,7 +921,7 @@ namespace ModularChess.Match
             Transform time = FindChild(matchSettingsOverlay.transform, "TimeDropdown");
             if (time == null)
                 return;
-            TMP_Dropdown created = UiFactory.Dropdown(time.parent, new[] { "None" }, 0, null);
+            TMP_Dropdown created = UiFactory.Dropdown(time.parent, new[] { Loc.Get("settings.inc.none") }, 0, null);
             created.name = "IncrementDropdown";
             created.gameObject.name = "IncrementDropdown";
             var rect = created.GetComponent<RectTransform>();
@@ -836,6 +995,7 @@ namespace ModularChess.Match
             if (_match == null)
                 _match = FindAnyObjectByType<MatchController>();
             _match.Launch(session);
+            GameAudio.PlayMatchMusic();
         }
 
         TimeControl TimeFromPreset()
@@ -909,13 +1069,283 @@ namespace ModularChess.Match
             }
         }
 
+        void HookLanguage()
+        {
+            if (_locHooked)
+                return;
+            _locHooked = true;
+            Loc.Changed += OnLanguageChanged;
+        }
+
+        void OnLanguageChanged()
+        {
+            BindMenuLoc();
+            EnsureAnimationSlider();
+            EnsureVolumeSliders();
+            EnsureLanguageDropdown();
+            EnsureNameLabel();
+            BindAccountCreation();
+            if (IsActive(matchSettingsOverlay))
+                ShowPrep();
+            if (IsActive(lobbyOverlay))
+                ShowLobby();
+            if (IsActive(unlocksOverlay))
+                ShowUnlocks();
+            ApplyWebGlPlayLimits();
+        }
+
+        void BindMenuLoc()
+        {
+            LocalizedText.Bind(FindButton(mainMenu, "PlayButton"), "menu.play");
+            LocalizedText.Bind(FindButton(mainMenu, "UnlocksButton"), "menu.unlocks");
+            LocalizedText.Bind(FindButton(mainMenu, "OptionsButton"), "menu.options");
+            LocalizedText.Bind(FindButton(mainMenu, "CreditsButton"), "menu.credits");
+            LocalizedText.Bind(FindButton(mainMenu, "FeedbackButton"), "menu.feedback");
+            LocalizedText.Bind(FindButton(mainMenu, "ExitButton"), "menu.exit");
+            LocalizedText.Bind(FindButton(mainMenu, "CustomizeButton"), "menu.customize");
+            BindTitle(mainMenu, "menu.title");
+            LocalizedText.Bind(FindButton(playOverlay, "VersusAiButton"), "play.versusAi");
+            LocalizedText.Bind(FindButton(playOverlay, "VersusFriendButton"), "play.versusFriend");
+            LocalizedText.Bind(FindButton(playOverlay, "JoinButton"), "play.join");
+            LocalizedText.Bind(FindButton(playOverlay, "BackButton"), "play.back");
+            BindTitle(playOverlay, "menu.title");
+            LocalizedText.Bind(FindButton(matchSettingsOverlay, "BackButton"), "settings.back");
+            BindTitle(matchSettingsOverlay, "menu.title");
+            LocalizedText.Bind(FindButton(lobbyOverlay, "SitButton"), "lobby.sit");
+            LocalizedText.Bind(FindButton(lobbyOverlay, "LeaveButton"), "lobby.leave");
+            BindTitle(lobbyOverlay, "menu.title");
+            LocalizedText.Bind(FindButton(joinOverlay, "EnterButton"), "join.enter");
+            LocalizedText.Bind(FindButton(joinOverlay, "BackButton"), "play.back");
+            BindTitle(joinOverlay, "menu.title");
+            LocalizedText.Bind(FindButton(unlocksOverlay, "BackButton"), "play.back");
+            BindTitle(unlocksOverlay, "menu.unlocks");
+            LocalizedText.Bind(FindButton(optionsOverlay, "BackButton"), "options.back");
+            BindTitle(optionsOverlay, "menu.options");
+            LocalizedText.Bind(FindButton(creditsOverlay, "BackButton"), "credits.back");
+            BindTitle(creditsOverlay, "menu.credits");
+            BindTitle(accountCreationOverlay, "account.title");
+            Transform languageText = accountCreationOverlay != null
+                ? FindChild(accountCreationOverlay.transform, "LanguageText")
+                : null;
+            if (languageText != null)
+                LocalizedText.Bind(languageText, "options.language");
+            LocalizedText.Bind(FindButton(accountCreationOverlay, "ConfirmButton"), "account.confirm");
+        }
+
+        void BindTitle(GameObject root, string key)
+        {
+            if (root == null)
+                return;
+            Transform title = FindChild(root.transform, "Title");
+            if (title != null)
+                LocalizedText.Bind(title, key);
+        }
+
+        void BindAccountCreation()
+        {
+            EnsureAccountOverlay();
+            if (accountCreationOverlay == null)
+                return;
+
+            BindLanguageDropdown(accountCreationOverlay, false);
+            TMP_InputField field = FindInput(accountCreationOverlay, "NameInput");
+            if (field != null)
+            {
+                field.characterLimit = PlayerIdentity.StemMax;
+                field.contentType = TMP_InputField.ContentType.Alphanumeric;
+                field.onSubmit.RemoveAllListeners();
+                field.onSubmit.AddListener(_ =>
+                {
+                    GameAudio.PlayUi();
+                    ConfirmAccount();
+                });
+                field.onValueChanged.RemoveAllListeners();
+                field.onValueChanged.AddListener(RefreshAccountConfirm);
+            }
+
+            Button confirm = FindButton(accountCreationOverlay, "ConfirmButton");
+            if (confirm == null)
+            {
+                confirm = UiFactory.Button(
+                    accountCreationOverlay.transform,
+                    Loc.Get("account.confirm"),
+                    null,
+                    new Vector2(200f, 32f));
+                confirm.name = "ConfirmButton";
+                var rect = (RectTransform)confirm.transform;
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = new Vector2(0f, -140f);
+                rect.sizeDelta = new Vector2(200f, 32f);
+            }
+
+            BindButton(accountCreationOverlay, "ConfirmButton", ConfirmAccount);
+            LocalizedText.Bind(confirm, "account.confirm");
+            RefreshAccountConfirm(field != null ? field.text : string.Empty);
+        }
+
+        void EnsureAccountOverlay()
+        {
+            if (accountCreationOverlay != null)
+                return;
+            GameObject prefab = RuntimePrefabs.AccountCreation;
+            if (prefab == null)
+                return;
+            accountCreationOverlay = Instantiate(prefab, transform);
+            accountCreationOverlay.name = "AccountCreation";
+            accountCreationOverlay.SetActive(false);
+        }
+
+        void ConfirmAccount()
+        {
+            if (PlayerIdentity.HasName)
+            {
+                ShowMainMenu();
+                return;
+            }
+
+            TMP_InputField field = FindInput(accountCreationOverlay, "NameInput");
+            string stem = field != null ? field.text : string.Empty;
+            if (!PlayerIdentity.TryCommit(stem))
+                return;
+            ShowMainMenu();
+        }
+
+        void RefreshAccountConfirm(string stem)
+        {
+            Button confirm = FindButton(accountCreationOverlay, "ConfirmButton");
+            if (confirm != null)
+                confirm.interactable = PlayerIdentity.Sanitize(stem).Length > 0;
+        }
+
+        void EnsureNameLabel()
+        {
+            if (optionsOverlay == null || !PlayerIdentity.HasName)
+                return;
+
+            Transform row = FindChild(optionsOverlay.transform, "NameLabel");
+            TMP_Text label;
+            if (row == null)
+            {
+                Transform group = FindChild(optionsOverlay.transform, "ButtonGroup");
+                if (group == null)
+                    return;
+                label = UiFactory.Label(group, PlayerIdentity.DisplayName, 16, TextAlignmentOptions.Center);
+                label.gameObject.name = "NameLabel";
+                label.color = Color.black;
+                label.raycastTarget = false;
+                var element = label.gameObject.AddComponent<LayoutElement>();
+                element.minWidth = 200f;
+                element.preferredWidth = 200f;
+                element.minHeight = 32f;
+                element.preferredHeight = 32f;
+                int backIndex = -1;
+                for (int i = 0; i < group.childCount; i++)
+                {
+                    if (group.GetChild(i).name == "BackButton")
+                    {
+                        backIndex = i;
+                        break;
+                    }
+                }
+
+                if (backIndex >= 0)
+                    label.transform.SetSiblingIndex(backIndex);
+            }
+            else
+            {
+                label = row.GetComponent<TMP_Text>();
+                if (label == null)
+                    label = row.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            if (label != null)
+                label.text = Loc.Format("options.name", PlayerIdentity.DisplayName);
+        }
+
+        void EnsureLanguageDropdown()
+        {
+            BindLanguageDropdown(optionsOverlay, true);
+            BindLanguageDropdown(accountCreationOverlay, false);
+        }
+
+        void BindLanguageDropdown(GameObject root, bool createIfMissing)
+        {
+            if (root == null)
+                return;
+
+            Transform row = FindChild(root.transform, "LanguageDropdown");
+            if (row == null)
+            {
+                if (!createIfMissing)
+                    return;
+                Transform group = FindChild(root.transform, "ButtonGroup");
+                if (group == null)
+                    return;
+
+                TMP_Dropdown created = UiFactory.Dropdown(group, LanguageOptionLabels(), Loc.LanguageIndex(), null);
+                created.name = "LanguageDropdown";
+                created.gameObject.name = "LanguageDropdown";
+                row = created.transform;
+                int backIndex = -1;
+                for (int i = 0; i < group.childCount; i++)
+                {
+                    if (group.GetChild(i).name == "BackButton")
+                    {
+                        backIndex = i;
+                        break;
+                    }
+                }
+
+                if (backIndex >= 0)
+                    row.SetSiblingIndex(backIndex);
+                var element = created.gameObject.GetComponent<LayoutElement>();
+                if (element == null)
+                    element = created.gameObject.AddComponent<LayoutElement>();
+                element.minWidth = 200f;
+                element.preferredWidth = 200f;
+                element.minHeight = 32f;
+                element.preferredHeight = 32f;
+            }
+
+            TMP_Dropdown dropdown = row.GetComponent<TMP_Dropdown>();
+            if (dropdown == null)
+                dropdown = row.GetComponentInChildren<TMP_Dropdown>(true);
+            if (dropdown == null)
+                return;
+            dropdown.ClearOptions();
+            dropdown.AddOptions(new List<string>(LanguageOptionLabels()));
+            dropdown.SetValueWithoutNotify(Loc.LanguageIndex());
+            dropdown.onValueChanged.RemoveAllListeners();
+            dropdown.onValueChanged.AddListener(index =>
+            {
+                GameAudio.PlayUi();
+                if (index >= 0 && index < Loc.Codes.Length)
+                    Loc.SetLanguage(Loc.Codes[index]);
+            });
+        }
+
+        static string[] LanguageOptionLabels()
+        {
+            return new[] { Loc.Get("lang.en"), Loc.Get("lang.es"), Loc.Get("lang.tl") };
+        }
+
+        void ApplyWebGlPlayLimits()
+        {
+            if (Application.platform != RuntimePlatform.WebGLPlayer)
+                return;
+            Button friend = FindButton(playOverlay, "VersusFriendButton");
+            if (friend != null)
+                friend.interactable = false;
+            Button join = FindButton(playOverlay, "JoinButton");
+            if (join != null)
+                join.interactable = false;
+        }
+
         static void BindButton(GameObject root, string name, UnityEngine.Events.UnityAction action)
         {
-            Button button = FindButton(root, name);
-            if (button == null)
-                return;
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(action);
+            GameAudio.Bind(FindButton(root, name), action);
         }
 
         static void BindDropdown(GameObject root, string name, string[] options, int selected, UnityEngine.Events.UnityAction<int> changed)
@@ -928,9 +1358,21 @@ namespace ModularChess.Match
                 return;
             dropdown.ClearOptions();
             dropdown.AddOptions(new List<string>(options));
-            dropdown.value = selected;
+            dropdown.SetValueWithoutNotify(selected);
             dropdown.onValueChanged.RemoveAllListeners();
-            dropdown.onValueChanged.AddListener(changed);
+            dropdown.onValueChanged.AddListener(v =>
+            {
+                GameAudio.PlayUi();
+                changed?.Invoke(v);
+            });
+        }
+
+        static TMP_InputField FindInput(GameObject root, string name)
+        {
+            if (root == null)
+                return null;
+            Transform child = FindChild(root.transform, name);
+            return child != null ? child.GetComponentInChildren<TMP_InputField>(true) : null;
         }
 
         static Button FindButton(GameObject root, string name)

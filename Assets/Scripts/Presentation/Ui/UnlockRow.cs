@@ -21,7 +21,7 @@ namespace ModularChess.Presentation
             _id = definition.Id;
             if (nameLabel != null)
             {
-                nameLabel.text = definition.DisplayName;
+                nameLabel.text = Loc.ModeName(definition.Id);
                 nameLabel.raycastTarget = false;
             }
 
@@ -58,9 +58,8 @@ namespace ModularChess.Presentation
             hit.raycastTarget = true;
             _rowButton.targetGraphic = hit;
             _rowButton.transition = Selectable.Transition.None;
-            _rowButton.onClick.RemoveAllListeners();
             ModeId captured = _id;
-            _rowButton.onClick.AddListener(() => opened?.Invoke(captured));
+            GameAudio.Bind(_rowButton, () => opened?.Invoke(captured));
         }
     }
 }

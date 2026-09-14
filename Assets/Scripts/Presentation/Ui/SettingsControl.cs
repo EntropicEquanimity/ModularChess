@@ -28,16 +28,9 @@ namespace ModularChess.Presentation
                 nameLabel.text = label;
 
             if (minusButton != null)
-            {
-                minusButton.onClick.RemoveAllListeners();
-                minusButton.onClick.AddListener(() => Step(-1));
-            }
-
+                GameAudio.Bind(minusButton, () => Step(-1));
             if (plusButton != null)
-            {
-                plusButton.onClick.RemoveAllListeners();
-                plusButton.onClick.AddListener(() => Step(1));
-            }
+                GameAudio.Bind(plusButton, () => Step(1));
 
             Refresh();
         }

@@ -95,13 +95,15 @@ namespace ModularChess.Match
             bool inProgress = state.Status == GameStatus.InProgress;
             if (turnText != null)
             {
-                turnText.text = inProgress ? $"{state.SideToMove} to move" : "Match over";
+                turnText.text = inProgress
+                    ? Loc.Format("match.turn", Loc.SideName(state.SideToMove))
+                    : Loc.Get("match.over");
             }
 
             if (checkText != null)
             {
                 checkText.gameObject.SetActive(inProgress && state.IsInCheck);
-                checkText.text = "Check";
+                checkText.text = Loc.Get("match.check");
             }
 
             bool showMoves = PlayerPrefs.GetInt("ShowNotation", 1) == 1;
@@ -199,7 +201,7 @@ namespace ModularChess.Match
                 return;
             }
 
-            lostMaterialText.text = $"Lost W {white.Value}  B {black.Value}  next {threshold}";
+            lostMaterialText.text = Loc.Format("match.lost", white.Value, black.Value, threshold);
         }
         public void SetStatusLine(string text)
         {
@@ -424,6 +426,16 @@ namespace ModularChess.Match
                 moveListText.overflowMode = TextOverflowModes.Overflow;
                 moveListText.extraPadding = false;
             }
+
+            BindHudLabels();
+        }
+        void BindHudLabels()
+        {
+            LocalizedText.Bind(endTurnButton, "hud.endTurn");
+            LocalizedText.Bind(pauseButton, "hud.pause");
+            LocalizedText.Bind(resignButton, "hud.resign");
+            LocalizedText.Bind(leaveButton, "hud.leave");
+            LocalizedText.Bind(setupConfirmButton, "hud.setupConfirm");
         }
         void HideTransient()
         {
@@ -799,7 +811,11 @@ namespace ModularChess.Match
             MartyrPower captured = power;
             int capturedIndex = index;
             PieceType? capturedType = battlefield;
-            button.onClick.AddListener(() => PreviewDraft(capturedIndex, captured, capturedType, child));
+            button.onClick.AddListener(() =>
+            {
+                GameAudio.PlayUi();
+                PreviewDraft(capturedIndex, captured, capturedType, child);
+            });
             AddPointer(trigger, EventTriggerType.PointerEnter, () => PreviewDraft(capturedIndex, captured, capturedType, child));
         }
         void PreviewDraft(int index, MartyrPower power, PieceType? battlefield, Transform host)
@@ -852,7 +868,8 @@ namespace ModularChess.Match
                 return;
             }
 
-            _draftConfirm = UiFactory.Button(transform, "Confirm", ConfirmDraft, new Vector2(180f, DraftConfirmHeight));
+            _draftConfirm = UiFactory.Button(transform, Loc.Get("martyr.confirm"), ConfirmDraft, new Vector2(180f, DraftConfirmHeight));
+            LocalizedText.Bind(_draftConfirm, "martyr.confirm");
             IgnoreLayout(_draftConfirm.transform);
             _draftConfirm.gameObject.SetActive(false);
 
@@ -984,22 +1001,19 @@ namespace ModularChess.Match
             switch (power)
             {
                 case MartyrPower.Reinforcements:
-                    return "Place up to 3 summoned pawns on empty squares of your back rank.";
+                    return Loc.Get("martyr.desc.reinforcements");
                 case MartyrPower.FleetPawns:
-                    return "Your pawns may step two squares forward from any rank if the path is empty.";
+                    return Loc.Get("martyr.desc.fleet");
                 case MartyrPower.Bombard:
-                    return "Rooks may capture an enemy 5 or more squares away on a rank or file and stay.";
+                    return Loc.Get("martyr.desc.bombard");
                 case MartyrPower.UntouchableKing:
-                    return "Your king cannot be targeted for 5 of your turns.";
+                    return Loc.Get("martyr.desc.untouchable");
                 case MartyrPower.StasisField:
-                    return "Freeze an enemy queen for 3 of her turns. She cannot move, attack, or be captured.";
+                    return Loc.Get("martyr.desc.stasis");
                 case MartyrPower.KnightAscension:
-                    return "All of your knights become rooks now. Later knights stay knights.";
+                    return Loc.Get("martyr.desc.ascension");
                 case MartyrPower.BattlefieldPromotion:
-                {
-                    string piece = battlefield == PieceType.Bishop ? "Bishop" : "Knight";
-                    return $"Promote one of your pawns to a {piece}.";
-                }
+                    return Loc.Format("martyr.desc.battlefield", Loc.PieceName(battlefield ?? PieceType.Knight));
                 default:
                     throw new ArgumentOutOfRangeException(nameof(power), power, null);
             }
@@ -1023,16 +1037,7 @@ namespace ModularChess.Match
         }
         static void BindClick(Button button, UnityEngine.Events.UnityAction action)
         {
-            if (button == null)
-            {
-                return;
-            }
-
-            button.onClick.RemoveAllListeners();
-            if (action != null)
-            {
-                button.onClick.AddListener(action);
-            }
+            GameAudio.Bind(button, action);
         }
         static void SetActive(Button button, bool visible)
         {
@@ -1093,19 +1098,19 @@ namespace ModularChess.Match
             switch (power)
             {
                 case MartyrPower.Reinforcements:
-                    return "Reinforcements";
+                    return Loc.Get("martyr.power.reinforcements");
                 case MartyrPower.FleetPawns:
-                    return "Fleet Pawns";
+                    return Loc.Get("martyr.power.fleet");
                 case MartyrPower.Bombard:
-                    return "Bombard";
+                    return Loc.Get("martyr.power.bombard");
                 case MartyrPower.UntouchableKing:
-                    return "Untouchable King";
+                    return Loc.Get("martyr.power.untouchable");
                 case MartyrPower.StasisField:
-                    return "Stasis Field";
+                    return Loc.Get("martyr.power.stasis");
                 case MartyrPower.KnightAscension:
-                    return "Knight Ascension";
+                    return Loc.Get("martyr.power.ascension");
                 case MartyrPower.BattlefieldPromotion:
-                    return "Battlefield Promotion";
+                    return Loc.Get("martyr.power.battlefield");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(power), power, null);
             }
@@ -1118,17 +1123,17 @@ namespace ModularChess.Match
                     return string.Empty;
                 case GameStatus.Checkmate:
                     Side winner = state.SideToMove == Side.White ? Side.Black : Side.White;
-                    return $"{winner} wins by checkmate";
+                    return Loc.Format("result.checkmate", Loc.SideName(winner));
                 case GameStatus.Stalemate:
-                    return "Stalemate";
+                    return Loc.Get("result.stalemate");
                 case GameStatus.Draw:
-                    return "Draw";
+                    return Loc.Get("result.draw");
                 case GameStatus.Timeout:
-                    return $"{state.SideToMove} loses on time";
+                    return Loc.Format("result.timeout", Loc.SideName(state.SideToMove));
                 case GameStatus.Resign:
-                    return $"{state.SideToMove} resigns";
+                    return Loc.Format("result.resign", Loc.SideName(state.SideToMove));
                 case GameStatus.Aborted:
-                    return "Match aborted";
+                    return Loc.Get("result.aborted");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), state.Status, null);
             }

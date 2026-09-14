@@ -44,6 +44,8 @@ namespace ModularChess.Presentation
         {
             _id = id;
             _onChanged = onChanged;
+            Loc.Changed -= OnLanguageChanged;
+            Loc.Changed += OnLanguageChanged;
             _tween?.Kill();
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
@@ -80,14 +82,22 @@ namespace ModularChess.Presentation
             gameObject.SetActive(false);
         }
 
+        void OnLanguageChanged()
+        {
+            if (_open)
+                Fill();
+        }
+
         void OnDisable()
         {
+            Loc.Changed -= OnLanguageChanged;
             _tween?.Kill();
             _open = false;
         }
 
         void OnDestroy()
         {
+            Loc.Changed -= OnLanguageChanged;
             _tween?.Kill();
         }
 
@@ -147,14 +157,15 @@ namespace ModularChess.Presentation
             summaryElement.preferredHeight = 96;
             summaryElement.flexibleHeight = 1;
 
-            _buy = UiFactory.Button(_panel, "Buy", Buy, new Vector2(200f, 32f));
+            _buy = UiFactory.Button(_panel, Loc.Get("unlocks.buy"), Buy, new Vector2(200f, 32f));
             var buyElement = _buy.gameObject.AddComponent<LayoutElement>();
             buyElement.minWidth = 200f;
             buyElement.preferredWidth = 200f;
             buyElement.minHeight = 32f;
             buyElement.preferredHeight = 32f;
 
-            Button close = UiFactory.Button(_panel, "Close", Close, new Vector2(200f, 32f));
+            Button close = UiFactory.Button(_panel, Loc.Get("unlocks.close"), Close, new Vector2(200f, 32f));
+            LocalizedText.Bind(close, "unlocks.close");
             var closeElement = close.gameObject.AddComponent<LayoutElement>();
             closeElement.minWidth = 200f;
             closeElement.preferredWidth = 200f;
@@ -164,14 +175,13 @@ namespace ModularChess.Presentation
 
         void Fill()
         {
-            ModeDefinition def = ModeCatalog.Get(_id);
-            _title.text = def.DisplayName;
-            _summary.text = def.Summary;
+            _title.text = Loc.ModeName(_id);
+            _summary.text = Loc.ModeSummary(_id);
             bool owned = ModeDlc.IsOwned(_id);
             _buy.interactable = !owned;
             TMP_Text label = _buy.GetComponentInChildren<TMP_Text>();
             if (label != null)
-                label.text = owned ? "Unlocked" : "Buy";
+                label.text = owned ? Loc.Get("unlocks.unlocked") : Loc.Get("unlocks.buy");
         }
 
         void Buy()

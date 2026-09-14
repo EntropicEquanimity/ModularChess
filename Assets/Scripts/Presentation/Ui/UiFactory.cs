@@ -43,12 +43,9 @@ namespace ModularChess.Presentation
             }
 
             Button button = go.GetComponent<Button>();
-            button.onClick.RemoveAllListeners();
-            if (onClick != null)
-            {
-                button.onClick.AddListener(onClick);
-            }
-
+            if (button == null)
+                button = go.AddComponent<Button>();
+            GameAudio.Bind(button, onClick);
             return button;
         }
 
@@ -98,6 +95,7 @@ namespace ModularChess.Presentation
 
             toggle.isOn = on;
             toggle.onValueChanged.RemoveAllListeners();
+            toggle.onValueChanged.AddListener(_ => GameAudio.PlayUi());
             if (changed != null)
             {
                 toggle.onValueChanged.AddListener(changed);
@@ -122,6 +120,7 @@ namespace ModularChess.Presentation
             dropdown.AddOptions(new List<string>(options));
             dropdown.value = selected;
             dropdown.onValueChanged.RemoveAllListeners();
+            dropdown.onValueChanged.AddListener(_ => GameAudio.PlayUi());
             if (changed != null)
             {
                 dropdown.onValueChanged.AddListener(changed);
@@ -222,9 +221,7 @@ namespace ModularChess.Presentation
             Button button = go.GetComponent<Button>();
             if (button == null)
                 button = go.AddComponent<Button>();
-            button.onClick.RemoveAllListeners();
-            if (onClick != null)
-                button.onClick.AddListener(onClick);
+            GameAudio.Bind(button, onClick);
             return button;
         }
 

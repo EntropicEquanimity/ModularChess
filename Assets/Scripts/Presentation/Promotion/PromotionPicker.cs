@@ -124,6 +124,7 @@ namespace ModularChess.Presentation
             _canvas.gameObject.name = "PromotionCanvas";
             _popup = Instantiate(prefab, _canvas.transform);
             _popup.name = "PromotionPopup";
+            LocalizedText.Bind(FindNamed(_popup.transform, "Title"), "promotion.title");
             WireButtons();
         }
         void WireButtons()
@@ -137,7 +138,7 @@ namespace ModularChess.Presentation
                 _icons[i] = FindIcon(button.transform);
                 PieceType type = Options[i];
                 button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => Choose(type));
+                GameAudio.Bind(button, () => Choose(type));
             }
         }
         void ApplySide(Side side)
@@ -164,6 +165,29 @@ namespace ModularChess.Presentation
 
             Hide();
             PromotionChosen?.Invoke(type);
+        }
+        static Transform FindNamed(Transform root, string name)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            if (root.name == name)
+            {
+                return root;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindNamed(root.GetChild(i), name);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
         }
         static Image FindIcon(Transform root)
         {
