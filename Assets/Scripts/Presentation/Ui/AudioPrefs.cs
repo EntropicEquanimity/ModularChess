@@ -34,9 +34,8 @@ namespace ModularChess.Presentation
                 return MuteDb;
             }
 
-            return Mathf.Lerp(MuteDb, 0f, Mathf.Clamp01(slider / (float)Max));
+            return Mathf.Log10(Mathf.Clamp(slider / (float)Max, 0.0001f, 1f)) * 20f;
         }
-
         public static float ToLinear(int slider)
         {
             if (slider <= Min)
@@ -44,7 +43,7 @@ namespace ModularChess.Presentation
                 return 0f;
             }
 
-            return Mathf.Pow(10f, ToDb(slider) / 20f);
+            return Mathf.Clamp01(slider / (float)Max);
         }
         #endregion
 

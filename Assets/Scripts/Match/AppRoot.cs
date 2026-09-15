@@ -158,6 +158,7 @@ namespace ModularChess.Match
                 customize.interactable = false;
             BindMenuLoc();
             HookLanguage();
+            OverlayMotion.Ensure(mainMenu);
             _menuBound = true;
         }
 
@@ -204,6 +205,7 @@ namespace ModularChess.Match
             BindMenuLoc();
             ApplyWebGlPlayLimits();
             HookLanguage();
+            WarmOverlayMotions();
         }
 
         void ShowOverlay(GameObject overlay)
@@ -215,14 +217,8 @@ namespace ModularChess.Match
                 unlocks?.HideDetailImmediate();
 
             HideBoard();
-            if (mainMenu != null)
-                mainMenu.SetActive(false);
-            GameObject[] overlays = OverlayList();
-            for (int i = 0; i < overlays.Length; i++)
-            {
-                if (overlays[i] != null)
-                    overlays[i].SetActive(overlays[i] == overlay);
-            }
+            DismissScreens(overlay);
+            OverlayMotion.Ensure(overlay)?.PlayEnter();
         }
 
         void HideOverlays()
@@ -230,12 +226,30 @@ namespace ModularChess.Match
             _modeSettingsPopup?.HideImmediate();
             UnlocksView unlocks = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
             unlocks?.HideDetailImmediate();
+            DismissScreens(null);
+        }
+
+        void DismissScreens(GameObject keep)
+        {
+            DismissScreen(mainMenu, keep);
             GameObject[] overlays = OverlayList();
             for (int i = 0; i < overlays.Length; i++)
-            {
-                if (overlays[i] != null)
-                    overlays[i].SetActive(false);
-            }
+                DismissScreen(overlays[i], keep);
+        }
+
+        static void DismissScreen(GameObject go, GameObject keep)
+        {
+            if (go == null || go == keep || !go.activeSelf)
+                return;
+            OverlayMotion.Ensure(go).PlayExit();
+        }
+
+        void WarmOverlayMotions()
+        {
+            OverlayMotion.Ensure(mainMenu);
+            GameObject[] overlays = OverlayList();
+            for (int i = 0; i < overlays.Length; i++)
+                OverlayMotion.Ensure(overlays[i]);
         }
 
         void HideBoard()
@@ -248,8 +262,6 @@ namespace ModularChess.Match
 
         void ShowBoard()
         {
-            if (mainMenu != null)
-                mainMenu.SetActive(false);
             HideOverlays();
             if (_board != null)
                 _board.gameObject.SetActive(true);
@@ -275,9 +287,8 @@ namespace ModularChess.Match
             }
 
             HideBoard();
-            HideOverlays();
-            if (mainMenu != null)
-                mainMenu.SetActive(true);
+            DismissScreens(mainMenu);
+            OverlayMotion.Ensure(mainMenu)?.PlayEnter();
             GameAudio.PlayMenuMusic();
         }
 
@@ -431,26 +442,15 @@ namespace ModularChess.Match
             Transform row = FindChild(optionsOverlay.transform, "OptionSlider");
             if (row == null)
             {
-                Transform group = FindChild(optionsOverlay.transform, "ButtonGroup");
+                Transform parent = OptionsListParent();
                 GameObject prefab = RuntimePrefabs.OptionSlider;
-                if (group == null || prefab == null)
+                if (parent == null || prefab == null)
                     return;
 
-                GameObject instance = Instantiate(prefab, group);
+                GameObject instance = Instantiate(prefab, parent);
                 instance.name = "OptionSlider";
                 row = instance.transform;
-                int backIndex = -1;
-                for (int i = 0; i < group.childCount; i++)
-                {
-                    if (group.GetChild(i).name == "BackButton")
-                    {
-                        backIndex = i;
-                        break;
-                    }
-                }
-
-                if (backIndex >= 0)
-                    row.SetSiblingIndex(backIndex);
+                PlaceInOptionsList(row);
             }
 
             OptionSliderView view = row.GetComponent<OptionSliderView>();
@@ -481,25 +481,14 @@ namespace ModularChess.Match
             Transform row = FindChild(optionsOverlay.transform, name);
             if (row == null)
             {
-                Transform group = FindChild(optionsOverlay.transform, "ButtonGroup");
+                Transform parent = OptionsListParent();
                 GameObject prefab = RuntimePrefabs.OptionSlider;
-                if (group == null || prefab == null)
+                if (parent == null || prefab == null)
                     return;
-                GameObject instance = Instantiate(prefab, group);
+                GameObject instance = Instantiate(prefab, parent);
                 instance.name = name;
                 row = instance.transform;
-                int backIndex = -1;
-                for (int i = 0; i < group.childCount; i++)
-                {
-                    if (group.GetChild(i).name == "BackButton")
-                    {
-                        backIndex = i;
-                        break;
-                    }
-                }
-
-                if (backIndex >= 0)
-                    row.SetSiblingIndex(backIndex);
+                PlaceInOptionsList(row);
             }
 
             OptionSliderView view = row.GetComponent<OptionSliderView>();
@@ -1189,6 +1178,7 @@ namespace ModularChess.Match
             accountCreationOverlay = Instantiate(prefab, transform);
             accountCreationOverlay.name = "AccountCreation";
             accountCreationOverlay.SetActive(false);
+            OverlayMotion.Ensure(accountCreationOverlay);
         }
 
         void EnsureFeedbackOverlay()
@@ -1201,6 +1191,7 @@ namespace ModularChess.Match
             feedbackOverlay = Instantiate(prefab, transform);
             feedbackOverlay.name = "FeedbackSurvey";
             feedbackOverlay.SetActive(false);
+            OverlayMotion.Ensure(feedbackOverlay);
         }
 
         void ConfirmAccount()
@@ -1227,17 +1218,24 @@ namespace ModularChess.Match
 
         void EnsureNameLabel()
         {
-            if (optionsOverlay == null || !PlayerIdentity.HasName)
+            if (optionsOverlay == null)
                 return;
 
             Transform row = FindChild(optionsOverlay.transform, "NameLabel");
+            if (!PlayerIdentity.HasName)
+            {
+                if (row != null)
+                    row.gameObject.SetActive(false);
+                return;
+            }
+
             TMP_Text label;
             if (row == null)
             {
-                Transform group = FindChild(optionsOverlay.transform, "ButtonGroup");
-                if (group == null)
+                Transform parent = OptionsListParent();
+                if (parent == null)
                     return;
-                label = UiFactory.Label(group, PlayerIdentity.DisplayName, 16, TextAlignmentOptions.Center);
+                label = UiFactory.Label(parent, PlayerIdentity.DisplayName, 16, TextAlignmentOptions.Center);
                 label.gameObject.name = "NameLabel";
                 label.color = Color.black;
                 label.raycastTarget = false;
@@ -1246,21 +1244,11 @@ namespace ModularChess.Match
                 element.preferredWidth = 200f;
                 element.minHeight = 32f;
                 element.preferredHeight = 32f;
-                int backIndex = -1;
-                for (int i = 0; i < group.childCount; i++)
-                {
-                    if (group.GetChild(i).name == "BackButton")
-                    {
-                        backIndex = i;
-                        break;
-                    }
-                }
-
-                if (backIndex >= 0)
-                    label.transform.SetSiblingIndex(backIndex);
+                label.transform.SetSiblingIndex(0);
             }
             else
             {
+                row.gameObject.SetActive(true);
                 label = row.GetComponent<TMP_Text>();
                 if (label == null)
                     label = row.GetComponentInChildren<TMP_Text>(true);
@@ -1286,26 +1274,17 @@ namespace ModularChess.Match
             {
                 if (!createIfMissing)
                     return;
-                Transform group = FindChild(root.transform, "ButtonGroup");
-                if (group == null)
+                Transform parent = root == optionsOverlay
+                    ? OptionsListParent()
+                    : FindChild(root.transform, "ButtonGroup");
+                if (parent == null)
                     return;
 
-                TMP_Dropdown created = UiFactory.Dropdown(group, LanguageOptionLabels(), Loc.LanguageIndex(), null);
+                TMP_Dropdown created = UiFactory.Dropdown(parent, LanguageOptionLabels(), Loc.LanguageIndex(), null);
                 created.name = "LanguageDropdown";
                 created.gameObject.name = "LanguageDropdown";
                 row = created.transform;
-                int backIndex = -1;
-                for (int i = 0; i < group.childCount; i++)
-                {
-                    if (group.GetChild(i).name == "BackButton")
-                    {
-                        backIndex = i;
-                        break;
-                    }
-                }
-
-                if (backIndex >= 0)
-                    row.SetSiblingIndex(backIndex);
+                PlaceInOptionsList(row);
                 var element = created.gameObject.GetComponent<LayoutElement>();
                 if (element == null)
                     element = created.gameObject.AddComponent<LayoutElement>();
@@ -1403,6 +1382,36 @@ namespace ModularChess.Match
                 return null;
             Transform child = FindChild(root.transform, name);
             return child != null ? child.GetComponent<TMP_Text>() : null;
+        }
+
+        Transform OptionsListParent()
+        {
+            if (optionsOverlay == null)
+                return null;
+            Transform scroll = FindChild(optionsOverlay.transform, "OptionsScroll");
+            if (scroll != null)
+            {
+                ScrollRect rect = scroll.GetComponent<ScrollRect>();
+                if (rect != null && rect.content != null)
+                    return rect.content;
+            }
+
+            return FindChild(optionsOverlay.transform, "ButtonGroup");
+        }
+
+        static void PlaceInOptionsList(Transform row)
+        {
+            if (row == null || row.parent == null)
+                return;
+            Transform parent = row.parent;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                if (parent.GetChild(i).name == "BackButton")
+                {
+                    row.SetSiblingIndex(i);
+                    return;
+                }
+            }
         }
 
         static Transform FindChild(Transform root, string name)

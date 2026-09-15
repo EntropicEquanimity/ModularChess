@@ -16,23 +16,18 @@ namespace ModularChess.Presentation
         const string GameNameEntry = "entry.1591633300";
         const string UsernameEntry = "entry.1055565306";
         const string ExperienceEntry = "entry.701084324";
-        const string InterestingEntry = "entry.125105818";
         const string FeedbackEntry = "entry.326955045";
         const string SuggestionsEntry = "entry.1696159737";
         const string DefaultGameName = "Modular Chess";
-        [SerializeField] TMP_InputField gameNameField;
-        [SerializeField] TMP_InputField usernameField;
         [SerializeField] TMP_InputField feedbackField;
         [SerializeField] TMP_InputField suggestionsField;
         [SerializeField] Button[] experienceStars;
-        [SerializeField] Button[] interestingStars;
         [SerializeField] Button submitButton;
         [SerializeField] Button backButton;
         [SerializeField] GameObject formRoot;
         [SerializeField] GameObject thanksRoot;
         [SerializeField] TMP_Text statusLabel;
         int _experience;
-        int _interesting;
         bool _sending;
         bool _wired;
         public event Action Closed;
@@ -63,20 +58,12 @@ namespace ModularChess.Presentation
                 return;
             Resolve();
             BindStars(experienceStars, value => _experience = value);
-            BindStars(interestingStars, value => _interesting = value);
-            if (gameNameField != null)
-                gameNameField.onValueChanged.AddListener(_ => RefreshSubmit());
-            if (usernameField != null)
-                usernameField.onValueChanged.AddListener(_ => RefreshSubmit());
             if (feedbackField != null)
                 feedbackField.onValueChanged.AddListener(_ => RefreshSubmit());
             GameAudio.Bind(submitButton, Submit);
             GameAudio.Bind(backButton, Close);
             LocalizedText.Bind(FindNamed("Title"), "survey.title");
-            LocalizedText.Bind(FindNamed("GameNameLabel"), "survey.game");
-            LocalizedText.Bind(FindNamed("UsernameLabel"), "survey.username");
             LocalizedText.Bind(FindNamed("ExperienceLabel"), "survey.experience");
-            LocalizedText.Bind(FindNamed("InterestingLabel"), "survey.interesting");
             LocalizedText.Bind(FindNamed("FeedbackLabel"), "survey.feedback");
             LocalizedText.Bind(FindNamed("SuggestionsLabel"), "survey.suggestions");
             LocalizedText.Bind(submitButton, "survey.submit");
@@ -101,10 +88,6 @@ namespace ModularChess.Presentation
                     thanksRoot = thanks.gameObject;
             }
 
-            if (gameNameField == null)
-                gameNameField = Field("GameNameInput");
-            if (usernameField == null)
-                usernameField = Field("UsernameInput");
             if (feedbackField == null)
                 feedbackField = Field("FeedbackInput");
             if (suggestionsField == null)
@@ -122,8 +105,6 @@ namespace ModularChess.Presentation
 
             if (experienceStars == null || experienceStars.Length == 0)
                 experienceStars = Stars("Experience");
-            if (interestingStars == null || interestingStars.Length == 0)
-                interestingStars = Stars("Interesting");
         }
 
         void BindStars(Button[] stars, Action<int> set)
@@ -158,14 +139,8 @@ namespace ModularChess.Presentation
 
         void Prefill()
         {
-            if (gameNameField != null && string.IsNullOrWhiteSpace(gameNameField.text))
-                gameNameField.text = DefaultGameName;
-            if (usernameField != null && string.IsNullOrWhiteSpace(usernameField.text))
-                usernameField.text = PlayerIdentity.DisplayName;
             _experience = 0;
-            _interesting = 0;
             PaintStars(experienceStars, 0);
-            PaintStars(interestingStars, 0);
             if (feedbackField != null)
                 feedbackField.text = string.Empty;
             if (suggestionsField != null)
@@ -181,7 +156,7 @@ namespace ModularChess.Presentation
 
         bool RequiredFilled()
         {
-            return HasText(gameNameField) && HasText(usernameField) && HasText(feedbackField);
+            return HasText(feedbackField);
         }
 
         static bool HasText(TMP_InputField field)
@@ -206,12 +181,10 @@ namespace ModularChess.Presentation
             RefreshSubmit();
             SetStatus(Loc.Get("survey.status.sending"));
             var form = new WWWForm();
-            form.AddField(GameNameEntry, gameNameField.text.Trim());
-            form.AddField(UsernameEntry, usernameField.text.Trim());
+            form.AddField(GameNameEntry, DefaultGameName);
+            form.AddField(UsernameEntry, PlayerIdentity.DisplayName);
             if (_experience > 0)
                 form.AddField(ExperienceEntry, _experience.ToString());
-            if (_interesting > 0)
-                form.AddField(InterestingEntry, _interesting.ToString());
             form.AddField(FeedbackEntry, feedbackField.text.Trim());
             if (HasText(suggestionsField))
                 form.AddField(SuggestionsEntry, suggestionsField.text.Trim());
@@ -250,7 +223,6 @@ namespace ModularChess.Presentation
 
         void Close()
         {
-            gameObject.SetActive(false);
             Closed?.Invoke();
         }
 

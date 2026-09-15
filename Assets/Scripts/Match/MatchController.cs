@@ -82,7 +82,7 @@ namespace ModularChess.Match
 
             if (_paused)
             {
-                hud?.SetClock(_clock);
+                hud?.SetClock(_clock, ClockSide());
                 return;
             }
 
@@ -106,7 +106,7 @@ namespace ModularChess.Match
             if (_clock != null && _state.Status == GameStatus.InProgress && !_state.DraftPending)
             {
                 Side? flagged = _clock.Tick(Time.deltaTime, _state.SideToMove);
-                hud?.SetClock(_clock);
+                hud?.SetClock(_clock, ClockSide());
                 if (flagged != null)
                 {
                     _state = _state.WithTerminal(GameStatus.Timeout);
@@ -116,7 +116,7 @@ namespace ModularChess.Match
             }
             else
             {
-                hud?.SetClock(_clock);
+                hud?.SetClock(_clock, ClockSide());
             }
 
             if (_session.IsAi
@@ -250,7 +250,7 @@ namespace ModularChess.Match
         public void DebugResetTimer()
         {
             _clock?.ResetToStart();
-            hud?.SetClock(_clock);
+            hud?.SetClock(_clock, ClockSide());
         }
 
         bool CanDebugEnd()
@@ -594,7 +594,7 @@ namespace ModularChess.Match
             _draftRemaining -= Time.deltaTime;
             int left = Mathf.Max(0, Mathf.CeilToInt(_draftRemaining));
             hud?.SetStatusLine(Loc.Format("match.draft", left));
-            hud?.SetClock(_clock);
+            hud?.SetClock(_clock, ClockSide());
             if (_draftRemaining <= 0f)
                 TimeoutDraft();
         }
@@ -675,7 +675,8 @@ namespace ModularChess.Match
                 return;
 
             hud.Bind(_state, _state.History);
-            hud.SetClock(_clock);
+            hud.SetNames(_session);
+            hud.SetClock(_clock, ClockSide());
             hud.SetEndTurnVisible(!_inSetup && _state.CanEndTurn());
             hud.SetPauseVisible(!_inSetup && _session != null && _session.IsAi && _state.Status == GameStatus.InProgress);
             hud.SetResignVisible(!_inSetup && _state.Status == GameStatus.InProgress);
@@ -756,6 +757,11 @@ namespace ModularChess.Match
             }
 
             boardView.SetTargeting(valid);
+        }
+
+        Side ClockSide()
+        {
+            return _session?.PlayerSide ?? Side.White;
         }
 
         Side SetupPicker()

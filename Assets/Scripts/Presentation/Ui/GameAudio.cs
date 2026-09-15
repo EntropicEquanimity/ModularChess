@@ -31,7 +31,6 @@ namespace ModularChess.Presentation
         [SerializeField] AudioClip matchMusic;
         AudioSource _sfx;
         AudioSource _music;
-        bool _uiTapNext;
         Bgm _bgm;
         static GameAudio _instance;
         public enum Bgm
@@ -159,9 +158,7 @@ namespace ModularChess.Presentation
 
         void PlayUiClip()
         {
-            AudioClip clip = _uiTapNext ? uiTap : uiClick;
-            _uiTapNext = !_uiTapNext;
-            PlayOne(clip);
+            PlayOne(uiClick);
         }
 
         void PlayOne(AudioClip clip)

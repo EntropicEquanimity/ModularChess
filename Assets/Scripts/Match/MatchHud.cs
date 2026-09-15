@@ -27,7 +27,10 @@ namespace ModularChess.Match
         [SerializeField] GameObject gameOverBanner;
         [SerializeField] TMP_Text statusLine;
         [SerializeField] TMP_Text clockText;
+        [SerializeField] TMP_Text opponentClock;
         [SerializeField] TMP_Text lostMaterialText;
+        [SerializeField] TMP_Text playerName;
+        [SerializeField] TMP_Text opponentName;
         [SerializeField] Button endTurnButton;
         [SerializeField] Button pauseButton;
         [SerializeField] Button resignButton;
@@ -155,21 +158,27 @@ namespace ModularChess.Match
             CloseOptions();
             return true;
         }
-        public void SetClock(MatchClock clock)
+        public void SetClock(MatchClock clock, Side playerSide)
         {
             Wire();
-            if (clockText == null)
+            bool timed = clock != null && !clock.IsNone;
+            string player = timed ? clock.Format(playerSide) : string.Empty;
+            string opponent = timed ? clock.Format(playerSide.Opponent()) : string.Empty;
+            ApplyClock(clockText, player, timed);
+            ApplyClock(opponentClock, opponent, timed);
+        }
+        public void SetNames(MatchSession session)
+        {
+            Wire();
+            if (playerName != null)
             {
-                return;
+                playerName.text = PlayerIdentity.DisplayName;
             }
 
-            if (clock == null || clock.IsNone)
+            if (opponentName != null)
             {
-                clockText.text = string.Empty;
-                return;
+                opponentName.text = OpponentLabel(session);
             }
-
-            clockText.text = $"W {clock.Format(Side.White)}   B {clock.Format(Side.Black)}";
         }
         public void SetEndTurnVisible(bool visible)
         {
@@ -328,12 +337,27 @@ namespace ModularChess.Match
 
             if (clockText == null)
             {
-                clockText = FindLabel("Clock");
+                clockText = FindClockIn("PlayerName");
+            }
+
+            if (opponentClock == null)
+            {
+                opponentClock = FindClockIn("OpponentName");
             }
 
             if (lostMaterialText == null)
             {
                 lostMaterialText = FindLabel("LostMaterial");
+            }
+
+            if (playerName == null)
+            {
+                playerName = FindLabelIn("PlayerName");
+            }
+
+            if (opponentName == null)
+            {
+                opponentName = FindLabelIn("OpponentName");
             }
 
             if (endTurnButton == null)
@@ -1025,10 +1049,78 @@ namespace ModularChess.Match
             _statusTween?.Kill();
             _gameOverTween?.Kill();
         }
+        TMP_Text FindClockIn(string rowName)
+        {
+            Transform row = FindChild(transform, rowName);
+            if (row == null)
+            {
+                return null;
+            }
+
+            Transform labeled = FindChild(row, "ClockText");
+            if (labeled != null)
+            {
+                TMP_Text tmp = labeled.GetComponent<TMP_Text>();
+                if (tmp != null)
+                {
+                    return tmp;
+                }
+            }
+
+            return null;
+        }
+        static void ApplyClock(TMP_Text label, string text, bool visible)
+        {
+            if (label == null)
+            {
+                return;
+            }
+
+            label.text = text;
+            Transform holder = label.transform.parent;
+            if (holder != null)
+            {
+                holder.gameObject.SetActive(visible);
+            }
+        }
         TMP_Text FindLabel(string name)
         {
             Transform child = FindChild(transform, name);
             return child != null ? child.GetComponent<TMP_Text>() : null;
+        }
+        TMP_Text FindLabelIn(string name)
+        {
+            Transform child = FindChild(transform, name);
+            if (child == null)
+            {
+                return null;
+            }
+
+            TMP_Text tmp = child.GetComponent<TMP_Text>();
+            return tmp != null ? tmp : child.GetComponentInChildren<TMP_Text>(true);
+        }
+        static string OpponentLabel(MatchSession session)
+        {
+            if (session == null || !session.IsAi || session.Rules == null)
+            {
+                return Loc.Get("hud.friend");
+            }
+
+            string difficulty;
+            switch (session.Rules.Settings.AiStrength)
+            {
+                case AiStrength.Easy:
+                    difficulty = Loc.Get("settings.ai.easy");
+                    break;
+                case AiStrength.Hard:
+                    difficulty = Loc.Get("settings.ai.hard");
+                    break;
+                default:
+                    difficulty = Loc.Get("settings.ai.medium");
+                    break;
+            }
+
+            return Loc.Format("hud.bot", difficulty);
         }
         Button FindButton(string name)
         {
