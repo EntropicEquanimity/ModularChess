@@ -12,7 +12,6 @@ namespace ModularChess.Match
     [DefaultExecutionOrder(-50)]
     public sealed class AppRoot : MonoBehaviour, IInitializable
     {
-        const string FeedbackUrl = "https://forms.gle/";
         const string ShowNotationKey = "ShowNotation";
 
         [SerializeField] GameObject mainMenu;
@@ -24,6 +23,7 @@ namespace ModularChess.Match
         [SerializeField] GameObject optionsOverlay;
         [SerializeField] GameObject creditsOverlay;
         [SerializeField] GameObject accountCreationOverlay;
+        [SerializeField] GameObject feedbackOverlay;
         [SerializeField] MatchController match;
         [SerializeField] BoardView board;
         [SerializeField] MatchHud hud;
@@ -137,7 +137,8 @@ namespace ModularChess.Match
                 unlocksOverlay,
                 optionsOverlay,
                 creditsOverlay,
-                accountCreationOverlay
+                accountCreationOverlay,
+                feedbackOverlay
             };
         }
 
@@ -150,7 +151,7 @@ namespace ModularChess.Match
             BindButton(mainMenu, "UnlocksButton", ShowUnlocks);
             BindButton(mainMenu, "OptionsButton", ShowOptions);
             BindButton(mainMenu, "CreditsButton", ShowCredits);
-            BindButton(mainMenu, "FeedbackButton", OpenFeedback);
+            BindButton(mainMenu, "FeedbackButton", ShowFeedback);
             BindButton(mainMenu, "ExitButton", ShowQuitConfirm);
             Button customize = FindButton(mainMenu, "CustomizeButton");
             if (customize != null)
@@ -316,6 +317,20 @@ namespace ModularChess.Match
         void ShowCredits()
         {
             ShowOverlay(creditsOverlay);
+        }
+
+        void ShowFeedback()
+        {
+            EnsureFeedbackOverlay();
+            if (feedbackOverlay == null)
+                return;
+            FeedbackSurvey survey = feedbackOverlay.GetComponent<FeedbackSurvey>();
+            if (survey == null)
+                return;
+            survey.Closed -= ShowMainMenu;
+            survey.Closed += ShowMainMenu;
+            ShowOverlay(feedbackOverlay);
+            survey.Open();
         }
 
         void OpenPrep(Activity activity)
@@ -814,11 +829,6 @@ namespace ModularChess.Match
             ShowLobby();
         }
 
-        void OpenFeedback()
-        {
-            Application.OpenURL(FeedbackUrl);
-        }
-
         void ShowQuitConfirm()
         {
             if (_dialogs == null)
@@ -874,7 +884,7 @@ namespace ModularChess.Match
                 return;
             }
 
-            if (IsActive(unlocksOverlay) || IsActive(optionsOverlay) || IsActive(creditsOverlay))
+            if (IsActive(unlocksOverlay) || IsActive(optionsOverlay) || IsActive(creditsOverlay) || IsActive(feedbackOverlay))
             {
                 ShowMainMenu();
                 return;
@@ -1164,22 +1174,6 @@ namespace ModularChess.Match
             }
 
             Button confirm = FindButton(accountCreationOverlay, "ConfirmButton");
-            if (confirm == null)
-            {
-                confirm = UiFactory.Button(
-                    accountCreationOverlay.transform,
-                    Loc.Get("account.confirm"),
-                    null,
-                    new Vector2(200f, 32f));
-                confirm.name = "ConfirmButton";
-                var rect = (RectTransform)confirm.transform;
-                rect.anchorMin = new Vector2(0.5f, 0.5f);
-                rect.anchorMax = new Vector2(0.5f, 0.5f);
-                rect.pivot = new Vector2(0.5f, 0.5f);
-                rect.anchoredPosition = new Vector2(0f, -140f);
-                rect.sizeDelta = new Vector2(200f, 32f);
-            }
-
             BindButton(accountCreationOverlay, "ConfirmButton", ConfirmAccount);
             LocalizedText.Bind(confirm, "account.confirm");
             RefreshAccountConfirm(field != null ? field.text : string.Empty);
@@ -1195,6 +1189,18 @@ namespace ModularChess.Match
             accountCreationOverlay = Instantiate(prefab, transform);
             accountCreationOverlay.name = "AccountCreation";
             accountCreationOverlay.SetActive(false);
+        }
+
+        void EnsureFeedbackOverlay()
+        {
+            if (feedbackOverlay != null)
+                return;
+            GameObject prefab = RuntimePrefabs.FeedbackSurvey;
+            if (prefab == null)
+                return;
+            feedbackOverlay = Instantiate(prefab, transform);
+            feedbackOverlay.name = "FeedbackSurvey";
+            feedbackOverlay.SetActive(false);
         }
 
         void ConfirmAccount()
