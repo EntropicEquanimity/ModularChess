@@ -22,6 +22,8 @@ namespace ModularChess.Presentation
         [SerializeField] TMP_InputField feedbackField;
         [SerializeField] TMP_InputField suggestionsField;
         [SerializeField] Button[] experienceStars;
+        [SerializeField] Sprite emptyStar;
+        [SerializeField] Sprite filledStar;
         [SerializeField] Button submitButton;
         [SerializeField] Button backButton;
         [SerializeField] GameObject formRoot;
@@ -105,6 +107,10 @@ namespace ModularChess.Presentation
 
             if (experienceStars == null || experienceStars.Length == 0)
                 experienceStars = Stars("Experience");
+            if (emptyStar == null)
+                emptyStar = Resources.Load<Sprite>("Feedback/star-empty");
+            if (filledStar == null)
+                filledStar = Resources.Load<Sprite>("Feedback/star-filled");
         }
 
         void BindStars(Button[] stars, Action<int> set)
@@ -129,11 +135,16 @@ namespace ModularChess.Presentation
                 return;
             for (int i = 0; i < stars.Length; i++)
             {
-                TMP_Text label = stars[i] != null ? stars[i].GetComponentInChildren<TMP_Text>(true) : null;
-                if (label == null)
+                if (stars[i] == null)
                     continue;
-                bool on = i < value;
-                label.color = on ? new Color(0.85f, 0.55f, 0.08f, 1f) : Color.black;
+                Image image = stars[i].targetGraphic as Image;
+                if (image == null)
+                    image = stars[i].GetComponent<Image>();
+                if (image == null)
+                    continue;
+                Sprite sprite = i < value ? filledStar : emptyStar;
+                if (sprite != null)
+                    image.sprite = sprite;
             }
         }
 
@@ -156,7 +167,7 @@ namespace ModularChess.Presentation
 
         bool RequiredFilled()
         {
-            return HasText(feedbackField);
+            return _experience > 0 && feedbackField != null && !string.IsNullOrEmpty(feedbackField.text);
         }
 
         static bool HasText(TMP_InputField field)
@@ -183,8 +194,7 @@ namespace ModularChess.Presentation
             var form = new WWWForm();
             form.AddField(GameNameEntry, DefaultGameName);
             form.AddField(UsernameEntry, PlayerIdentity.DisplayName);
-            if (_experience > 0)
-                form.AddField(ExperienceEntry, _experience.ToString());
+            form.AddField(ExperienceEntry, _experience.ToString());
             form.AddField(FeedbackEntry, feedbackField.text.Trim());
             if (HasText(suggestionsField))
                 form.AddField(SuggestionsEntry, suggestionsField.text.Trim());
@@ -228,7 +238,7 @@ namespace ModularChess.Presentation
 
         IEnumerator CloseAfterThanks()
         {
-            yield return new WaitForSecondsRealtime(1.6f);
+            yield return new WaitForSecondsRealtime(5f);
             Close();
         }
 

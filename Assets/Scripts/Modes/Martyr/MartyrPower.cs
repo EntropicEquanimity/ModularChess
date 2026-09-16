@@ -4,10 +4,16 @@ namespace ModularChess.Core
     {
         Reinforcements,
         FleetPawns,
+        #region Not In Use
         Bombard,
+        Phalanx,
+        #endregion
         UntouchableKing,
         StasisField,
         KnightAscension,
-        BattlefieldPromotion
+        BattlefieldPromotion,
+        Rally,
+        Revival,
+        Exile
     }
 }

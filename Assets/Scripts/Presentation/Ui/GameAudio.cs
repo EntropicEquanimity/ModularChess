@@ -15,6 +15,7 @@ namespace ModularChess.Presentation
         const string ClickPath = "Assets/Audio/button-click.wav";
         const string TapPath = "Assets/Audio/tap.wav";
         const string MovePath = "Assets/Audio/piece-move.wav";
+        const string CapturePath = "Assets/Audio/piece-capture.wav";
         const string SelectPath = "Assets/Audio/piece-select.wav";
         const string IllegalPath = "Assets/Audio/invalid-click.wav";
         const string CheckPath = "Assets/Audio/match-check.wav";
@@ -24,6 +25,7 @@ namespace ModularChess.Presentation
         [SerializeField] AudioClip uiClick;
         [SerializeField] AudioClip uiTap;
         [SerializeField] AudioClip pieceMove;
+        [SerializeField] AudioClip pieceCapture;
         [SerializeField] AudioClip pieceSelect;
         [SerializeField] AudioClip invalidClick;
         [SerializeField] AudioClip matchCheck;
@@ -87,7 +89,7 @@ namespace ModularChess.Presentation
         public static void PlayCapture()
         {
             GameAudio audio = Ensure();
-            audio.PlayOne(audio.uiTap);
+            audio.PlayOne(audio.pieceCapture);
         }
 
         public static void PlayHidden()
@@ -281,6 +283,11 @@ namespace ModularChess.Presentation
             if (pieceMove == null)
             {
                 pieceMove = LoadClip(MovePath, "Audio/piece-move");
+            }
+
+            if (pieceCapture == null)
+            {
+                pieceCapture = LoadClip(CapturePath, "Audio/piece-capture");
             }
 
             if (pieceSelect == null)

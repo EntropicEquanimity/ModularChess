@@ -20,7 +20,7 @@ namespace ModularChess.Core
         public MatchRules Rules { get; }
         public ModeRuntime Runtime { get; }
         public int MovesThisTurn => Runtime.MovesThisTurn;
-        public bool TurnOpen => Runtime.ExtraMoveKingId != null;
+        public bool TurnOpen => Runtime.ExtraMoveKingId != null || (Runtime.RallyArmed && MovesThisTurn > 0);
         public bool DraftPending => Runtime.PendingDraft != null;
         #endregion
 
@@ -92,6 +92,13 @@ namespace ModularChess.Core
             else
             {
                 nextBoard = Board.ApplyUnchecked(move);
+                if (captured != null)
+                {
+                    Square origin = move.Kind == MoveKind.EnPassant
+                        ? new Square(move.To.File, move.From.Rank)
+                        : move.To;
+                    nextRuntime = nextRuntime.AddCapture(captured, false, origin);
+                }
                 if (captured != null && Rules.Has(ModeId.Martyr) && !nextRuntime.IsSummoned(captured.Id))
                 {
                     int? value = PieceValues.Get(captured.Type);
@@ -124,7 +131,8 @@ namespace ModularChess.Core
             if (endsTurn)
             {
                 nextRuntime = nextRuntime.TickStatuses(SideToMove);
-                nextRuntime = nextRuntime.WithExtraKing(null).WithMovesThisTurn(0);
+                nextBoard = MartyrRules.ResolveExpiredExiles(nextBoard, nextRuntime, SideToMove, out nextRuntime);
+                nextRuntime = nextRuntime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false);
                 nextRuntime = MaybeOpenDraft(nextRuntime, nextSide);
             }
             else
@@ -162,12 +170,14 @@ namespace ModularChess.Core
                 throw new InvalidOperationException("End Turn is not legal.");
             }
 
-            ModeRuntime nextRuntime = Runtime.TickStatuses(SideToMove).WithExtraKing(null).WithMovesThisTurn(0);
+            ModeRuntime nextRuntime = Runtime.TickStatuses(SideToMove);
+            Board nextBoard = MartyrRules.ResolveExpiredExiles(Board, nextRuntime, SideToMove, out nextRuntime);
+            nextRuntime = nextRuntime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false);
             Side nextSide = SideToMove.Opponent();
             nextRuntime = MaybeOpenDraft(nextRuntime, nextSide);
             int nextFullmove = SideToMove == Side.Black ? FullmoveNumber + 1 : FullmoveNumber;
             return new GameState(
-                Board,
+                nextBoard,
                 nextSide,
                 null,
                 CastlingRights,
@@ -267,7 +277,15 @@ namespace ModularChess.Core
             {
                 throw new InvalidOperationException("No Draft is pending.");
             }
-
+            CastlingRights nextCastling = CastlingRights;
+            if (targetId != null)
+            {
+                Square? square = Board.FindSquare(targetId.Value);
+                if (square != null)
+                {
+                    nextCastling = nextCastling.WithoutPieceSquare(square.Value);
+                }
+            }
             ModeRuntime next = MartyrRules.Apply(
                 this,
                 power,
@@ -278,7 +296,7 @@ namespace ModularChess.Core
                 nextBoard,
                 SideToMove,
                 EnPassantTarget,
-                CastlingRights,
+                nextCastling,
                 HalfmoveClock,
                 FullmoveNumber,
                 History as Move[] ?? CopyHistory(),
@@ -371,11 +389,19 @@ namespace ModularChess.Core
         }
         private bool MoveEndsTurn(Piece moving, Move move, ModeRuntime runtime)
         {
+            int after = runtime.MovesThisTurn + 1;
+            if (after >= 2)
+            {
+                return true;
+            }
+            if (runtime.RallyArmed)
+            {
+                return false;
+            }
             if (moving.Type == PieceType.King && runtime.IsEmpowered(moving.Id) && Runtime.ExtraMoveKingId == null)
             {
                 return false;
             }
-
             return true;
         }
         private ModeRuntime MaybeOpenDraft(ModeRuntime runtime, Side sideToMove)
@@ -392,13 +418,9 @@ namespace ModularChess.Core
             }
 
             DraftOffer offer = MartyrRules.BuildOffer(this, runtime, sideToMove);
-            PieceType? battlefield = null;
-            if (offer.First == MartyrPower.BattlefieldPromotion
-                || offer.Second == MartyrPower.BattlefieldPromotion
-                || offer.Third == MartyrPower.BattlefieldPromotion)
-            {
-                battlefield = offer.BattlefieldType;
-            }
+            PieceType? battlefield = offer.Contains(MartyrPower.BattlefieldPromotion)
+                ? offer.BattlefieldType
+                : null;
 
             return runtime.WithPendingDraft(offer, battlefield);
         }

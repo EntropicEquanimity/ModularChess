@@ -20,8 +20,8 @@ namespace ModularChess.Match
         const float GameOverFade = 2.5f;
         const float DraftDescHeight = 128f;
         const float DraftConfirmHeight = 40f;
+        static readonly Color CheckColor = new Color(0.7f, 0.1f, 0.1f, 1f);
         [SerializeField] TMP_Text turnText;
-        [SerializeField] TMP_Text checkText;
         [SerializeField] TMP_Text moveListText;
         [SerializeField] TMP_Text gameOverText;
         [SerializeField] GameObject gameOverBanner;
@@ -42,10 +42,14 @@ namespace ModularChess.Match
         [SerializeField] RectTransform draftDescription;
         [SerializeField] PieceDetailsPanel pieceDetails;
         [SerializeField] GameObject statusRoot;
+        [SerializeField] GameObject matchChrome;
         Tween _draftTween;
         Tween _optionsTween;
         Tween _statusTween;
         Tween _gameOverTween;
+        Tween _endTurnTween;
+        bool _endTurnShown;
+        Vector2 _endTurnRest = new Vector2(-8f, 8f);
         Action<MartyrPower> _onDraft;
         Button _draftConfirm;
         RectTransform _draftDescClip;
@@ -56,7 +60,11 @@ namespace ModularChess.Match
         bool _wired;
         bool _optionsOpen;
         bool _statusVisible;
+        bool _inCheck;
         bool _gameOverShown;
+        bool _deferGameOver;
+        string _statusOverride = string.Empty;
+        Color _statusColor = Color.white;
         CanvasGroup _statusGroup;
         CanvasGroup _gameOverGroup;
         ScrollRect _moveListScroll;
@@ -103,11 +111,8 @@ namespace ModularChess.Match
                     : Loc.Get("match.over");
             }
 
-            if (checkText != null)
-            {
-                checkText.gameObject.SetActive(inProgress && state.IsInCheck);
-                checkText.text = Loc.Get("match.check");
-            }
+            _inCheck = inProgress && state.IsInCheck;
+            ApplyStatus();
 
             bool showMoves = PlayerPrefs.GetInt("ShowNotation", 1) == 1;
             SetMoveList(showMoves ? FormatMoveList(moves) : string.Empty);
@@ -120,7 +125,10 @@ namespace ModularChess.Match
                     gameOverText.text = result;
                 }
 
-                ShowGameOver();
+                if (!_deferGameOver)
+                {
+                    ShowGameOver();
+                }
             }
             else
             {
@@ -180,9 +188,83 @@ namespace ModularChess.Match
                 opponentName.text = OpponentLabel(session);
             }
         }
+        public void SetMatchChromeVisible(bool visible)
+        {
+            Wire();
+            if (matchChrome != null)
+            {
+                matchChrome.SetActive(visible);
+                return;
+            }
+            if (playerName != null && playerName.transform.parent != null)
+            {
+                playerName.transform.parent.gameObject.SetActive(visible);
+                return;
+            }
+            if (playerName != null)
+            {
+                playerName.gameObject.SetActive(visible);
+            }
+            if (opponentName != null)
+            {
+                opponentName.gameObject.SetActive(visible);
+            }
+        }
+        public void SetDeferGameOver(bool defer)
+        {
+            _deferGameOver = defer;
+            if (!defer)
+            {
+                return;
+            }
+            HideGameOverImmediate();
+        }
+        public void RevealGameOver()
+        {
+            _deferGameOver = false;
+            ShowGameOver();
+        }
         public void SetEndTurnVisible(bool visible)
         {
-            SetActive(endTurnButton, visible);
+            Wire();
+            if (endTurnButton == null) return;
+            PlaceEndTurn();
+            if (visible == _endTurnShown && endTurnButton.gameObject.activeSelf == visible) return;
+            _endTurnTween?.Kill();
+            RectTransform rect = endTurnButton.transform as RectTransform;
+            _endTurnShown = visible;
+            if (visible)
+            {
+                endTurnButton.gameObject.SetActive(true);
+                endTurnButton.transform.SetAsLastSibling();
+                if (rect != null)
+                {
+                    rect.anchoredPosition = HiddenEndTurnPos();
+                    _endTurnTween = DOTween.To(
+                            () => rect.anchoredPosition,
+                            v => rect.anchoredPosition = v,
+                            _endTurnRest,
+                            OptionsDuration)
+                        .SetEase(Ease.OutCubic)
+                        .SetUpdate(true)
+                        .SetTarget(endTurnButton);
+                }
+                return;
+            }
+            if (rect == null || !endTurnButton.gameObject.activeSelf)
+            {
+                HideEndTurnImmediate();
+                return;
+            }
+            _endTurnTween = DOTween.To(
+                    () => rect.anchoredPosition,
+                    v => rect.anchoredPosition = v,
+                    HiddenEndTurnPos(),
+                    OptionsDuration)
+                .SetEase(Ease.InCubic)
+                .SetUpdate(true)
+                .SetTarget(endTurnButton)
+                .OnComplete(HideEndTurnImmediate);
         }
         public void SetPauseVisible(bool visible)
         {
@@ -192,9 +274,16 @@ namespace ModularChess.Match
         {
             SetActive(resignButton, visible);
         }
-        public void SetSetupConfirmVisible(bool visible)
+        public void SetSetupConfirm(bool visible, bool interactable, bool opponentReady)
         {
+            Wire();
+            if (setupConfirmButton == null) return;
+            PlaceSetupConfirm();
             SetActive(setupConfirmButton, visible);
+            setupConfirmButton.interactable = visible && interactable;
+            LocalizedText.Bind(
+                setupConfirmButton,
+                opponentReady ? "hud.setupConfirm.ready" : "hud.setupConfirm");
         }
         public void SetLostMaterial(int? white, int? black, int threshold)
         {
@@ -215,21 +304,8 @@ namespace ModularChess.Match
         public void SetStatusLine(string text)
         {
             Wire();
-            string next = text ?? string.Empty;
-            if (statusLine != null)
-            {
-                statusLine.text = next;
-            }
-
-            bool has = next.Length > 0;
-            if (has)
-            {
-                ShowStatus();
-            }
-            else
-            {
-                HideStatus();
-            }
+            _statusOverride = text ?? string.Empty;
+            ApplyStatus();
         }
         public void ShowDraft(GameState state, Action<MartyrPower> onPick)
         {
@@ -244,9 +320,19 @@ namespace ModularChess.Match
             draftRow.SetAsLastSibling();
             DraftOffer offer = state.Runtime.PendingDraft.Value;
             PieceType? battlefield = state.Runtime.PendingBattlefieldType ?? offer.BattlefieldType;
-            SetDraftButton(0, offer.First, battlefield);
-            SetDraftButton(1, offer.Second, battlefield);
-            SetDraftButton(2, offer.Third, battlefield);
+            for (int i = 0; i < draftRow.childCount; i++)
+            {
+                Transform child = draftRow.GetChild(i);
+                if (i < offer.Count)
+                {
+                    child.gameObject.SetActive(true);
+                    SetDraftButton(i, offer.At(i), battlefield);
+                }
+                else
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
         }
         public void HideDraft()
         {
@@ -291,9 +377,10 @@ namespace ModularChess.Match
                 turnText = FindLabel("TurnLabel");
             }
 
-            if (checkText == null)
+            Transform check = FindChild(transform, "CheckLabel");
+            if (check != null)
             {
-                checkText = FindLabel("CheckLabel");
+                check.gameObject.SetActive(false);
             }
 
             if (moveListText == null)
@@ -318,6 +405,11 @@ namespace ModularChess.Match
             if (statusLine == null)
             {
                 statusLine = FindLabel("StatusLine");
+            }
+
+            if (statusLine != null)
+            {
+                _statusColor = statusLine.color;
             }
 
             if (statusRoot == null)
@@ -418,6 +510,15 @@ namespace ModularChess.Match
                 pieceDetails = GetComponentInChildren<PieceDetailsPanel>(true);
             }
 
+            if (matchChrome == null)
+            {
+                Transform names = FindChild(transform, "PlayerNames");
+                if (names != null)
+                {
+                    matchChrome = names.gameObject;
+                }
+            }
+
             if (buttonGroup != null)
             {
                 _optionsRestY = buttonGroup.anchoredPosition.y;
@@ -466,12 +567,13 @@ namespace ModularChess.Match
             HideOptionsImmediate();
             HideDraft();
             HidePieceDetails();
+            _deferGameOver = false;
             HideGameOverImmediate();
-            if (checkText != null)
-            {
-                checkText.gameObject.SetActive(false);
-            }
-
+            SetMatchChromeVisible(true);
+            SetSetupConfirm(false, false, false);
+            HideEndTurnImmediate();
+            _inCheck = false;
+            _statusOverride = string.Empty;
             if (statusRoot != null)
             {
                 SetGroupAlpha(_statusGroup, 0f);
@@ -686,6 +788,33 @@ namespace ModularChess.Match
             }
 
             return new Vector2(width, _optionsRestY);
+        }
+        void ApplyStatus()
+        {
+            if (statusLine == null)
+            {
+                return;
+            }
+
+            if (_statusOverride.Length > 0)
+            {
+                statusLine.color = _statusColor;
+                statusLine.text = _statusOverride;
+                ShowStatus();
+                return;
+            }
+
+            if (_inCheck)
+            {
+                statusLine.color = CheckColor;
+                statusLine.text = Loc.Get("match.check");
+                ShowStatus();
+                return;
+            }
+
+            statusLine.color = _statusColor;
+            statusLine.text = string.Empty;
+            HideStatus();
         }
         void ShowStatus()
         {
@@ -1038,6 +1167,14 @@ namespace ModularChess.Match
                     return Loc.Get("martyr.desc.ascension");
                 case MartyrPower.BattlefieldPromotion:
                     return Loc.Format("martyr.desc.battlefield", Loc.PieceName(battlefield ?? PieceType.Knight));
+                case MartyrPower.Rally:
+                    return Loc.Get("martyr.desc.rally");
+                case MartyrPower.Revival:
+                    return Loc.Get("martyr.desc.revival");
+                case MartyrPower.Exile:
+                    return Loc.Get("martyr.desc.exile");
+                case MartyrPower.Phalanx:
+                    return Loc.Get("martyr.desc.phalanx");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(power), power, null);
             }
@@ -1048,6 +1185,7 @@ namespace ModularChess.Match
             _optionsTween?.Kill();
             _statusTween?.Kill();
             _gameOverTween?.Kill();
+            _endTurnTween?.Kill();
         }
         TMP_Text FindClockIn(string rowName)
         {
@@ -1071,17 +1209,9 @@ namespace ModularChess.Match
         }
         static void ApplyClock(TMP_Text label, string text, bool visible)
         {
-            if (label == null)
-            {
-                return;
-            }
-
+            if (label == null) return;
             label.text = text;
-            Transform holder = label.transform.parent;
-            if (holder != null)
-            {
-                holder.gameObject.SetActive(visible);
-            }
+            label.gameObject.SetActive(visible);
         }
         TMP_Text FindLabel(string name)
         {
@@ -1136,6 +1266,48 @@ namespace ModularChess.Match
             if (button != null)
             {
                 button.gameObject.SetActive(visible);
+            }
+        }
+        void PlaceSetupConfirm()
+        {
+            RectTransform rect = setupConfirmButton.transform as RectTransform;
+            if (rect == null) return;
+            if (rect.parent != transform)
+            {
+                rect.SetParent(transform, false);
+            }
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-8f, -70f);
+            rect.sizeDelta = new Vector2(220f, 32f);
+            rect.SetAsLastSibling();
+        }
+        void PlaceEndTurn()
+        {
+            RectTransform rect = endTurnButton.transform as RectTransform;
+            if (rect == null) return;
+            if (rect.parent != transform)
+            {
+                rect.SetParent(transform, false);
+            }
+            rect.anchorMin = new Vector2(1f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(1f, 0f);
+            rect.sizeDelta = new Vector2(200f, 32f);
+            _endTurnRest = new Vector2(-8f, 8f);
+        }
+        Vector2 HiddenEndTurnPos()
+        {
+            return new Vector2(_endTurnRest.x + 220f, _endTurnRest.y);
+        }
+        void HideEndTurnImmediate()
+        {
+            _endTurnTween?.Kill();
+            _endTurnShown = false;
+            if (endTurnButton != null)
+            {
+                endTurnButton.gameObject.SetActive(false);
             }
         }
         static void CopyRect(RectTransform from, RectTransform to)
@@ -1203,6 +1375,14 @@ namespace ModularChess.Match
                     return Loc.Get("martyr.power.ascension");
                 case MartyrPower.BattlefieldPromotion:
                     return Loc.Get("martyr.power.battlefield");
+                case MartyrPower.Rally:
+                    return Loc.Get("martyr.power.rally");
+                case MartyrPower.Revival:
+                    return Loc.Get("martyr.power.revival");
+                case MartyrPower.Exile:
+                    return Loc.Get("martyr.power.exile");
+                case MartyrPower.Phalanx:
+                    return Loc.Get("martyr.power.phalanx");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(power), power, null);
             }

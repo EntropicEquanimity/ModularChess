@@ -19,6 +19,10 @@ namespace ModularChess.Presentation
         Tween _motion;
         Action _onEnded;
         Vector3 _restScale = Vector3.one;
+        Color _liveOutline = Color.white;
+        Color _liveBody = Color.white;
+        Color _liveGlyph = Color.white;
+        bool _restoreTintOnKill = true;
         Color _outlineColor = Color.white;
         Color _bodyColor = Color.white;
         Color _glyphColor = Color.white;
@@ -50,6 +54,17 @@ namespace ModularChess.Presentation
             RestorePrefabVisuals();
 
             _glyph.sprite = ChessGlyphs.GetSprite(piece.Type, piece.Side);
+            _glyph.enabled = true;
+        }
+        public void BindCaptured(Guid id, PieceType type, Side side, BoardTheme theme)
+        {
+            PieceId = id;
+            IsShadow = false;
+            name = $"{side} {type}";
+            EnsureRenderers();
+            CacheVisuals();
+            RestorePrefabVisuals();
+            _glyph.sprite = ChessGlyphs.GetSprite(type, side);
             _glyph.enabled = true;
         }
 
@@ -94,6 +109,7 @@ namespace ModularChess.Presentation
             transform.localPosition = localPosition;
             transform.localScale = _restScale;
             SetLifted(false);
+            SetRenderAlpha(1f);
         }
 
         public bool PlayMove(Vector3 dest, float duration, Action onEnded)
@@ -134,6 +150,234 @@ namespace ModularChess.Presentation
             _motion = seq;
             return true;
         }
+        public bool PlayArc(Vector3 dest, float duration, float height, Action onEnded)
+        {
+            KillMotion(invokeEnded: true);
+            if (duration <= 0.001f || (transform.localPosition - dest).sqrMagnitude < 0.0001f)
+            {
+                transform.localPosition = dest;
+                transform.localScale = _restScale;
+                SetLifted(false);
+                return false;
+            }
+            Vector3 start = transform.localPosition;
+            _onEnded = onEnded;
+            SetLifted(true);
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            seq.Join(DOTween.To(
+                    () => 0f,
+                    t =>
+                    {
+                        Vector3 point = Vector3.LerpUnclamped(start, dest, t);
+                        point.y += height * 4f * t * (1f - t);
+                        transform.localPosition = point;
+                    },
+                    1f,
+                    duration)
+                .SetEase(HandEase));
+            seq.Join(DOTween.To(
+                    () => transform.localScale,
+                    v => transform.localScale = v,
+                    _restScale * 1.12f,
+                    duration * 0.2f)
+                .SetEase(Ease.OutCubic));
+            seq.Insert(
+                duration * 0.55f,
+                DOTween.To(
+                        () => transform.localScale,
+                        v => transform.localScale = v,
+                        _restScale,
+                        duration * 0.45f)
+                    .SetEase(Ease.InCubic));
+            seq.OnKill(OnMotionKilled);
+            _motion = seq;
+            return true;
+        }
+        public bool PlayCaptureDepart(Vector3 dest, float duration, float height, Action onEnded)
+        {
+            KillMotion(invokeEnded: true);
+            if (duration <= 0.001f || (transform.localPosition - dest).sqrMagnitude < 0.0001f)
+            {
+                RestoreLiveTint();
+                transform.localPosition = dest;
+                transform.localScale = _restScale;
+                SetLifted(false);
+                return false;
+            }
+            CaptureLiveTint();
+            Vector3 start = transform.localPosition;
+            Vector3 squashed = new Vector3(_restScale.x * 1.38f, _restScale.y * 0.42f, _restScale.z);
+            float hit = Mathf.Max(0.02f, AnimationPrefs.MoveDuration(2f / 60f));
+            float unsquash = Mathf.Max(0.03f, AnimationPrefs.MoveDuration(0.07f));
+            _onEnded = onEnded;
+            _restoreTintOnKill = true;
+            SetLifted(true);
+            ApplyFlash(Color.white, Color.white);
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            seq.Append(DOTween.To(
+                    () => transform.localScale,
+                    v => transform.localScale = v,
+                    squashed,
+                    hit)
+                .SetEase(Ease.OutCubic));
+            seq.AppendCallback(RestoreLiveTint);
+            seq.Append(DOTween.To(
+                    () => transform.localScale,
+                    v => transform.localScale = v,
+                    _restScale,
+                    unsquash)
+                .SetEase(Ease.OutBack));
+            seq.Append(DOTween.To(
+                    () => 0f,
+                    t =>
+                    {
+                        Vector3 point = Vector3.LerpUnclamped(start, dest, t);
+                        point.y += height * 4f * t * (1f - t);
+                        transform.localPosition = point;
+                    },
+                    1f,
+                    duration)
+                .SetEase(HandEase));
+            seq.OnKill(OnMotionKilled);
+            _motion = seq;
+            return true;
+        }
+        public bool PlayDeflect(Vector3 toward, float duration, Action onEnded)
+        {
+            KillMotion(invokeEnded: true);
+            if (duration <= 0.001f)
+            {
+                transform.localScale = _restScale;
+                SetLifted(false);
+                return false;
+            }
+            Vector3 home = transform.localPosition;
+            Vector3 peak = Vector3.Lerp(home, toward, 0.55f);
+            _onEnded = onEnded;
+            SetLifted(true);
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            seq.Append(DOTween.To(
+                    () => transform.localPosition,
+                    v => transform.localPosition = v,
+                    peak,
+                    duration * 0.38f)
+                .SetEase(Ease.OutCubic));
+            seq.Append(DOTween.To(
+                    () => transform.localPosition,
+                    v => transform.localPosition = v,
+                    home,
+                    duration * 0.62f)
+                .SetEase(Ease.OutBack));
+            seq.OnKill(OnMotionKilled);
+            _motion = seq;
+            return true;
+        }
+        public bool PlaySelectPop()
+        {
+            KillMotion(invokeEnded: true);
+            float duration = AnimationPrefs.MoveDuration(0.1f);
+            if (duration <= 0.001f)
+            {
+                transform.localScale = _restScale;
+                return false;
+            }
+            Vector3 peak = new Vector3(_restScale.x * 1.14f, _restScale.y * 1.2f, _restScale.z);
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            seq.Append(DOTween.To(
+                    () => transform.localScale,
+                    v => transform.localScale = v,
+                    peak,
+                    duration * 0.4f)
+                .SetEase(Ease.OutCubic));
+            seq.Append(DOTween.To(
+                    () => transform.localScale,
+                    v => transform.localScale = v,
+                    _restScale,
+                    duration * 0.6f)
+                .SetEase(Ease.OutBack));
+            seq.OnKill(OnMotionKilled);
+            _motion = seq;
+            return true;
+        }
+        public bool PlayShiver()
+        {
+            KillMotion(invokeEnded: true);
+            float duration = AnimationPrefs.MoveDuration(0.16f);
+            if (duration <= 0.001f)
+                return false;
+            CaptureLiveTint();
+            _restoreTintOnKill = true;
+            Vector3 peak = new Vector3(_restScale.x * 0.82f, _restScale.y * 1.28f, _restScale.z);
+            ApplyFlash(null, new Color(1f, 0.22f, 0.22f, 1f));
+            if (_outline != null)
+                _outline.color = new Color(1f, 0.18f, 0.18f, _liveOutline.a);
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            seq.Append(DOTween.To(
+                    () => transform.localScale,
+                    v => transform.localScale = v,
+                    peak,
+                    duration * 0.4f)
+                .SetEase(Ease.OutCubic));
+            seq.Append(DOTween.To(
+                    () => transform.localScale,
+                    v => transform.localScale = v,
+                    _restScale,
+                    duration * 0.6f)
+                .SetEase(Ease.OutBack));
+            seq.OnKill(OnMotionKilled);
+            _motion = seq;
+            return true;
+        }
+        public bool PlayPop(float duration, Action onEnded)
+        {
+            KillMotion(invokeEnded: true);
+            duration = AnimationPrefs.MoveDuration(duration);
+            if (duration <= 0.001f)
+            {
+                transform.localScale = _restScale;
+                return false;
+            }
+            Vector3 peak = new Vector3(_restScale.x * 0.88f, _restScale.y * 1.38f, _restScale.z);
+            _onEnded = onEnded;
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            seq.Append(DOTween.To(
+                    () => transform.localScale,
+                    v => transform.localScale = v,
+                    peak,
+                    duration * 0.45f)
+                .SetEase(Ease.OutCubic));
+            seq.Append(DOTween.To(
+                    () => transform.localScale,
+                    v => transform.localScale = v,
+                    _restScale,
+                    duration * 0.55f)
+                .SetEase(Ease.OutBack));
+            seq.OnKill(OnMotionKilled);
+            _motion = seq;
+            return true;
+        }
+        public bool PlayFadeOut(float duration, Action onEnded)
+        {
+            KillMotion(invokeEnded: true);
+            if (duration <= 0.001f)
+            {
+                SetRenderAlpha(0f);
+                gameObject.SetActive(false);
+                return false;
+            }
+            _onEnded = onEnded;
+            _restoreTintOnKill = false;
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            seq.Join(DOTween.To(
+                    () => 1f,
+                    a => SetRenderAlpha(a),
+                    0f,
+                    duration)
+                .SetEase(Ease.InQuad));
+            seq.OnKill(OnFadeKilled);
+            _motion = seq;
+            return true;
+        }
 
         public void SetMotionPaused(bool paused)
         {
@@ -160,6 +404,21 @@ namespace ModularChess.Presentation
             _motion = null;
             transform.localScale = _restScale;
             SetLifted(false);
+            if (_restoreTintOnKill)
+                RestoreLiveTint();
+            _restoreTintOnKill = true;
+            Action ended = _onEnded;
+            _onEnded = null;
+            ended?.Invoke();
+        }
+        void OnFadeKilled()
+        {
+            _motion = null;
+            transform.localScale = _restScale;
+            SetLifted(false);
+            SetRenderAlpha(0f);
+            gameObject.SetActive(false);
+            _restoreTintOnKill = true;
             Action ended = _onEnded;
             _onEnded = null;
             ended?.Invoke();
@@ -237,6 +496,51 @@ namespace ModularChess.Presentation
             {
                 _glyph.enabled = _glyphEnabled;
                 _glyph.color = _glyphColor;
+            }
+            CaptureLiveTint();
+            SetRenderAlpha(1f);
+        }
+        void CaptureLiveTint()
+        {
+            _liveOutline = _outline != null ? _outline.color : Color.white;
+            _liveBody = _body != null ? _body.color : Color.white;
+            _liveGlyph = _glyph != null ? _glyph.color : Color.white;
+        }
+        void RestoreLiveTint()
+        {
+            if (_outline != null)
+                _outline.color = _liveOutline;
+            if (_body != null)
+                _body.color = _liveBody;
+            if (_glyph != null)
+                _glyph.color = _liveGlyph;
+        }
+        void ApplyFlash(Color? body, Color? glyph)
+        {
+            if (body != null && _body != null)
+                _body.color = body.Value;
+            if (glyph != null && _glyph != null)
+                _glyph.color = glyph.Value;
+        }
+        void SetRenderAlpha(float alpha)
+        {
+            if (_outline != null)
+            {
+                Color color = _outline.color;
+                color.a = alpha * _outlineColor.a;
+                _outline.color = color;
+            }
+            if (_body != null)
+            {
+                Color color = _body.color;
+                color.a = alpha * _bodyColor.a;
+                _body.color = color;
+            }
+            if (_glyph != null)
+            {
+                Color color = _glyph.color;
+                color.a = alpha * _glyphColor.a;
+                _glyph.color = color;
             }
         }
 

@@ -35,6 +35,12 @@ namespace ModularChess.Presentation
         {
             return SquareCenterLocal(square, Side.White);
         }
+        public Vector3 CaptureSlotLocal(bool playerSide, int index)
+        {
+            float x = playerSide ? -0.5f * SquareSize : (FileCount + 0.5f) * SquareSize;
+            float y = (index + 0.5f) * SquareSize * 0.55f;
+            return new Vector3(x, y, 0f);
+        }
 
         public bool TryGetSquare(Vector3 localPoint, out Square square, Side viewer)
         {

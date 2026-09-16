@@ -197,6 +197,11 @@ namespace ModularChess.Core
                 }
             }
 
+            if (runtime.IsEmpowered(pawn.Id))
+            {
+                return;
+            }
+
             AddPawnCapture(
                 board, from, from.Offset(-1, forward), pawn, enPassantTarget, promotionRank, moves);
             AddPawnCapture(
@@ -347,11 +352,6 @@ namespace ModularChess.Core
             {
                 AddBishopSwaps(board, side, runtime, moves);
             }
-
-            if (rules.Has(ModeId.Martyr))
-            {
-                AddBombards(board, side, runtime, moves);
-            }
         }
         private static void AddBishopSwaps(Board board, Side side, ModeRuntime runtime, List<Move> moves)
         {
@@ -446,27 +446,26 @@ namespace ModularChess.Core
                     return false;
                 }
 
-                if (move.Kind == MoveKind.EnPassant
-                    && rules != null
-                    && rules.Has(ModeId.PowerfulPieces)
-                    && runtime.IsEmpowered(captured.Id)
-                    && captured.Type == PieceType.Pawn)
-                {
-                    return false;
-                }
-
                 if (rules != null
                     && rules.Has(ModeId.PowerfulPieces)
                     && runtime.IsEmpowered(captured.Id)
                     && captured.Type == PieceType.Pawn
-                    && !SuperPawn.CanCaptureFrom(move.To, captured.Side, move.From, moving.Type)
-                    && move.Kind != MoveKind.EnPassant)
+                    && !SuperPawn.CanCaptureFrom(PawnSquare(move), captured.Side, move.From))
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+        private static Square PawnSquare(Move move)
+        {
+            if (move.Kind == MoveKind.EnPassant)
+            {
+                return new Square(move.To.File, move.From.Rank);
+            }
+
+            return move.To;
         }
         private static Piece CapturedPiece(Board board, Move move)
         {

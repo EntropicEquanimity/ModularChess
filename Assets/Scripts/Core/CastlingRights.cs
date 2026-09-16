@@ -85,6 +85,10 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(side), side, null);
             }
         }
+        internal CastlingRights WithoutPieceSquare(Square square)
+        {
+            return WithoutRookOrigin(square);
+        }
         internal CastlingRights AfterMove(Move move, Board before)
         {
             CastlingRights result = this;

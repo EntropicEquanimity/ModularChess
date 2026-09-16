@@ -14,6 +14,9 @@ namespace ModularChess.Core
         private readonly Dictionary<Guid, PieceStatus> _statuses;
         private readonly HashSet<MartyrPower> _whiteUnlocks;
         private readonly HashSet<MartyrPower> _blackUnlocks;
+        private readonly Dictionary<MartyrPower, int> _whiteObtains;
+        private readonly Dictionary<MartyrPower, int> _blackObtains;
+        private readonly List<CaptureRecord> _captures;
         public int WhiteLostMaterial { get; private set; }
         public int BlackLostMaterial { get; private set; }
         public int WhiteDraftsQueued { get; private set; }
@@ -26,6 +29,7 @@ namespace ModularChess.Core
         public bool BlackBombard { get; private set; }
         public Guid? ExtraMoveKingId { get; private set; }
         public int MovesThisTurn { get; private set; }
+        public bool RallyArmed { get; private set; }
         public DraftOffer? PendingDraft { get; private set; }
         public PieceType? PendingBattlefieldType { get; private set; }
         public bool SetupComplete { get; private set; }
@@ -56,6 +60,12 @@ namespace ModularChess.Core
                 ? _whiteUnlocks.Contains(power)
                 : _blackUnlocks.Contains(power);
         }
+        public int ObtainCount(Side side, MartyrPower power)
+        {
+            Dictionary<MartyrPower, int> obtains = side == Side.White ? _whiteObtains : _blackObtains;
+            return obtains.TryGetValue(power, out int count) ? count : 0;
+        }
+        public IReadOnlyList<CaptureRecord> Captures => _captures;
         public IReadOnlyCollection<MartyrPower> Unlocks(Side side)
         {
             return side == Side.White ? _whiteUnlocks : _blackUnlocks;
@@ -92,6 +102,12 @@ namespace ModularChess.Core
         {
             ModeRuntime next = Clone();
             next.MovesThisTurn = count;
+            return next;
+        }
+        public ModeRuntime WithRally(bool armed)
+        {
+            ModeRuntime next = Clone();
+            next.RallyArmed = armed;
             return next;
         }
         public ModeRuntime WithExtraKing(Guid? kingId)
@@ -150,6 +166,9 @@ namespace ModularChess.Core
         {
             ModeRuntime next = Clone();
             next.UnlocksMutable(side).Add(power);
+            Dictionary<MartyrPower, int> obtains = side == Side.White ? next._whiteObtains : next._blackObtains;
+            obtains.TryGetValue(power, out int count);
+            obtains[power] = count + 1;
             if (power == MartyrPower.FleetPawns)
             {
                 if (side == Side.White)
@@ -202,6 +221,40 @@ namespace ModularChess.Core
             next.PendingBattlefieldType = null;
             return next;
         }
+        public ModeRuntime AddCapture(Piece piece, bool exiled = false, Square origin = default, int remainingTurns = 0)
+        {
+            if (piece == null) return this;
+            ModeRuntime next = Clone();
+            next._captures.Add(new CaptureRecord(
+                piece.Id,
+                piece.Side,
+                piece.Type,
+                exiled,
+                origin,
+                remainingTurns,
+                piece.HasMoved));
+            return next;
+        }
+        public ModeRuntime RemoveCaptureAt(int index)
+        {
+            ModeRuntime next = Clone();
+            next._captures.RemoveAt(index);
+            return next;
+        }
+        public ModeRuntime TickExiles(Side sideThatEndedTurn)
+        {
+            ModeRuntime next = Clone();
+            for (int i = 0; i < next._captures.Count; i++)
+            {
+                CaptureRecord record = next._captures[i];
+                if (!record.Exiled || record.Side != sideThatEndedTurn)
+                {
+                    continue;
+                }
+                next._captures[i] = record.WithRemaining(record.RemainingTurns - 1);
+            }
+            return next;
+        }
         public ModeRuntime WithPendingDraft(DraftOffer? offer, PieceType? battlefieldType)
         {
             ModeRuntime next = Clone();
@@ -212,38 +265,23 @@ namespace ModularChess.Core
         public ModeRuntime TickStatuses(Side sideThatEndedTurn)
         {
             ModeRuntime next = Clone();
-            List<Guid> remove = null;
-            foreach (KeyValuePair<Guid, PieceStatus> pair in next._statuses)
+            if (next._statuses.Count == 0) return next;
+            Guid[] keys = new Guid[next._statuses.Count];
+            next._statuses.Keys.CopyTo(keys, 0);
+            for (int i = 0; i < keys.Length; i++)
             {
-                if (pair.Value.AffectedSide != sideThatEndedTurn)
-                {
-                    continue;
-                }
-
-                PieceStatus ticked = pair.Value.Tick();
+                PieceStatus status = next._statuses[keys[i]];
+                if (status.AffectedSide != sideThatEndedTurn) continue;
+                PieceStatus ticked = status.Tick();
                 if (ticked.RemainingTurns <= 0)
                 {
-                    if (remove == null)
-                    {
-                        remove = new List<Guid>();
-                    }
-
-                    remove.Add(pair.Key);
+                    next._statuses.Remove(keys[i]);
                 }
                 else
                 {
-                    next._statuses[pair.Key] = ticked;
+                    next._statuses[keys[i]] = ticked;
                 }
             }
-
-            if (remove != null)
-            {
-                for (int i = 0; i < remove.Count; i++)
-                {
-                    next._statuses.Remove(remove[i]);
-                }
-            }
-
             return next;
         }
         #endregion
@@ -258,6 +296,9 @@ namespace ModularChess.Core
             _statuses = new Dictionary<Guid, PieceStatus>();
             _whiteUnlocks = new HashSet<MartyrPower>();
             _blackUnlocks = new HashSet<MartyrPower>();
+            _whiteObtains = new Dictionary<MartyrPower, int>();
+            _blackObtains = new Dictionary<MartyrPower, int>();
+            _captures = new List<CaptureRecord>();
         }
         private ModeRuntime(ModeRuntime source)
         {
@@ -268,6 +309,9 @@ namespace ModularChess.Core
             _statuses = new Dictionary<Guid, PieceStatus>(source._statuses);
             _whiteUnlocks = new HashSet<MartyrPower>(source._whiteUnlocks);
             _blackUnlocks = new HashSet<MartyrPower>(source._blackUnlocks);
+            _whiteObtains = new Dictionary<MartyrPower, int>(source._whiteObtains);
+            _blackObtains = new Dictionary<MartyrPower, int>(source._blackObtains);
+            _captures = new List<CaptureRecord>(source._captures);
             WhiteLostMaterial = source.WhiteLostMaterial;
             BlackLostMaterial = source.BlackLostMaterial;
             WhiteDraftsQueued = source.WhiteDraftsQueued;
@@ -280,6 +324,7 @@ namespace ModularChess.Core
             BlackBombard = source.BlackBombard;
             ExtraMoveKingId = source.ExtraMoveKingId;
             MovesThisTurn = source.MovesThisTurn;
+            RallyArmed = source.RallyArmed;
             PendingDraft = source.PendingDraft;
             PendingBattlefieldType = source.PendingBattlefieldType;
             SetupComplete = source.SetupComplete;

@@ -106,8 +106,16 @@ namespace ModularChess.Core
         private static bool IsAttackedByPawn(Board board, Square target, Side bySide, ModeRuntime runtime)
         {
             int rankDelta = bySide == Side.White ? -1 : 1;
-            return HasAttacker(board, target.Offset(-1, rankDelta), bySide, PieceType.Pawn, runtime)
-                || HasAttacker(board, target.Offset(1, rankDelta), bySide, PieceType.Pawn, runtime);
+            return HasPawnAttacker(board, target.Offset(-1, rankDelta), bySide, runtime)
+                || HasPawnAttacker(board, target.Offset(1, rankDelta), bySide, runtime);
+        }
+        private static bool HasPawnAttacker(Board board, Square square, Side side, ModeRuntime runtime)
+        {
+            if (!HasAttacker(board, square, side, PieceType.Pawn, runtime))
+            {
+                return false;
+            }
+            return !IsEmpowered(runtime, board.GetPiece(square));
         }
         private static bool IsAttackedByKnight(Board board, Square target, Side bySide, ModeRuntime runtime)
         {

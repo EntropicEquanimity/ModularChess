@@ -9,6 +9,7 @@ namespace ModularChess.Presentation
     {
         public event Action<Square> SquareClicked;
         public event Action<Square?> SquareHovered;
+        public event Action<bool> MatchChromeHidden;
 
         [SerializeField] float squareSize = 1f;
         [SerializeField] BoardTheme theme;
@@ -39,9 +40,13 @@ namespace ModularChess.Presentation
         int _movingCount;
         bool _built;
         bool _targeting;
+        Guid? _selectPopId;
+        bool _chromeUntilIdle;
+        Action _idleOnce;
 
         public GameState BoundState => _state;
         public bool PiecesBusy => _movingCount > 0;
+        public bool HidingMatchChrome { get; private set; }
         public Side ViewerSide
         {
             get => _viewer;
@@ -119,6 +124,9 @@ namespace ModularChess.Presentation
             }
 
             _movingCount = 0;
+            _idleOnce = null;
+            _chromeUntilIdle = false;
+            SetMatchChromeHidden(false);
             FlushDeferred();
         }
 
@@ -194,6 +202,81 @@ namespace ModularChess.Presentation
                 RefreshHighlights();
         }
 
+        public void PlayDeflect(Square from, Square toward)
+        {
+            EnsureBuilt();
+            if (_state == null)
+                return;
+            Piece piece = _state.Board.GetPiece(from);
+            if (piece == null || !_pieces.TryGetValue(piece.Id, out PieceView view) || view == null)
+                return;
+            Vector3 peak = _layout.SquareCenterLocal(toward, _viewer);
+            if (view.PlayDeflect(peak, AnimationPrefs.MoveDuration(0.22f), OnPieceMotionEnded))
+                _movingCount++;
+        }
+        public void PlayCheck(Guid kingId)
+        {
+            if (!_pieces.TryGetValue(kingId, out PieceView view) || view == null)
+                return;
+            view.PlayShiver();
+            BoardCamera.AddTrauma(CaptureTrauma.Check);
+        }
+        public void PlayMateClear(Guid kingId, Action onCleared)
+        {
+            EnsureBuilt();
+            HoldMatchChrome();
+            if (_movingCount > 0)
+                _idleOnce += () => FadeExceptKing(kingId, onCleared);
+            else
+                FadeExceptKing(kingId, onCleared);
+        }
+        public void PlayPowerFeel(MartyrPower power, Guid? targetId)
+        {
+            if (_state == null || AnimationPrefs.Instant)
+                return;
+            Side side = _state.SideToMove;
+            switch (power)
+            {
+                case MartyrPower.Reinforcements:
+                case MartyrPower.Revival:
+                    if (PiecesBusy)
+                        HoldMatchChrome();
+                    break;
+                case MartyrPower.FleetPawns:
+                    PopSide(side, PieceType.Pawn, 0.16f);
+                    break;
+                case MartyrPower.Bombard:
+                    BoardCamera.AddTrauma(CaptureTrauma.Minor);
+                    break;
+                case MartyrPower.UntouchableKing:
+                    PlayKingFeel(side);
+                    break;
+                case MartyrPower.StasisField:
+                    PlayTargetShiver(targetId);
+                    break;
+                case MartyrPower.KnightAscension:
+                    PopSide(side, PieceType.Knight, 0.18f);
+                    break;
+                case MartyrPower.BattlefieldPromotion:
+                    PlayTargetPop(targetId, 0.18f);
+                    break;
+                case MartyrPower.Rally:
+                    BoardCamera.AddTrauma(CaptureTrauma.Pawn);
+                    PlayKingFeel(side);
+                    break;
+                case MartyrPower.Exile:
+                    PlayExileFeel(targetId);
+                    break;
+                case MartyrPower.Phalanx:
+                    PopSide(side, PieceType.Pawn, 0.22f);
+                    if (PiecesBusy)
+                        HoldMatchChrome();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(power), power, null);
+            }
+        }
+
         public bool TryPickSquare(Vector3 worldPoint, out Square square)
         {
             EnsureBuilt();
@@ -217,6 +300,9 @@ namespace ModularChess.Presentation
             bounds.Encapsulate(transform.TransformPoint(_layout.BoardSizeLocal));
             bounds.Encapsulate(transform.TransformPoint(new Vector3(_layout.BoardSizeLocal.x, 0f, 0f)));
             bounds.Encapsulate(transform.TransformPoint(new Vector3(0f, _layout.BoardSizeLocal.y, 0f)));
+            float tray = _layout.SquareSize;
+            bounds.Encapsulate(transform.TransformPoint(new Vector3(-tray, 0f, 0f)));
+            bounds.Encapsulate(transform.TransformPoint(new Vector3(_layout.BoardSizeLocal.x + tray, _layout.BoardSizeLocal.y, 0f)));
             return bounds;
         }
 
@@ -391,7 +477,8 @@ namespace ModularChess.Presentation
 
                     Vector3 dest = _layout.SquareCenterLocal(square, _viewer);
                     view.gameObject.SetActive(true);
-
+                    bool summoned = identified && !shadow && _state.Runtime.IsSummoned(piece.Id);
+                    bool entry = created && summoned && !snapAll && !AnimationPrefs.Instant;
                     bool animate = !snapAll
                         && !created
                         && !shadow
@@ -399,8 +486,22 @@ namespace ModularChess.Presentation
                         && identified
                         && !AnimationPrefs.Instant
                         && (view.transform.localPosition - dest).sqrMagnitude > 0.0001f;
-
-                    if (animate)
+                    if (entry)
+                    {
+                        view.SnapTo(EntryStartLocal(dest, piece.Side == _viewer));
+                        float duration = AnimationPrefs.MoveDuration(0.55f);
+                        if (view.PlayMove(dest, duration, OnPieceMotionEnded))
+                        {
+                            HoldMatchChrome();
+                            _movingCount++;
+                            started++;
+                        }
+                        else
+                        {
+                            view.SnapTo(dest);
+                        }
+                    }
+                    else if (animate)
                     {
                         float chebyshev = ChebyshevFromLocal(view.transform.localPosition, dest);
                         float duration = AnimationPrefs.MoveDuration(0.32f + 0.06f * chebyshev);
@@ -416,7 +517,7 @@ namespace ModularChess.Presentation
                     }
                 }
             }
-
+            LayoutCaptures(snapAll, ref started);
             if (_pieces.Count == _seenIds.Count)
                 return;
 
@@ -446,7 +547,7 @@ namespace ModularChess.Presentation
         {
             _movingCount = Mathf.Max(0, _movingCount - 1);
             if (_movingCount == 0)
-                FlushDeferred();
+                FinishIdle();
         }
 
         void FlushDeferred()
@@ -458,6 +559,171 @@ namespace ModularChess.Presentation
             }
 
             _deferredDestroy.Clear();
+        }
+        void FinishIdle()
+        {
+            FlushDeferred();
+            Action idle = _idleOnce;
+            _idleOnce = null;
+            if (idle != null)
+            {
+                idle.Invoke();
+                return;
+            }
+            if (_chromeUntilIdle)
+            {
+                _chromeUntilIdle = false;
+                SetMatchChromeHidden(false);
+            }
+        }
+        void FadeExceptKing(Guid kingId, Action onCleared)
+        {
+            BoardCamera.AddTrauma(CaptureTrauma.Mate);
+            float duration = AnimationPrefs.MoveDuration(0.28f);
+            int started = 0;
+            foreach (KeyValuePair<Guid, PieceView> pair in _pieces)
+            {
+                if (pair.Key == kingId || pair.Value == null)
+                    continue;
+                if (pair.Value.PlayFadeOut(duration, OnPieceMotionEnded))
+                {
+                    _movingCount++;
+                    started++;
+                }
+            }
+            if (started == 0)
+            {
+                _chromeUntilIdle = false;
+                SetMatchChromeHidden(false);
+                onCleared?.Invoke();
+                return;
+            }
+            _idleOnce += () =>
+            {
+                _chromeUntilIdle = false;
+                SetMatchChromeHidden(false);
+                onCleared?.Invoke();
+            };
+        }
+        void HoldMatchChrome()
+        {
+            _chromeUntilIdle = true;
+            SetMatchChromeHidden(true);
+        }
+        void SetMatchChromeHidden(bool hidden)
+        {
+            if (HidingMatchChrome == hidden)
+                return;
+            HidingMatchChrome = hidden;
+            MatchChromeHidden?.Invoke(hidden);
+        }
+        Vector3 EntryStartLocal(Vector3 dest, bool mine)
+        {
+            float pad = _layout.SquareSize * 3f;
+            float x = mine ? _layout.BoardSizeLocal.x + pad : -pad;
+            return new Vector3(x, dest.y, dest.z);
+        }
+        void PopSide(Side side, PieceType type, float duration)
+        {
+            if (_state == null)
+                return;
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = Square.FromIndex(i);
+                Piece piece = _state.Board.GetPiece(square);
+                if (piece == null || piece.Side != side || piece.Type != type)
+                    continue;
+                if (!_pieces.TryGetValue(piece.Id, out PieceView view) || view == null)
+                    continue;
+                if (view.PlayPop(duration, OnPieceMotionEnded))
+                    _movingCount++;
+            }
+        }
+        void PlayKingFeel(Side side)
+        {
+            Guid? kingId = KingId(side);
+            if (kingId == null || !_pieces.TryGetValue(kingId.Value, out PieceView view) || view == null)
+                return;
+            view.PlayShiver();
+        }
+        void PlayTargetShiver(Guid? targetId)
+        {
+            if (targetId == null || !_pieces.TryGetValue(targetId.Value, out PieceView view) || view == null)
+                return;
+            view.PlayShiver();
+        }
+        void PlayTargetPop(Guid? targetId, float duration)
+        {
+            if (targetId == null || !_pieces.TryGetValue(targetId.Value, out PieceView view) || view == null)
+                return;
+            if (view.PlayPop(duration, OnPieceMotionEnded))
+                _movingCount++;
+        }
+        void PlayExileFeel(Guid? targetId)
+        {
+            if (targetId == null)
+                return;
+            IReadOnlyList<CaptureRecord> captures = _state.Runtime.Captures;
+            for (int i = 0; i < captures.Count; i++)
+            {
+                if (captures[i].Id != targetId.Value)
+                    continue;
+                BoardCamera.AddTrauma(CaptureTrauma.For(captures[i].Type));
+                return;
+            }
+        }
+        Guid? KingId(Side side)
+        {
+            if (_state == null)
+                return null;
+            for (int i = 0; i < 64; i++)
+            {
+                Piece piece = _state.Board.GetPiece(Square.FromIndex(i));
+                if (piece != null && piece.Side == side && piece.Type == PieceType.King)
+                    return piece.Id;
+            }
+            return null;
+        }
+        void LayoutCaptures(bool snapAll, ref int started)
+        {
+            IReadOnlyList<CaptureRecord> captures = _state.Runtime.Captures;
+            int playerIndex = 0;
+            int opponentIndex = 0;
+            for (int i = 0; i < captures.Count; i++)
+            {
+                CaptureRecord record = captures[i];
+                _seenIds.Add(record.Id);
+                bool created = false;
+                if (!_pieces.TryGetValue(record.Id, out PieceView view))
+                {
+                    view = CreatePieceView();
+                    _pieces.Add(record.Id, view);
+                    created = true;
+                }
+                view.BindCaptured(record.Id, record.Type, record.Side, theme);
+                view.SetEmpoweredAura(false, false);
+                int index = record.Side == _viewer ? playerIndex++ : opponentIndex++;
+                Vector3 dest = _layout.CaptureSlotLocal(record.Side == _viewer, index);
+                view.gameObject.SetActive(true);
+                bool animate = !snapAll
+                    && !created
+                    && !AnimationPrefs.Instant
+                    && (view.transform.localPosition - dest).sqrMagnitude > 0.0001f;
+                if (animate)
+                {
+                    float duration = AnimationPrefs.MoveDuration(0.42f);
+                    float height = _layout.SquareSize * 0.75f;
+                    if (view.PlayCaptureDepart(dest, duration, height, OnPieceMotionEnded))
+                    {
+                        _movingCount++;
+                        started++;
+                    }
+                }
+                else
+                {
+                    view.SnapTo(dest);
+                }
+            }
         }
 
         float ChebyshevFromLocal(Vector3 from, Vector3 to)
@@ -546,6 +812,15 @@ namespace ModularChess.Presentation
             {
                 if (pair.Value != null)
                     pair.Value.SetSelectedOutline(selectedId.HasValue && pair.Key == selectedId.Value);
+            }
+            if (selectedId != _selectPopId)
+            {
+                _selectPopId = selectedId;
+                if (selectedId.HasValue
+                    && _pieces.TryGetValue(selectedId.Value, out PieceView selected)
+                    && selected != null
+                    && !selected.IsMoving)
+                    selected.PlaySelectPop();
             }
         }
 

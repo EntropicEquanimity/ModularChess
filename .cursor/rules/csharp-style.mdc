@@ -14,6 +14,8 @@ Keep a statement, call, or signature on one line if it is about 100 characters o
 ## Spacing
 
 No blank line between members in the same region. One blank line between regions. No blank line after `#region` or before `#endregion`.
+No blank lines inside a method.
+If the body is a single `return`, keep it on one line: `if (_material == null) return;`
 
 ## Regions
 

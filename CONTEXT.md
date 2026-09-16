@@ -81,7 +81,7 @@ The kind of a Piece. Core ships Pawn, Knight, Bishop, Rook, Queen, and King. A M
 _Avoid_: Piece, class, role
 
 **Empowered**:
-A Piece chosen in Powerful Pieces Setup. Permanent for this Match, keyed by that Piece’s identity. Each Core PieceType has one power. The Queen’s power is one combined pattern: Queen plus Knight in a single Move, not an extra Move. The Rook’s power is passing through allied Pieces when moving; Vision follows that pattern. Empowered King: after that King Moves, the Turn stays open for an optional second Move by that same King, or End Turn. Castling is a King Move and opens the extra step (the King may then step, not castle again). Any other Piece’s Move ends the Turn as usual. Check is tested after each Move. Super Pawn: may only be Captured from behind — the 3 adjacent rear Squares, distant sliders on the rear file and two rear diagonals, and Knights from Knight-attack Squares behind it. Immune from the front and sides. En passant cannot Capture a Super Pawn: “from” is the Square the capturer starts on. Super Pawn applies only while PieceType is Pawn; promotion or any change off Pawn drops it. Knight Extra Life: the first Capture of that Knight is negated (both Pieces stay, Move spent); then Extra Life is gone and the Empowered mark comes off — it is a normal Knight. Legality uses the result after Extra Life — if that Capture was the only Check escape, it is Checkmate. Unused Extra Life still carries through a type change. A Super Pawn on a Square in your pattern is shown identified even from a direction that cannot Capture it; that Capture is simply not legal. Empowered mark: shown on allied Pieces and on enemy Pieces that are identified in Vision; not on Shadow or Hidden. Empowered Bishop: may swap with an allied Pawn on any of the 8 neighboring Squares (King neighborhood), in lieu of a normal Move. Orthogonal swap flips the Bishop’s color; diagonal swap does not. Swap follows Core Check: illegal if it leaves your King in Check.
+A Piece chosen in Powerful Pieces Setup. Permanent for this Match, keyed by that Piece’s identity. Each Core PieceType has one power. The Queen’s power is one combined pattern: Queen plus Knight in a single Move, not an extra Move. The Rook’s power is passing through allied Pieces when moving; Vision follows that pattern. Empowered King: after that King Moves, the Turn stays open for an optional second Move by that same King, or End Turn. Castling is a King Move and opens the extra step (the King may then step, not castle again). Any other Piece’s Move ends the Turn as usual. Check is tested after each Move. Super Pawn: cannot Capture (forward Quiet only, including the double-step and promotion by advancing). May be Captured from any Square except the 3 adjacent Squares in front (forward and both forward diagonals). Sides, behind, Knights, distant front sliders, and en passant may Capture it. Super Pawn applies only while PieceType is Pawn; promotion or any change off Pawn drops it. Knight Extra Life: the first Capture of that Knight is negated (both Pieces stay, Move spent); then Extra Life is gone and the Empowered mark comes off — it is a normal Knight. Legality uses the result after Extra Life — if that Capture was the only Check escape, it is Checkmate. Unused Extra Life still carries through a type change. A Super Pawn on a Square in your pattern is shown identified even from a direction that cannot Capture it; that Capture is simply not legal. Empowered mark: shown on allied Pieces and on enemy Pieces that are identified in Vision; not on Shadow or Hidden. Empowered Bishop: may swap with an allied Pawn on any of the 8 neighboring Squares (King neighborhood), in lieu of a normal Move. Orthogonal swap flips the Bishop’s color; diagonal swap does not. Swap follows Core Check: illegal if it leaves your King in Check.
 _Avoid_: Amazon, extra Queen Move, two patterns, buff, upgrade, Super Queen
 
 **Side**:
@@ -113,16 +113,20 @@ One Core state change: a Piece from–to, including castle, en passant, promotio
 _Avoid_: action, sub-move, Turn, premove
 
 **Capture**:
-A Move that would remove an enemy Piece from the Board, including en passant. A Mode may negate a Capture: both Pieces stay where they were, and the Move is still spent.
+A Move that would remove an enemy Piece from the Board, including en passant. A Mode may negate a Capture: both Pieces stay where they were, and the Move is still spent. Pieces that actually leave sit in the Capture tray.
 _Avoid_: kill, take (as the noun)
+
+**Capture tray**:
+Presentation of Pieces that left the Board, ordered by when they left. This Side’s lost Pieces on the left; the opponent’s lost Pieces on the right. Extra Life bounce is not shown. Exiled Pieces sit in that pile with a chain until they return. Pieces float off and back onto the Board in an arc.
+_Avoid_: graveyard pick, HUD icons instead of the parked Pieces
 
 **Lost Material**:
 Martyr’s monotonic point total of Pieces that actually left this Side’s Board (Pawn 1, Knight/Bishop 3, Rook 5, Queen 9, King 0). Recapture does not decrease it. Extra Life bounce and other negated Captures count 0. Summoned Pieces that leave still count 0. Threshold default 6 (Mode tunable). Both Sides’ totals and next threshold are public on the HUD.
 _Avoid_: net deficit, capture attempts, hidden Martyr bar
 
 **Draft**:
-Martyr’s power pick after Lost Material crosses a threshold (default 6). Happens at the start of this Side’s next Turn, before they Move. The opponent finishes their Turn first, including extra King Moves. One Draft per this Side’s Turn; extra crossings queue and do not expire. Each Draft offers 3 options (Mode tunable). Always 3 cards: if fewer than 3 fresh relevant powers remain, pad with already-unlocked powers (stack/refresh those). Wrap into unlocked stacking when no fresh relevant remain. Cannot skip. This Side sees a description above the three options when the Draft opens. 60s; timeout picks uniformly at random among the 3. The Match clock pauses during Draft; Draft has its own 60s. The other player does not see the 3 cards or that description. They see only a wait line: “Other player drafting in progress: 60 seconds left.” Versus AI Drafts instantly; that wait line is not shown. The result is public when it applies. Wrap/stack **refreshes or re-triggers**, it does not add: Untouchable King 5 from now; Stasis 3 from now on the same Queen if she remains, else choose another or dud; Reinforcements another 3; Battlefield another Pawn; Fleet and Bombard already on → no-op; Ascension converts Knights now or no-op. MVP pool is exactly: Reinforcements, Fleet Pawns, Bombard, Untouchable King, Stasis Field, Knight Ascension, Battlefield Promotion. Uncapped unlocks.
-_Avoid_: Setup, shop roll, interrupt mid-Turn, dump all Drafts at once, pad with irrelevant, duration add, extra MVP powers
+Martyr’s power pick after Lost Material crosses a threshold (default 6). Happens at the start of this Side’s next Turn, before they Move. The opponent finishes their Turn first, including extra King Moves. One Draft per this Side’s Turn; extra crossings queue and do not expire. Each Draft offers up to 3 unique options drawn from powers that are still obtainable and relevant. Durability: a power leaves the bag when this Side has obtained it up to its max. Never two copies of the same card in one Draft. If fewer than 3 obtainable relevant powers remain, show fewer cards. Cannot skip. This Side sees a description above the options when the Draft opens. 60s; timeout picks uniformly at random among the shown cards (and a random legal target if the power needs one). The Match clock pauses during Draft; Draft has its own 60s. The other player does not see the cards or that description. They see only a wait line: “Other player drafting in progress: 60 seconds left.” Versus AI Drafts instantly; that wait line is not shown. The result is public when it applies. Obtain limits: Fleet Pawns, Stasis Field, Untouchable King, Rally, Bombard, Phalanx max 1; Revival and Exile max 3; Reinforcements, Battlefield Promotion, and Knight Ascension infinite. Infinite and remaining-count powers re-trigger when drawn again. MVP pool: Reinforcements, Fleet Pawns, Untouchable King, Stasis Field, Knight Ascension, Battlefield Promotion, Rally, Revival, Exile. Bombard and Phalanx are not in use.
+_Avoid_: Setup, shop roll, interrupt mid-Turn, dump all Drafts at once, pad with irrelevant, duplicate cards, exhaust-then-wrap
 
 **Status**:
 A timed overlay on a Piece (Stasis, Invulnerable). Summoned is a tag, not a timed Status. Duration counts the **affected Side’s** Turns and includes the Turn of application if that Side is to move. Ticks at the **end** of each affected Side’s Turn; apply now does not tick. N means N complete Turns. Untouchable King Drafted now: this Turn is 1 of 5. Stasis on the enemy Queen: your current Turn does not count; their next Turn is 1 of 3.
@@ -133,11 +137,11 @@ A Status. Other Pieces cannot target this Piece, so it cannot be in Check if it 
 _Avoid_: checkmate shield as a second rule, untargetable-but-in-Check
 
 **Stasis**:
-A Status from Martyr’s Stasis Field. Choose one enemy Queen (including promoted); if only one, apply automatically. Duration 3 of that Side’s Turns. Cannot Move, cannot be targeted or Captured, does not attack (no Check from her). Still occupies (sliders stop on her Square). Still grants Vision to her owner.
+A Status from Martyr’s Stasis Field. Choose one enemy Queen (including promoted); if only one, apply automatically. Duration 3 of that Side’s Turns. Cannot Move, cannot be targeted or Captured, does not attack (no Check from her). Still occupies (sliders stop on her Square). Still grants Vision to her owner. Stasis Field is not offered in Draft while the opponent has no Queen. Max 1 obtain.
 _Avoid_: freeze all Queens, original-Queen-only, Stasis blinds Vision
 
 **Bombard**:
-A Martyr power on your Rooks (replaces Wall Formation). Optional extra Move on top of normal Rook slides: along a rank or file, the first enemy at distance ≥ 5 with an otherwise empty path may be Captured; the Rook stays. Allies block the path; Empowered Rook pass-through does not apply. Extra Life or other illegal Capture: Bombard fails, Rook stays, Move spent. Vision uses the same ray. Slide-capture and Bombard onto the same target are two different Moves.
+A Martyr power on your Rooks (replaces Wall Formation). Optional extra Move on top of normal Rook slides: along a rank or file, the first enemy at distance ≥ 5 with an otherwise empty path may be Captured; the Rook stays. Allies block the path; Empowered Rook pass-through does not apply. Extra Life or other illegal Capture: Bombard fails, Rook stays, Move spent. Vision uses the same ray. Slide-capture and Bombard onto the same target are two different Moves. Max 1 obtain. Not in use.
 _Avoid_: Xiangqi Cannon, Wall Formation, hop a screen, replaces sliding Captures
 
 **Summoned**:
@@ -145,23 +149,39 @@ A tag on Pieces created by Martyr (not a timed Status). 0 Lost Material if they 
 _Avoid_: timed summon
 
 **Reinforcements**:
-A Martyr power. After the card is picked, still in the same Draft 60s, this Side clicks up to 3 empty Squares on their back rank to place Summoned Pawns. Timeout fills remaining at random among those empties. If fewer than 3 empties, leftover summons vanish.
-_Avoid_: airdrop, rank 2 overflow
+A Martyr power. After the card is picked, still in the same Draft 60s, this Side clicks up to 2 empty Squares on their back rank to place Summoned Pawns. Occupied Squares are skipped. Timeout fills remaining at random among those empties. If fewer than 2 empties, leftover summons vanish. Infinite obtains.
+_Avoid_: airdrop, rank 2 overflow, overwrite occupants
 
 **Battlefield Promotion**:
-A Martyr power. The card is already Knight or Bishop (rolled when the Draft options are built). Same 60s: pick which surviving Pawn. One Pawn → apply immediately. Timeout: random surviving Pawn. Plays as that PieceType. Lost Material uses the new value unless Summoned (stays 0). Super Pawn drops.
+A Martyr power. The card is already Knight or Bishop (rolled when the Draft options are built). Same 60s: pick which surviving Pawn. One Pawn → apply immediately. Several Pawns → click one. Timeout: random surviving Pawn. Plays as that PieceType. Lost Material uses the new value unless Summoned (stays 0). Super Pawn drops. Infinite obtains.
 _Avoid_: choose type after pick, promote all Pawns
 
 **Fleet Pawns**:
-A Martyr power. All your Pawns may move 2 forward from any rank when both Squares are empty. En passant stays Core: only the rank-2/7 jump. Capture still diagonal. Vision follows the 2-step ray.
+A Martyr power. All your Pawns may move 2 forward from any rank when both Squares are empty. En passant stays Core: only the rank-2/7 jump. Capture still diagonal. Vision follows the 2-step ray. Max 1 obtain.
 _Avoid_: EP on every 2-step
 
 **Knight Ascension**:
-A Martyr power. One-shot: all surviving Knights on this Side become Rooks now. Later Knights stay Knights. Unused Extra Life carries; Empowered mark stays until Extra Life is spent. Those Rooks cannot castle. Wrap/stack converts Knights that exist then; if none, that padded card does nothing extra.
+A Martyr power. All surviving Knights on this Side become Rooks now. Later Knights stay Knights. Unused Extra Life carries; Empowered mark stays until Extra Life is spent. Those Rooks cannot castle. Infinite obtains: converts Knights that exist then; if none, that card does nothing extra.
 _Avoid_: persistent no-Knights rule, choose which Knights
 
+**Rally**:
+A Martyr power. One-shot on the Turn of that Draft: this Side's first Move does not end the Turn. Any Piece may make the extra Move, or End Turn. Cap is two Moves this Turn. Empowered King's extra Move does not stack on Rally: after the second Move the Turn ends even if the first was that King. Not a second Turn: increment and Status wait until the Turn ends. Later Turns are normal. Max 1 obtain.
+_Avoid_: extra Turn, skip opponent, persistent extra Move, three Moves with Empowered King
+
+**Revival**:
+A Martyr power. Brings back the last friendly Piece in the Capture tray (the last that physically left; Extra Life bounce never entered the tray). Skips Exiled Pieces still waiting to return. Removes it from the tray and places a new Summoned identity of that PieceType, not Empowered. Placement: uniformly random among empty Squares on the first rank from this Side’s back toward the opponent that still has an empty Square, then the next rank, and so on. Dud if the Board has no empty Square. Max 3 obtains. Not the Square it died on.
+_Avoid_: Return of the Fallen, graveyard pick, last Lost Material only, tile, death Square, first empty file, farm Lost Material
+
+**Exile**:
+A Martyr power. Choose any enemy Piece except the King (one target → apply immediately). It leaves the Board and sits in the Capture tray with a chain. Not Stasis, and not Lost Material. Duration 2 of that Side’s Turns; your current Turn does not count. Ticks at the end of each of their Turns. Returns at the end of their second Turn, so they have it for their third Turn. Return Square: the Square it left if empty, otherwise the first empty Square walking from that Side’s back rank toward the opponent. Max 3 obtains. Animate off and back in an arc. Chain sprite later.
+_Avoid_: freeze in place, Stasis, destroy forever, exile the King, Lost Material farm
+
+**Phalanx**:
+A Martyr power. Max 1 obtain. Not in use. Intended: this Side’s Pawns cannot Move and cannot be Captured for 2 of this Side’s Turns.
+_Avoid_: freeze the whole Board
+
 **Turn**:
-One Side's opportunity to make one or more Moves. FIDE default is one Move. A Mode may allow further Moves before the Turn ends. Extra Moves are optional. That Side's clock runs for the whole Turn. Increment is added when the Turn actually ends, not after a middle extra King Move.
+One Side's opportunity to make one or more Moves. FIDE default is one Move. A Mode may allow further Moves before the Turn ends. Extra Moves are optional. That Side's clock runs for the whole Turn. Increment is added when the Turn actually ends, not after a middle extra Move (Empowered King or Rally).
 _Avoid_: action, sub-move, round
 
 **Check**:
@@ -201,9 +221,9 @@ Versus AI only. Stops the Match clock if any, and the AI. Resume continues the s
 _Avoid_: Friend Pause, Pause as Resign, takeback, hint, Escape as Exit during a Match
 
 **Setup**:
-After Start, before Turn 1. Powerful Pieces: each Side must select exactly N Empowered Pieces (default 2), then Confirm. Confirm stays off until N are selected. Duplicate types allowed. Shared 30s clock. Versus AI Confirms instantly; you still have the 30s. Both Confirm early → Turn 1 immediately. Timeout → autopick remaining slots uniformly at random from unselected own Pieces (duplicate types allowed), then reveal. Unconfirm is allowed until both have Confirmed or time runs out; the clock does not reset. Picks stay hidden until both have Confirmed or time runs out; then marks apply and Fog still hides enemy marks on Shadow or Hidden Squares. Your own picks are visible to you. Resign is not allowed. Menu Leave during Setup aborts: no winner, both return to Activity selection. Versus AI Setup Leave returns to the menu.
+After Start, before Turn 1. Powerful Pieces: each Side must select exactly N Empowered Pieces (default 2), then Confirm. Confirm stays visible and not interactable until N are selected. Duplicate types allowed. Shared 30s clock. Versus AI already selected; your Confirm starts Turn 1 immediately. Versus Friend: Confirm becomes interactable when both Sides have selected N. The first Confirm does not start the Match; the other Side’s button reads Confirm (opponent ready). The second Confirm starts Turn 1. Timeout → autopick remaining slots uniformly at random from unselected own Pieces (duplicate types allowed), then reveal. Unconfirm of picks is allowed until both have Confirmed or time runs out; dropping below N clears Confirm. The clock does not reset. Picks stay hidden until both have Confirmed or time runs out; then marks apply and Fog still hides enemy marks on Shadow or Hidden Squares. Your own picks are visible to you. Resign is not allowed. Menu Leave during Setup aborts: no winner, both return to Activity selection. Versus AI Setup Leave returns to the menu.
 _Avoid_: draft, pick phase, up to N, live enemy picks
 
 **End Turn**:
-Closes a Turn that did not end after a Move. Shown only after a Move that left the Turn open. By default a Side cannot End Turn with zero Moves this Turn. End Turn is illegal while that Side is in check, unless a Mode changes that.
-_Avoid_: Pass, skip
+Closes a Turn that did not end after a Move. Shown only after a Move that left the Turn open (Empowered King extra Move or Rally), on that Side’s HUD. Hidden otherwise. Slides in from the right. By default a Side cannot End Turn with zero Moves this Turn. End Turn is illegal while that Side is in check, unless a Mode changes that.
+_Avoid_: Pass, skip, Options drawer, always-on End Turn
