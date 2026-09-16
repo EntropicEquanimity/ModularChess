@@ -7,7 +7,13 @@ namespace ModularChess.Core
             int forward = pawnSide == Side.White ? 1 : -1;
             int fileDelta = from.File - pawnSquare.File;
             int rankDelta = from.Rank - pawnSquare.Rank;
-            return rankDelta != forward || fileDelta < -1 || fileDelta > 1;
+            int along = rankDelta * forward;
+            if (along <= 0)
+                return true;
+            int absFile = fileDelta < 0 ? -fileDelta : fileDelta;
+            if (absFile <= 1 || absFile == along)
+                return false;
+            return true;
         }
     }
 }

@@ -61,10 +61,17 @@ namespace ModularChess.Presentation
                 _canvas.sortingOrder = _sort + 1;
             }
 
+            float duration = UiAnimPrefs.MoveDuration(Duration);
             if (!wasActive || _group.alpha <= 0.01f)
             {
                 _body.anchoredPosition = new Vector2(0f, -Travel());
                 _group.alpha = 0f;
+            }
+
+            if (duration <= 0.001f)
+            {
+                FinishEnter();
+                return;
             }
 
             Sequence sequence = DOTween.Sequence().SetUpdate(true).SetTarget(this);
@@ -72,12 +79,12 @@ namespace ModularChess.Presentation
                 () => _body.anchoredPosition,
                 v => _body.anchoredPosition = v,
                 Vector2.zero,
-                Duration).SetEase(Ease.OutCubic));
+                duration).SetEase(Ease.OutCubic));
             sequence.Join(DOTween.To(
                 () => _group.alpha,
                 a => _group.alpha = a,
                 1f,
-                Duration).SetEase(Ease.OutQuad));
+                duration).SetEase(Ease.OutQuad));
             sequence.OnComplete(FinishEnter);
             _tween = sequence;
         }
@@ -103,17 +110,24 @@ namespace ModularChess.Presentation
                 _canvas.sortingOrder = _sort;
             }
 
+            float duration = UiAnimPrefs.MoveDuration(Duration);
+            if (duration <= 0.001f)
+            {
+                FinishExit();
+                return;
+            }
+
             Sequence sequence = DOTween.Sequence().SetUpdate(true).SetTarget(this);
             sequence.Join(DOTween.To(
                 () => _body.anchoredPosition,
                 v => _body.anchoredPosition = v,
                 new Vector2(0f, Travel()),
-                Duration).SetEase(Ease.InCubic));
+                duration).SetEase(Ease.InCubic));
             sequence.Join(DOTween.To(
                 () => _group.alpha,
                 a => _group.alpha = a,
                 0f,
-                Duration).SetEase(Ease.InQuad));
+                duration).SetEase(Ease.InQuad));
             sequence.OnComplete(FinishExit);
             _tween = sequence;
         }

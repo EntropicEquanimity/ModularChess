@@ -9,7 +9,7 @@ namespace ModularChess.Core
             switch (type)
             {
                 case PieceType.Pawn:
-                    return "Super Pawn: cannot Capture. May be Captured from any Square except the 3 Squares in front.";
+                    return "Super Pawn: cannot Capture. May be Captured from the side or behind, not from in front.";
                 case PieceType.Knight:
                     return "Extra Life: the first Capture of this Knight is negated. Then Extra Life is gone and this Piece is no longer Empowered.";
                 case PieceType.Bishop:

@@ -13,8 +13,8 @@ namespace ModularChess.Presentation
         [SerializeField] bool applyBackgroundColor = true;
         [SerializeField] Color backgroundColor = new Color(0.16f, 0.2f, 0.18f, 1f);
         const float TraumaDecay = 5f;
-        const float TraumaMaxOffset = 0.2f;
-        const float TraumaMaxRoll = 0.035f;
+        const float TraumaMaxOffset = 0.4f;
+        const float TraumaMaxRoll = 0.07f;
         Camera _camera;
         float _trauma;
         float _noise;
@@ -105,7 +105,10 @@ namespace ModularChess.Presentation
             if (_trauma <= 0.0001f)
                 return;
             _trauma = Mathf.Max(0f, _trauma - TraumaDecay * Time.deltaTime);
-            float shake = _trauma * _trauma;
+            float intensity = CameraShakePrefs.Multiplier;
+            if (intensity <= 0.0001f)
+                return;
+            float shake = _trauma * _trauma * intensity;
             _noise += Time.deltaTime * 28f;
             float ox = TraumaMaxOffset * shake * (Mathf.PerlinNoise(_noise, 0.13f) * 2f - 1f);
             float oy = TraumaMaxOffset * shake * (Mathf.PerlinNoise(0.71f, _noise) * 2f - 1f);

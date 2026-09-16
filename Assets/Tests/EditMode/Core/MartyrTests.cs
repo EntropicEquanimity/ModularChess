@@ -68,6 +68,33 @@ namespace ModularChess.Core.Tests
             Assert.AreEqual(2, pawns);
         }
         [Test]
+        public void ReinforcementsNeverReplaceKingOnFileA()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("k7/3p4/8/8/8/8/8/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d7");
+            Square kingSquare = new Square(0, 7);
+            Piece king = state.Board.GetPiece(kingSquare);
+            Assert.IsNotNull(king);
+            Assert.AreEqual(PieceType.King, king.Type);
+            state = state.ApplyDraft(
+                MartyrPower.Reinforcements,
+                null,
+                new[] { kingSquare, kingSquare });
+            Piece stillKing = state.Board.GetPiece(kingSquare);
+            Assert.IsNotNull(stillKing);
+            Assert.AreEqual(PieceType.King, stillKing.Type);
+            Assert.AreEqual(king.Id, stillKing.Id);
+            int pawns = 0;
+            for (int file = 0; file < Square.BoardSize; file++)
+            {
+                Piece piece = state.Board.GetPiece(new Square(file, 7));
+                if (piece != null && piece.Type == PieceType.Pawn && piece.Side == Side.Black)
+                    pawns++;
+            }
+            Assert.AreEqual(2, pawns);
+        }
+        [Test]
         public void StasisFieldIsNotOfferedWhenOpponentHasNoQueen()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));

@@ -79,6 +79,43 @@ namespace ModularChess.Core.Tests
             Assert.IsTrue(MoveTestHelper.Has(side, "d4", "e4"));
         }
         [Test]
+        public void EmpoweredPawn_BlackFrontIsOppositeWhite()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            GameState front = GameState.FromFen("4k3/8/8/4p3/4Q3/8/8/4K3 w - - 0 1", rules);
+            Piece frontPawn = front.Board.GetPiece(new Square(4, 4));
+            front = front.ConfirmEmpowered(new[] { frontPawn.Id });
+            Assert.IsFalse(MoveTestHelper.Has(front, "e4", "e5"));
+            GameState diagonal = GameState.FromFen("4k3/8/8/4p3/3Q4/8/8/4K3 w - - 0 1", rules);
+            Piece diagonalPawn = diagonal.Board.GetPiece(new Square(4, 4));
+            diagonal = diagonal.ConfirmEmpowered(new[] { diagonalPawn.Id });
+            Assert.IsFalse(MoveTestHelper.Has(diagonal, "d4", "e5"));
+            GameState side = GameState.FromFen("4k3/8/8/3Qp3/8/8/8/4K3 w - - 0 1", rules);
+            Piece sidePawn = side.Board.GetPiece(new Square(4, 4));
+            side = side.ConfirmEmpowered(new[] { sidePawn.Id });
+            Assert.IsTrue(MoveTestHelper.Has(side, "d5", "e5"));
+        }
+        [Test]
+        public void EmpoweredBishop_CannotCaptureEnemySuperPawnFromTheFront()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            GameState adjacent = GameState.FromFen("4k3/8/8/4p3/3B4/8/8/4K3 w - - 0 1", rules);
+            Piece bishop = adjacent.Board.GetPiece(new Square(3, 3));
+            Piece pawn = adjacent.Board.GetPiece(new Square(4, 4));
+            adjacent = adjacent.ConfirmEmpowered(new[] { bishop.Id, pawn.Id });
+            Assert.IsFalse(MoveTestHelper.Has(adjacent, "d4", "e5"));
+            GameState distant = GameState.FromFen("4k3/8/8/4p3/8/2B5/8/4K3 w - - 0 1", rules);
+            Piece distantBishop = distant.Board.GetPiece(new Square(2, 2));
+            Piece distantPawn = distant.Board.GetPiece(new Square(4, 4));
+            distant = distant.ConfirmEmpowered(new[] { distantBishop.Id, distantPawn.Id });
+            Assert.IsFalse(MoveTestHelper.Has(distant, "c3", "e5"));
+            GameState rear = GameState.FromFen("4k3/8/3B4/4p3/8/8/8/4K3 w - - 0 1", rules);
+            Piece rearBishop = rear.Board.GetPiece(new Square(3, 5));
+            Piece rearPawn = rear.Board.GetPiece(new Square(4, 4));
+            rear = rear.ConfirmEmpowered(new[] { rearBishop.Id, rearPawn.Id });
+            Assert.IsTrue(MoveTestHelper.Has(rear, "d6", "e5"));
+        }
+        [Test]
         public void EmpoweredPowers_DescribeEveryCorePieceType()
         {
             Assert.AreEqual("Empowered", EmpoweredPowers.EffectName);

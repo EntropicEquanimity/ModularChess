@@ -129,8 +129,17 @@ namespace ModularChess.Core
                 throw new ArgumentOutOfRangeException(nameof(square), square, "Square is off the board.");
             }
 
+            int index = square.ToIndex();
+            Piece occupant = _squares[index];
+            if (occupant != null
+                && occupant.Type == PieceType.King
+                && (piece == null || piece.Type != PieceType.King))
+            {
+                return this;
+            }
+
             Piece[] next = (Piece[])_squares.Clone();
-            next[square.ToIndex()] = piece;
+            next[index] = piece;
             return new Board(next);
         }
         #endregion

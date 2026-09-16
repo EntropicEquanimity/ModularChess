@@ -108,6 +108,7 @@ namespace ModularChess.Presentation
             KillMotion(invokeEnded: true);
             transform.localPosition = localPosition;
             transform.localScale = _restScale;
+            transform.localRotation = Quaternion.identity;
             SetLifted(false);
             SetRenderAlpha(1f);
         }
@@ -378,6 +379,83 @@ namespace ModularChess.Presentation
             _motion = seq;
             return true;
         }
+        public bool PlayKnockOff(
+            Vector3 velocity,
+            Rect board,
+            float gravity,
+            float duration,
+            float delay,
+            Action onEnded)
+        {
+            KillMotion(invokeEnded: true);
+            if (duration <= 0.001f)
+            {
+                gameObject.SetActive(false);
+                return false;
+            }
+            Vector3 pos = transform.localPosition;
+            Vector3 vel = velocity;
+            Vector3 scale = transform.localScale;
+            int hits = 0;
+            float last = 0f;
+            float spin = vel.x >= 0f ? -260f : 260f;
+            _onEnded = onEnded;
+            _restoreTintOnKill = true;
+            SetLifted(true);
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            if (delay > 0.001f)
+                seq.AppendInterval(delay);
+            seq.Append(DOTween.To(
+                    () => 0f,
+                    t =>
+                    {
+                        float dt = Mathf.Min(0.05f, Mathf.Max(0f, t - last) * duration);
+                        last = t;
+                        vel.y -= gravity * dt;
+                        pos += vel * dt;
+                        int before = hits;
+                        if (hits < 2)
+                        {
+                            if (pos.x < board.xMin)
+                            {
+                                pos.x = board.xMin;
+                                vel.x = Mathf.Abs(vel.x) * 0.62f;
+                                hits++;
+                            }
+                            else if (pos.x > board.xMax)
+                            {
+                                pos.x = board.xMax;
+                                vel.x = -Mathf.Abs(vel.x) * 0.62f;
+                                hits++;
+                            }
+                            if (pos.y < board.yMin)
+                            {
+                                pos.y = board.yMin;
+                                vel.y = Mathf.Abs(vel.y) * 0.62f;
+                                hits++;
+                            }
+                            else if (pos.y > board.yMax)
+                            {
+                                pos.y = board.yMax;
+                                vel.y = -Mathf.Abs(vel.y) * 0.62f;
+                                hits++;
+                            }
+                        }
+                        if (hits > before)
+                            scale = new Vector3(_restScale.x * 1.28f, _restScale.y * 0.58f, _restScale.z);
+                        else
+                            scale = Vector3.Lerp(scale, _restScale, 1f - Mathf.Exp(-dt * 16f));
+                        transform.localPosition = pos;
+                        transform.localScale = scale;
+                        transform.localRotation = Quaternion.Euler(0f, 0f, spin * t);
+                    },
+                    1f,
+                    duration)
+                .SetEase(Ease.Linear));
+            seq.OnKill(OnKnockKilled);
+            _motion = seq;
+            return true;
+        }
 
         public void SetMotionPaused(bool paused)
         {
@@ -396,6 +474,7 @@ namespace ModularChess.Presentation
             else
                 KillMotion(invokeEnded: true);
             transform.localScale = _restScale;
+            transform.localRotation = Quaternion.identity;
             SetLifted(false);
         }
 
@@ -417,6 +496,18 @@ namespace ModularChess.Presentation
             transform.localScale = _restScale;
             SetLifted(false);
             SetRenderAlpha(0f);
+            gameObject.SetActive(false);
+            _restoreTintOnKill = true;
+            Action ended = _onEnded;
+            _onEnded = null;
+            ended?.Invoke();
+        }
+        void OnKnockKilled()
+        {
+            _motion = null;
+            transform.localScale = _restScale;
+            transform.localRotation = Quaternion.identity;
+            SetLifted(false);
             gameObject.SetActive(false);
             _restoreTintOnKill = true;
             Action ended = _onEnded;

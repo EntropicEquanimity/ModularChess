@@ -182,12 +182,21 @@ namespace ModularChess.Core
         }
         static bool TryPlacePawn(ref Board board, ref ModeRuntime runtime, Side side, Square square, int back)
         {
-            if (!square.IsOnBoard || square.Rank != back || board.GetPiece(square) != null)
+            if (!square.IsOnBoard || square.Rank != back)
+            {
+                return false;
+            }
+            Piece occupant = board.GetPiece(square);
+            if (occupant != null)
             {
                 return false;
             }
             Piece pawn = new Piece(PieceType.Pawn, side);
             board = board.WithPiece(square, pawn);
+            if (board.GetPiece(square) == null || board.GetPiece(square).Type != PieceType.Pawn)
+            {
+                return false;
+            }
             runtime = runtime.AddSummoned(pawn.Id);
             return true;
         }

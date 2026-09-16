@@ -25,6 +25,7 @@ namespace ModularChess.Presentation
         readonly List<PieceView> _deferredDestroy = new List<PieceView>();
         readonly HashSet<Guid> _pendingEmpowered = new HashSet<Guid>();
         readonly HashSet<Square> _validTargets = new HashSet<Square>();
+        readonly HashSet<Guid> _banished = new HashSet<Guid>();
 
         Transform _squaresRoot;
         Transform _piecesRoot;
@@ -123,6 +124,7 @@ namespace ModularChess.Presentation
                     pair.Value.CompleteMotion();
             }
 
+            _banished.Clear();
             _movingCount = 0;
             _idleOnce = null;
             _chromeUntilIdle = false;
@@ -221,14 +223,14 @@ namespace ModularChess.Presentation
             view.PlayShiver();
             BoardCamera.AddTrauma(CaptureTrauma.Check);
         }
-        public void PlayMateClear(Guid kingId, Action onCleared)
+        public void PlayMateClear(Side defeated, Action onCleared)
         {
             EnsureBuilt();
             HoldMatchChrome();
             if (_movingCount > 0)
-                _idleOnce += () => FadeExceptKing(kingId, onCleared);
+                _idleOnce += () => KnockOffDefeated(defeated, onCleared);
             else
-                FadeExceptKing(kingId, onCleared);
+                KnockOffDefeated(defeated, onCleared);
         }
         public void PlayPowerFeel(MartyrPower power, Guid? targetId)
         {
@@ -446,6 +448,11 @@ namespace ModularChess.Presentation
                     Piece piece = _state.Board.GetPiece(square);
                     if (piece == null)
                         continue;
+                    if (_banished.Contains(piece.Id))
+                    {
+                        _seenIds.Add(piece.Id);
+                        continue;
+                    }
 
                     SquareSight sight = _vision[square];
                     if (sight == SquareSight.Hidden && piece.Side != _viewer)
@@ -576,16 +583,45 @@ namespace ModularChess.Presentation
                 SetMatchChromeHidden(false);
             }
         }
-        void FadeExceptKing(Guid kingId, Action onCleared)
+        void KnockOffDefeated(Side defeated, Action onCleared)
         {
             BoardCamera.AddTrauma(CaptureTrauma.Mate);
-            float duration = AnimationPrefs.MoveDuration(0.28f);
-            int started = 0;
-            foreach (KeyValuePair<Guid, PieceView> pair in _pieces)
+            Vector3 origin = _layout.BoardCenterLocal;
+            for (int i = 0; i < 64; i++)
             {
-                if (pair.Key == kingId || pair.Value == null)
+                Piece king = _state.Board.GetPiece(Square.FromIndex(i));
+                if (king == null || king.Side != defeated || king.Type != PieceType.King)
                     continue;
-                if (pair.Value.PlayFadeOut(duration, OnPieceMotionEnded))
+                if (_pieces.TryGetValue(king.Id, out PieceView kingView) && kingView != null)
+                    origin = kingView.transform.localPosition;
+                break;
+            }
+            Rect board = new Rect(0f, 0f, _layout.BoardSizeLocal.x, _layout.BoardSizeLocal.y);
+            float gravity = _layout.SquareSize * 22f;
+            float duration = AnimationPrefs.MoveDuration(1.2f);
+            int started = 0;
+            for (int i = 0; i < 64; i++)
+            {
+                Piece piece = _state.Board.GetPiece(Square.FromIndex(i));
+                if (piece == null || piece.Side != defeated)
+                    continue;
+                if (!_pieces.TryGetValue(piece.Id, out PieceView view) || view == null)
+                    continue;
+                _banished.Add(piece.Id);
+                Vector3 dir = view.transform.localPosition - origin;
+                dir.z = 0f;
+                if (dir.sqrMagnitude < 0.0001f)
+                    dir = new Vector3(0f, -1f, 0f);
+                else
+                    dir.Normalize();
+                int hash = piece.Id.GetHashCode();
+                float wobble = ((hash & 1023) / 1023f - 0.5f) * 40f;
+                dir = Quaternion.Euler(0f, 0f, wobble) * dir;
+                float speed = _layout.SquareSize * (8.5f + (hash & 7) * 0.55f);
+                Vector3 vel = dir * speed;
+                vel.y += _layout.SquareSize * 4f;
+                float delay = AnimationPrefs.MoveDuration(0.045f * started);
+                if (view.PlayKnockOff(vel, board, gravity, duration, delay, OnPieceMotionEnded))
                 {
                     _movingCount++;
                     started++;

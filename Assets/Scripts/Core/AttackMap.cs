@@ -43,9 +43,9 @@ namespace ModularChess.Core
                 return false;
             }
 
-            return IsAttackedByPawn(board, square, bySide, runtime)
-                || IsAttackedByKnight(board, square, bySide, runtime)
-                || IsAttackedByKing(board, square, bySide, runtime)
+            return IsAttackedByPawn(board, square, bySide, runtime, target)
+                || IsAttackedByKnight(board, square, bySide, runtime, target)
+                || IsAttackedByKing(board, square, bySide, runtime, target)
                 || IsAttackedBySlider(
                     board,
                     square,
@@ -53,7 +53,8 @@ namespace ModularChess.Core
                     Directions.BishopFiles,
                     Directions.BishopRanks,
                     PieceType.Bishop,
-                    runtime)
+                    runtime,
+                    target)
                 || IsAttackedBySlider(
                     board,
                     square,
@@ -61,7 +62,8 @@ namespace ModularChess.Core
                     Directions.RookFiles,
                     Directions.RookRanks,
                     PieceType.Rook,
-                    runtime);
+                    runtime,
+                    target);
         }
         public static bool CanTarget(ModeRuntime runtime, Piece target)
         {
@@ -103,11 +105,30 @@ namespace ModularChess.Core
         {
             return runtime != null && piece != null && runtime.IsEmpowered(piece.Id);
         }
-        private static bool IsAttackedByPawn(Board board, Square target, Side bySide, ModeRuntime runtime)
+        private static bool CountsAsAttack(
+            ModeRuntime runtime,
+            Piece target,
+            Square targetSquare,
+            Square from)
+        {
+            if (target == null || target.Type != PieceType.Pawn || !IsEmpowered(runtime, target))
+                return true;
+            return SuperPawn.CanCaptureFrom(targetSquare, target.Side, from);
+        }
+        private static bool IsAttackedByPawn(
+            Board board,
+            Square target,
+            Side bySide,
+            ModeRuntime runtime,
+            Piece occupant)
         {
             int rankDelta = bySide == Side.White ? -1 : 1;
-            return HasPawnAttacker(board, target.Offset(-1, rankDelta), bySide, runtime)
-                || HasPawnAttacker(board, target.Offset(1, rankDelta), bySide, runtime);
+            Square left = target.Offset(-1, rankDelta);
+            Square right = target.Offset(1, rankDelta);
+            return (HasPawnAttacker(board, left, bySide, runtime)
+                    && CountsAsAttack(runtime, occupant, target, left))
+                || (HasPawnAttacker(board, right, bySide, runtime)
+                    && CountsAsAttack(runtime, occupant, target, right));
         }
         private static bool HasPawnAttacker(Board board, Square square, Side side, ModeRuntime runtime)
         {
@@ -117,7 +138,12 @@ namespace ModularChess.Core
             }
             return !IsEmpowered(runtime, board.GetPiece(square));
         }
-        private static bool IsAttackedByKnight(Board board, Square target, Side bySide, ModeRuntime runtime)
+        private static bool IsAttackedByKnight(
+            Board board,
+            Square target,
+            Side bySide,
+            ModeRuntime runtime,
+            Piece occupant)
         {
             for (int i = 0; i < Directions.KnightFiles.Length; i++)
             {
@@ -135,23 +161,32 @@ namespace ModularChess.Core
 
                 if (piece.Type == PieceType.Knight)
                 {
-                    return true;
+                    if (CountsAsAttack(runtime, occupant, target, from))
+                        return true;
+                    continue;
                 }
 
                 if (piece.Type == PieceType.Queen && IsEmpowered(runtime, piece))
                 {
-                    return true;
+                    if (CountsAsAttack(runtime, occupant, target, from))
+                        return true;
                 }
             }
 
             return false;
         }
-        private static bool IsAttackedByKing(Board board, Square target, Side bySide, ModeRuntime runtime)
+        private static bool IsAttackedByKing(
+            Board board,
+            Square target,
+            Side bySide,
+            ModeRuntime runtime,
+            Piece occupant)
         {
             for (int i = 0; i < Directions.KingFiles.Length; i++)
             {
                 Square from = target.Offset(Directions.KingFiles[i], Directions.KingRanks[i]);
-                if (HasAttacker(board, from, bySide, PieceType.King, runtime))
+                if (HasAttacker(board, from, bySide, PieceType.King, runtime)
+                    && CountsAsAttack(runtime, occupant, target, from))
                 {
                     return true;
                 }
@@ -166,7 +201,8 @@ namespace ModularChess.Core
             int[] fileDeltas,
             int[] rankDeltas,
             PieceType slider,
-            ModeRuntime runtime)
+            ModeRuntime runtime,
+            Piece occupant)
         {
             for (int i = 0; i < fileDeltas.Length; i++)
             {
@@ -194,7 +230,9 @@ namespace ModularChess.Core
                             && IsEmpowered(runtime, piece);
                         if (!passedAlly || rookPass)
                         {
-                            return true;
+                            if (CountsAsAttack(runtime, occupant, target, cursor))
+                                return true;
+                            break;
                         }
 
                         break;

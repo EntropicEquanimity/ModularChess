@@ -37,6 +37,7 @@ namespace ModularChess.Match
         [SerializeField] Button leaveButton;
         [SerializeField] Button setupConfirmButton;
         [SerializeField] Button optionsButton;
+        [SerializeField] Button settingsButton;
         [SerializeField] RectTransform buttonGroup;
         [SerializeField] Transform draftRow;
         [SerializeField] RectTransform draftDescription;
@@ -144,6 +145,12 @@ namespace ModularChess.Match
             BindClick(leaveButton, controller.LeaveToMenu);
             BindClick(setupConfirmButton, controller.ConfirmSetup);
             BindClick(optionsButton, ToggleOptions);
+            BindClick(settingsButton, controller.OpenSettings);
+            Button drawerOptions = FindButton("Options");
+            if (drawerOptions != null && drawerOptions != settingsButton && drawerOptions != optionsButton)
+            {
+                BindClick(drawerOptions, controller.OpenSettings);
+            }
         }
         public void ToggleOptions()
         {
@@ -244,7 +251,7 @@ namespace ModularChess.Match
                             () => rect.anchoredPosition,
                             v => rect.anchoredPosition = v,
                             _endTurnRest,
-                            OptionsDuration)
+                            UiTime(OptionsDuration))
                         .SetEase(Ease.OutCubic)
                         .SetUpdate(true)
                         .SetTarget(endTurnButton);
@@ -260,7 +267,7 @@ namespace ModularChess.Match
                     () => rect.anchoredPosition,
                     v => rect.anchoredPosition = v,
                     HiddenEndTurnPos(),
-                    OptionsDuration)
+                    UiTime(OptionsDuration))
                 .SetEase(Ease.InCubic)
                 .SetUpdate(true)
                 .SetTarget(endTurnButton)
@@ -482,6 +489,11 @@ namespace ModularChess.Match
                 optionsButton = FindButton("OptionsButton");
             }
 
+            if (settingsButton == null)
+            {
+                settingsButton = FindButton("SettingsButton");
+            }
+
             if (buttonGroup == null)
             {
                 Transform group = FindChild(transform, "ButtonGroup");
@@ -561,6 +573,8 @@ namespace ModularChess.Match
             LocalizedText.Bind(resignButton, "hud.resign");
             LocalizedText.Bind(leaveButton, "hud.leave");
             LocalizedText.Bind(setupConfirmButton, "hud.setupConfirm");
+            LocalizedText.Bind(settingsButton, "menu.options");
+            LocalizedText.Bind(FindButton("Options"), "menu.options");
         }
         void HideTransient()
         {
@@ -720,7 +734,7 @@ namespace ModularChess.Match
                     () => buttonGroup.anchoredPosition,
                     v => buttonGroup.anchoredPosition = v,
                     ShownOptionsPos(),
-                    OptionsDuration)
+                    UiTime(OptionsDuration))
                 .SetEase(Ease.OutCubic)
                 .SetUpdate(true)
                 .SetTarget(buttonGroup);
@@ -739,7 +753,7 @@ namespace ModularChess.Match
                     () => buttonGroup.anchoredPosition,
                     v => buttonGroup.anchoredPosition = v,
                     HiddenOptionsPos(),
-                    OptionsDuration)
+                    UiTime(OptionsDuration))
                 .SetEase(Ease.InCubic)
                 .SetUpdate(true)
                 .SetTarget(buttonGroup)
@@ -835,7 +849,7 @@ namespace ModularChess.Match
                     () => GroupAlpha(_statusGroup),
                     a => SetGroupAlpha(_statusGroup, a),
                     1f,
-                    StatusFadeIn)
+                    UiTime(StatusFadeIn))
                 .SetEase(Ease.OutQuad)
                 .SetUpdate(true)
                 .SetTarget(statusRoot);
@@ -858,7 +872,7 @@ namespace ModularChess.Match
                     () => GroupAlpha(_statusGroup),
                     a => SetGroupAlpha(_statusGroup, a),
                     0f,
-                    StatusFadeOut)
+                    UiTime(StatusFadeOut))
                 .SetEase(Ease.InQuad)
                 .SetUpdate(true)
                 .SetTarget(statusRoot)
@@ -885,13 +899,13 @@ namespace ModularChess.Match
             _gameOverShown = true;
             gameOverBanner.SetActive(true);
             gameOverBanner.transform.SetAsLastSibling();
-            if (_optionsOpen)
+            if (!_optionsOpen)
+            {
+                OpenOptions();
+            }
+            else
             {
                 RaiseOptionsChrome();
-            }
-            else if (optionsButton != null)
-            {
-                optionsButton.transform.SetAsLastSibling();
             }
 
             _gameOverTween?.Kill();
@@ -912,7 +926,7 @@ namespace ModularChess.Match
                         }
                     },
                     1f,
-                    GameOverFade)
+                    UiTime(GameOverFade))
                 .SetEase(Ease.OutQuad)
                 .SetUpdate(true)
                 .SetTarget(gameOverBanner);
@@ -1101,7 +1115,7 @@ namespace ModularChess.Match
                     () => _draftDescBox.anchoredPosition,
                     v => _draftDescBox.anchoredPosition = v,
                     ShownDraftDescPos(),
-                    OptionsDuration)
+                    UiTime(OptionsDuration))
                 .SetEase(Ease.OutCubic)
                 .SetUpdate(true)
                 .SetTarget(_draftDescBox);
@@ -1322,6 +1336,10 @@ namespace ModularChess.Match
             to.pivot = from.pivot;
             to.anchoredPosition = from.anchoredPosition;
             to.sizeDelta = from.sizeDelta;
+        }
+        static float UiTime(float baseSeconds)
+        {
+            return UiAnimPrefs.MoveDuration(baseSeconds);
         }
         static float GroupAlpha(CanvasGroup group)
         {

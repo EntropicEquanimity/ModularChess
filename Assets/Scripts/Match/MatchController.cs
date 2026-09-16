@@ -32,6 +32,7 @@ namespace ModularChess.Match
         float _aiWait = -1f;
         MartyrPower? _draftTargeting;
         readonly List<Square> _draftTargets = new List<Square>();
+        readonly List<Square> _reinforcementPicks = new List<Square>();
         Square? _hovered;
         Guid? _pinnedPieceId;
         public event Action LeftMatch;
@@ -166,6 +167,7 @@ namespace ModularChess.Match
             _draftRemaining = 0f;
             _draftTargeting = null;
             _draftTargets.Clear();
+            _reinforcementPicks.Clear();
             _aiWait = -1f;
             boardView?.CompleteMotion();
             boardView?.SetMotionPaused(false);
@@ -286,13 +288,25 @@ namespace ModularChess.Match
         {
             if (_session == null || !_session.IsAi || _inSetup || _state == null || _state.DraftPending)
                 return;
-            _paused = !_paused;
+            SetPaused(!_paused);
+            hud?.SetStatusLine(_paused ? Loc.Get("match.paused") : string.Empty);
+        }
+        public void SetPaused(bool paused)
+        {
+            if (_session == null || _state == null)
+                return;
+            if (_paused == paused)
+                return;
+            _paused = paused;
             if (_paused)
                 _clock?.Stop();
             else
                 _clock?.Start();
             boardView?.SetMotionPaused(_paused);
-            hud?.SetStatusLine(_paused ? Loc.Get("match.paused") : string.Empty);
+        }
+        public void OpenSettings()
+        {
+            OptionsOverlay.Ensure()?.OpenFromMatch();
         }
 
         public void RequestEndTurn()
@@ -593,13 +607,12 @@ namespace ModularChess.Match
         }
         void PlayMatePresentation(Side winner)
         {
-            Guid? kingId = FindKingId(_state, winner);
-            if (kingId == null || boardView == null)
+            if (boardView == null)
             {
                 hud?.RevealGameOver();
                 return;
             }
-            boardView.PlayMateClear(kingId.Value, () => hud?.RevealGameOver());
+            boardView.PlayMateClear(winner.Opponent(), () => hud?.RevealGameOver());
         }
         void PlayCheckPresentation()
         {
@@ -725,22 +738,28 @@ namespace ModularChess.Match
                     options[i] = offer.Value.At(i);
                 power = options[UnityEngine.Random.Range(0, options.Length)];
             }
-            CommitDraft(power, TargetIfNeeded(power), null);
+            Guid? target = power == MartyrPower.Reinforcements ? null : TargetIfNeeded(power);
+            Square[] reinforcements = power == MartyrPower.Reinforcements ? FillReinforcements() : null;
+            CommitDraft(power, target, reinforcements);
         }
         void TryPickDraft(MartyrPower power)
         {
             if (NeedsBoardTarget(power) && CountTargets(power) > 1)
             {
                 _draftTargeting = power;
+                _reinforcementPicks.Clear();
                 RefreshPresentation();
                 return;
             }
-            CommitDraft(power, TargetIfNeeded(power), null);
+            Guid? target = power == MartyrPower.Reinforcements ? null : TargetIfNeeded(power);
+            Square[] reinforcements = power == MartyrPower.Reinforcements ? FillReinforcements() : null;
+            CommitDraft(power, target, reinforcements);
         }
         void CommitDraft(MartyrPower power, Guid? targetId, Square[] reinforcements)
         {
             _draftTiming = false;
             _draftTargeting = null;
+            _reinforcementPicks.Clear();
             _state = _state.ApplyDraft(power, targetId, reinforcements);
             RefreshPresentation();
             boardView?.PlayPowerFeel(power, targetId);
@@ -749,6 +768,11 @@ namespace ModularChess.Match
         {
             if (_state == null || _draftTargeting == null)
                 return;
+            if (_draftTargeting == MartyrPower.Reinforcements)
+            {
+                HandleReinforcementSquare(square);
+                return;
+            }
             Piece piece = _state.Board.GetPiece(square);
             if (piece == null)
             {
@@ -785,11 +809,42 @@ namespace ModularChess.Match
                 CommitDraft(MartyrPower.Exile, piece.Id, null);
             }
         }
+        void HandleReinforcementSquare(Square square)
+        {
+            if (_state.Board.GetPiece(square) != null || !_draftTargets.Contains(square))
+            {
+                GameAudio.PlayIllegal();
+                return;
+            }
+            if (_reinforcementPicks.Contains(square))
+                return;
+            _reinforcementPicks.Add(square);
+            if (_reinforcementPicks.Count >= 2 || CountTargets(MartyrPower.Reinforcements) == 0)
+            {
+                CommitDraft(MartyrPower.Reinforcements, null, _reinforcementPicks.ToArray());
+                return;
+            }
+            RefreshPresentation();
+        }
+        Square[] FillReinforcements()
+        {
+            CollectDraftTargets(MartyrPower.Reinforcements);
+            var chosen = new List<Square>(_reinforcementPicks);
+            var remaining = new List<Square>(_draftTargets);
+            while (chosen.Count < 2 && remaining.Count > 0)
+            {
+                int index = UnityEngine.Random.Range(0, remaining.Count);
+                chosen.Add(remaining[index]);
+                remaining.RemoveAt(index);
+            }
+            return chosen.ToArray();
+        }
         bool NeedsBoardTarget(MartyrPower power)
         {
             return power == MartyrPower.BattlefieldPromotion
                 || power == MartyrPower.StasisField
-                || power == MartyrPower.Exile;
+                || power == MartyrPower.Exile
+                || power == MartyrPower.Reinforcements;
         }
         int CountTargets(MartyrPower power)
         {
@@ -834,6 +889,20 @@ namespace ModularChess.Match
                 }
                 return;
             }
+            else if (power == MartyrPower.Reinforcements)
+            {
+                int back = _state.SideToMove == Side.White ? 0 : 7;
+                for (int file = 0; file < Square.BoardSize; file++)
+                {
+                    Square square = new Square(file, back);
+                    if (_state.Board.GetPiece(square) != null)
+                        continue;
+                    if (_reinforcementPicks.Contains(square))
+                        continue;
+                    _draftTargets.Add(square);
+                }
+                return;
+            }
             else
             {
                 return;
@@ -855,11 +924,13 @@ namespace ModularChess.Match
         }
         string DraftTargetLine(int secondsLeft)
         {
-            string key = _draftTargeting == MartyrPower.StasisField
-                ? "martyr.pick.queen"
-                : _draftTargeting == MartyrPower.Exile
-                    ? "martyr.pick.exile"
-                    : "martyr.pick.pawn";
+            string key = _draftTargeting == MartyrPower.Reinforcements
+                ? "martyr.pick.reinforcements"
+                : _draftTargeting == MartyrPower.StasisField
+                    ? "martyr.pick.queen"
+                    : _draftTargeting == MartyrPower.Exile
+                        ? "martyr.pick.exile"
+                        : "martyr.pick.pawn";
             return Loc.Format(key, secondsLeft);
         }
 

@@ -12,8 +12,6 @@ namespace ModularChess.Match
     [DefaultExecutionOrder(-50)]
     public sealed class AppRoot : MonoBehaviour, IInitializable
     {
-        const string ShowNotationKey = "ShowNotation";
-
         [SerializeField] GameObject mainMenu;
         [SerializeField] GameObject playOverlay;
         [SerializeField] GameObject matchSettingsOverlay;
@@ -47,6 +45,8 @@ namespace ModularChess.Match
         OverlayDialogs _dialogs;
         readonly List<float> _gravePresses = new List<float>();
         bool _locHooked;
+        bool _pausedForOptions;
+        bool _optionsHooked;
 
         public void Initialize()
         {
@@ -72,6 +72,7 @@ namespace ModularChess.Match
             Loc.Changed -= OnLanguageChanged;
             if (_match != null)
                 _match.LeftMatch -= ShowMainMenu;
+            UnhookOptionsOverlay();
         }
 
         void Update()
@@ -180,27 +181,10 @@ namespace ModularChess.Match
             BindButton(joinOverlay, "BackButton", ShowPlay);
 
             BindButton(unlocksOverlay, "BackButton", ShowMainMenu);
-            BindButton(optionsOverlay, "BackButton", ShowMainMenu);
             BindButton(creditsOverlay, "BackButton", ShowMainMenu);
 
-            Toggle notation = FindToggle(optionsOverlay, "NotationToggle");
-            if (notation != null)
-            {
-                notation.onValueChanged.RemoveAllListeners();
-                notation.isOn = PlayerPrefs.GetInt(ShowNotationKey, 1) == 1;
-                notation.onValueChanged.AddListener(on =>
-                {
-                    GameAudio.PlayUi();
-                    PlayerPrefs.SetInt(ShowNotationKey, on ? 1 : 0);
-                    PlayerPrefs.Save();
-                });
-                LocalizedText.Bind(notation, "options.notation");
-            }
-
-            EnsureAnimationSlider();
-            EnsureVolumeSliders();
+            HookOptionsOverlay();
             EnsureLanguageDropdown();
-            EnsureNameLabel();
             BindAccountCreation();
             BindMenuLoc();
             ApplyWebGlPlayLimits();
@@ -280,6 +264,7 @@ namespace ModularChess.Match
 
         public void ShowMainMenu()
         {
+            _pausedForOptions = false;
             if (!PlayerIdentity.HasName)
             {
                 ShowAccountCreation();
@@ -321,8 +306,66 @@ namespace ModularChess.Match
 
         void ShowOptions()
         {
-            ShowOverlay(optionsOverlay);
-            EnsureNameLabel();
+            OptionsOverlay.Ensure()?.OpenFromMenu();
+        }
+        void HookOptionsOverlay()
+        {
+            OptionsOverlay options = OptionsOverlay.Ensure();
+            if (options == null)
+                return;
+            if (optionsOverlay == null)
+                optionsOverlay = options.gameObject;
+            if (_optionsHooked)
+            {
+                options.Refresh();
+                return;
+            }
+            options.OpeningFromMenu += OnOptionsOpeningFromMenu;
+            options.OpeningFromMatch += OnOptionsOpeningFromMatch;
+            options.ClosedFromMenu += ShowMainMenu;
+            options.ClosedFromMatch += OnOptionsClosedFromMatch;
+            _optionsHooked = true;
+            options.Refresh();
+        }
+        void UnhookOptionsOverlay()
+        {
+            if (!_optionsHooked)
+                return;
+            OptionsOverlay options = OptionsOverlay.Instance;
+            if (options != null)
+            {
+                options.OpeningFromMenu -= OnOptionsOpeningFromMenu;
+                options.OpeningFromMatch -= OnOptionsOpeningFromMatch;
+                options.ClosedFromMenu -= ShowMainMenu;
+                options.ClosedFromMatch -= OnOptionsClosedFromMatch;
+            }
+            _optionsHooked = false;
+        }
+        void OnOptionsOpeningFromMenu()
+        {
+            if (optionsOverlay == null && OptionsOverlay.Instance != null)
+                optionsOverlay = OptionsOverlay.Instance.gameObject;
+            _modeSettingsPopup?.HideImmediate();
+            UnlocksView unlocks = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
+            unlocks?.HideDetailImmediate();
+            HideBoard();
+            DismissScreens(optionsOverlay);
+        }
+        void OnOptionsOpeningFromMatch()
+        {
+            _hud?.CloseOptionsIfOpen();
+            if (_match != null && !_match.IsPaused)
+            {
+                _pausedForOptions = true;
+                _match.SetPaused(true);
+            }
+        }
+        void OnOptionsClosedFromMatch()
+        {
+            if (!_pausedForOptions)
+                return;
+            _match?.SetPaused(false);
+            _pausedForOptions = false;
         }
 
         void ShowCredits()
@@ -432,84 +475,6 @@ namespace ModularChess.Match
             }
 
             FillModeToggles();
-        }
-
-        void EnsureAnimationSlider()
-        {
-            if (optionsOverlay == null)
-                return;
-
-            Transform row = FindChild(optionsOverlay.transform, "OptionSlider");
-            if (row == null)
-            {
-                Transform parent = OptionsListParent();
-                GameObject prefab = RuntimePrefabs.OptionSlider;
-                if (parent == null || prefab == null)
-                    return;
-
-                GameObject instance = Instantiate(prefab, parent);
-                instance.name = "OptionSlider";
-                row = instance.transform;
-                PlaceInOptionsList(row);
-            }
-
-            OptionSliderView view = row.GetComponent<OptionSliderView>();
-            if (view == null)
-                view = row.gameObject.AddComponent<OptionSliderView>();
-            view.Bind(
-                Loc.Get("options.anim"),
-                AnimationPrefs.MinMultiplier,
-                AnimationPrefs.SkipStep,
-                true,
-                AnimationPrefs.SliderValue,
-                v => AnimationPrefs.SliderValue = v,
-                () => AnimationPrefs.Instant
-                    ? Loc.Get("options.anim.off")
-                    : Loc.Format("options.anim.times", Mathf.RoundToInt(AnimationPrefs.Multiplier)));
-        }
-
-        void EnsureVolumeSliders()
-        {
-            BindVolumeSlider("MusicSlider", Loc.Get("options.music"), true);
-            BindVolumeSlider("SfxSlider", Loc.Get("options.sfx"), false);
-        }
-
-        void BindVolumeSlider(string name, string label, bool music)
-        {
-            if (optionsOverlay == null)
-                return;
-            Transform row = FindChild(optionsOverlay.transform, name);
-            if (row == null)
-            {
-                Transform parent = OptionsListParent();
-                GameObject prefab = RuntimePrefabs.OptionSlider;
-                if (parent == null || prefab == null)
-                    return;
-                GameObject instance = Instantiate(prefab, parent);
-                instance.name = name;
-                row = instance.transform;
-                PlaceInOptionsList(row);
-            }
-
-            OptionSliderView view = row.GetComponent<OptionSliderView>();
-            if (view == null)
-                view = row.gameObject.AddComponent<OptionSliderView>();
-            int current = music ? AudioPrefs.Music : AudioPrefs.Sfx;
-            view.Bind(
-                label,
-                AudioPrefs.Min,
-                AudioPrefs.Max,
-                true,
-                current,
-                v =>
-                {
-                    int value = Mathf.RoundToInt(v);
-                    if (music)
-                        AudioPrefs.Music = value;
-                    else
-                        AudioPrefs.Sfx = value;
-                },
-                () => Loc.Format("options.volume", music ? AudioPrefs.Music : AudioPrefs.Sfx));
         }
 
         void FillModeToggles()
@@ -846,6 +811,12 @@ namespace ModularChess.Match
             if (unlocks != null && unlocks.CloseDetailIfOpen())
                 return;
 
+            if (OptionsOverlay.IsOpen)
+            {
+                OptionsOverlay.Ensure()?.Close();
+                return;
+            }
+
             if (_match != null && _match.IsPlaying && _board != null && _board.gameObject.activeSelf)
             {
                 _hud?.ToggleOptions();
@@ -1079,10 +1050,8 @@ namespace ModularChess.Match
         void OnLanguageChanged()
         {
             BindMenuLoc();
-            EnsureAnimationSlider();
-            EnsureVolumeSliders();
+            OptionsOverlay.Ensure()?.Refresh();
             EnsureLanguageDropdown();
-            EnsureNameLabel();
             BindAccountCreation();
             if (IsActive(matchSettingsOverlay))
                 ShowPrep();
@@ -1118,8 +1087,6 @@ namespace ModularChess.Match
             BindTitle(joinOverlay, "menu.title");
             LocalizedText.Bind(FindButton(unlocksOverlay, "BackButton"), "play.back");
             BindTitle(unlocksOverlay, "menu.unlocks");
-            LocalizedText.Bind(FindButton(optionsOverlay, "BackButton"), "options.back");
-            BindTitle(optionsOverlay, "menu.options");
             LocalizedText.Bind(FindButton(creditsOverlay, "BackButton"), "credits.back");
             BindTitle(creditsOverlay, "menu.credits");
             BindTitle(accountCreationOverlay, "account.title");
@@ -1216,51 +1183,8 @@ namespace ModularChess.Match
                 confirm.interactable = PlayerIdentity.Sanitize(stem).Length > 0;
         }
 
-        void EnsureNameLabel()
-        {
-            if (optionsOverlay == null)
-                return;
-
-            Transform row = FindChild(optionsOverlay.transform, "NameLabel");
-            if (!PlayerIdentity.HasName)
-            {
-                if (row != null)
-                    row.gameObject.SetActive(false);
-                return;
-            }
-
-            TMP_Text label;
-            if (row == null)
-            {
-                Transform parent = OptionsListParent();
-                if (parent == null)
-                    return;
-                label = UiFactory.Label(parent, PlayerIdentity.DisplayName, 16, TextAlignmentOptions.Center);
-                label.gameObject.name = "NameLabel";
-                label.color = Color.black;
-                label.raycastTarget = false;
-                var element = label.gameObject.AddComponent<LayoutElement>();
-                element.minWidth = 200f;
-                element.preferredWidth = 200f;
-                element.minHeight = 32f;
-                element.preferredHeight = 32f;
-                label.transform.SetSiblingIndex(0);
-            }
-            else
-            {
-                row.gameObject.SetActive(true);
-                label = row.GetComponent<TMP_Text>();
-                if (label == null)
-                    label = row.GetComponentInChildren<TMP_Text>(true);
-            }
-
-            if (label != null)
-                label.text = Loc.Format("options.name", PlayerIdentity.DisplayName);
-        }
-
         void EnsureLanguageDropdown()
         {
-            BindLanguageDropdown(optionsOverlay, true);
             BindLanguageDropdown(accountCreationOverlay, false);
         }
 
@@ -1274,9 +1198,7 @@ namespace ModularChess.Match
             {
                 if (!createIfMissing)
                     return;
-                Transform parent = root == optionsOverlay
-                    ? OptionsListParent()
-                    : FindChild(root.transform, "ButtonGroup");
+                Transform parent = FindChild(root.transform, "ButtonGroup");
                 if (parent == null)
                     return;
 
@@ -1284,7 +1206,6 @@ namespace ModularChess.Match
                 created.name = "LanguageDropdown";
                 created.gameObject.name = "LanguageDropdown";
                 row = created.transform;
-                PlaceInOptionsList(row);
                 var element = created.gameObject.GetComponent<LayoutElement>();
                 if (element == null)
                     element = created.gameObject.AddComponent<LayoutElement>();
@@ -1368,50 +1289,12 @@ namespace ModularChess.Match
             return child != null ? child.GetComponent<Button>() : null;
         }
 
-        static Toggle FindToggle(GameObject root, string name)
-        {
-            if (root == null)
-                return null;
-            Transform child = FindChild(root.transform, name);
-            return child != null ? child.GetComponent<Toggle>() : null;
-        }
-
         static TMP_Text FindLabel(GameObject root, string name)
         {
             if (root == null)
                 return null;
             Transform child = FindChild(root.transform, name);
             return child != null ? child.GetComponent<TMP_Text>() : null;
-        }
-
-        Transform OptionsListParent()
-        {
-            if (optionsOverlay == null)
-                return null;
-            Transform scroll = FindChild(optionsOverlay.transform, "OptionsScroll");
-            if (scroll != null)
-            {
-                ScrollRect rect = scroll.GetComponent<ScrollRect>();
-                if (rect != null && rect.content != null)
-                    return rect.content;
-            }
-
-            return FindChild(optionsOverlay.transform, "ButtonGroup");
-        }
-
-        static void PlaceInOptionsList(Transform row)
-        {
-            if (row == null || row.parent == null)
-                return;
-            Transform parent = row.parent;
-            for (int i = 0; i < parent.childCount; i++)
-            {
-                if (parent.GetChild(i).name == "BackButton")
-                {
-                    row.SetSiblingIndex(i);
-                    return;
-                }
-            }
         }
 
         static Transform FindChild(Transform root, string name)
