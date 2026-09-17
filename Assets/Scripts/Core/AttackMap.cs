@@ -1,9 +1,14 @@
 using System;
+using System.Collections.Generic;
 
 namespace ModularChess.Core
 {
     internal static class AttackMap
     {
+        #region Fields
+        static readonly List<PatternStep> RayBuffer = new List<PatternStep>(8);
+        #endregion
+
         #region Public Methods
         public static bool IsInCheck(
             Board board,
@@ -113,7 +118,7 @@ namespace ModularChess.Core
         {
             if (target == null || target.Type != PieceType.Pawn || !IsEmpowered(runtime, target))
                 return true;
-            return SuperPawn.CanCaptureFrom(targetSquare, target.Side, from);
+            return Pattern.SuperPawnAllowsCapture(targetSquare, target.Side, from);
         }
         private static bool IsAttackedByPawn(
             Board board,
@@ -207,13 +212,13 @@ namespace ModularChess.Core
             for (int i = 0; i < fileDeltas.Length; i++)
             {
                 bool passedAlly = false;
-                Square cursor = target.Offset(fileDeltas[i], rankDeltas[i]);
-                while (cursor.IsOnBoard)
+                Pattern.Ray(board, target, fileDeltas[i], rankDeltas[i], RayBuffer);
+                for (int s = 0; s < RayBuffer.Count; s++)
                 {
-                    Piece piece = board.GetPiece(cursor);
+                    PatternStep step = RayBuffer[s];
+                    Piece piece = step.Occupant;
                     if (piece == null)
                     {
-                        cursor = cursor.Offset(fileDeltas[i], rankDeltas[i]);
                         continue;
                     }
 
@@ -230,7 +235,7 @@ namespace ModularChess.Core
                             && IsEmpowered(runtime, piece);
                         if (!passedAlly || rookPass)
                         {
-                            if (CountsAsAttack(runtime, occupant, target, cursor))
+                            if (CountsAsAttack(runtime, occupant, target, step.Square))
                                 return true;
                             break;
                         }
@@ -241,7 +246,6 @@ namespace ModularChess.Core
                     passedAlly = true;
                     if (slider == PieceType.Rook && piece.Side == bySide)
                     {
-                        cursor = cursor.Offset(fileDeltas[i], rankDeltas[i]);
                         continue;
                     }
 

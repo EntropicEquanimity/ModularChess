@@ -811,7 +811,7 @@ namespace ModularChess.Match
         }
         void HandleReinforcementSquare(Square square)
         {
-            if (_state.Board.GetPiece(square) != null || !_draftTargets.Contains(square))
+            if (!_state.Board.CanPlace(square) || !_draftTargets.Contains(square))
             {
                 GameAudio.PlayIllegal();
                 return;
@@ -895,7 +895,7 @@ namespace ModularChess.Match
                 for (int file = 0; file < Square.BoardSize; file++)
                 {
                     Square square = new Square(file, back);
-                    if (_state.Board.GetPiece(square) != null)
+                    if (!_state.Board.CanPlace(square))
                         continue;
                     if (_reinforcementPicks.Contains(square))
                         continue;

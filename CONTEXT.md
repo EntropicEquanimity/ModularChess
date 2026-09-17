@@ -9,12 +9,28 @@ The rules authority for standard FIDE chess. Always present in every Match. Not 
 _Avoid_: module, engine, always-on Mode
 
 **Activity**:
-What you came to do. MVP Activities are Versus AI and Versus Friend. Later Activities include Puzzle and Survivor. Join is not an Activity.
+What you came to do. MVP Activities are Versus AI and Versus Friend. Later Activities include Puzzle, Survivor, and Auto Battler. Join is not an Activity.
 _Avoid_: Opponent, Mode, game mode, match type
 
 **Mode**:
-An optional rule pack that hooks Core for one Match. Never replaces Core. A Mode declares which Activities may use it. After the player picks an Activity, only those Modes are offered. Join is never on that list. The first three Modes (Fog of War, Powerful Pieces, Martyr) allow Versus AI and Versus Friend only and are compatible with each other. A Match may stack several compatible Modes; both players play that same set.
+An optional rule pack that hooks Core for one Match. Never replaces Core. A Mode declares which Activities may use it. After the player picks an Activity, only those Modes are offered. Join is never on that list. The first three Modes (Fog of War, Powerful Pieces, Martyr) allow Versus AI and Versus Friend only and are compatible with each other. Later Modes include Health and Chance Combat. A Match may stack several compatible Modes; both players play that same set.
 _Avoid_: Add-on, DLC, mod, game mode, Activity
+
+**Survivor**:
+A later Activity. This Side fights swarms of enemies. Not a Mode. Not Auto Battler.
+_Avoid_: Swarms as a second Activity, Mode, Versus AI
+
+**Auto Battler**:
+A later Activity. Pieces fight without the player choosing each Move. Not a Mode. Not Survivor.
+_Avoid_: autobattler as a Mode, idle chess, Survivor
+
+**Health**:
+A later Mode. Pieces carry hit points for that Match. After a legal Capture, that Mode may wound instead of removing. Runs after Chance Combat miss; Extra Life does not apply to a wound. Does not change which Moves are legal. Not Core. Not an Activity.
+_Avoid_: HP as Core, health bars as the Mode name, damage as Capture
+
+**Chance Combat**:
+A later Mode. After a legal Capture, that Mode may miss. Runs before Health and Extra Life; a miss does not wound. Does not change which Moves are legal. Not Core. Not an Activity.
+_Avoid_: RNG as Core, XCOM as the Mode name, miss as illegal Move
 
 **Join**:
 A Play-screen action that enters a Versus Friend Lobby with a Join Code. Not an Activity. Not a spectator path. A Steam invite skips this and dumps the friend into the Lobby.
@@ -93,11 +109,15 @@ One file and rank on the Board (a1–h8 in Core).
 _Avoid_: tile, cell, position
 
 **Board**:
-Occupancy of Pieces on Squares. Core is 8×8 until a Mode changes it. Not a Match Setting.
+Occupancy of Pieces on Squares. Core is 8×8 until a Mode changes it. A King is not replaced by placing another Piece on its Square. Not a Match Setting.
 _Avoid_: map, grid
 
+**Pattern**:
+A Piece’s movement and capture geometry on the Board. Legal Moves, Attack, and Vision use it. Not legal Moves. Not Vision. Not a Mode.
+_Avoid_: ray as the name, attack map, MoveGenerator
+
 **Vision**:
-Under Fog of War, the Squares a Side is shown. Each Piece grants Vision from its current movement and capture pattern, not from Core legal Moves. Check and pins do not shrink Vision. A Pawn sees its forward push Squares and its capture Squares, not capture-only. A blocker on a Pawn’s forward Square is shown identified, same as a slider seeing the first occupied Square; that Pawn does not grant Vision behind the blocker (an unmoved Pawn does not see the double-step Square if the Square in front is occupied). An Empowered Rook’s Vision continues through allied Pieces and stops on the first enemy (identified). En passant: for the rest of that Side’s Turn, the capturing Pawn also sees the jumped enemy Pawn, identified. Allied Pieces are always shown. Home Vision: each Side always sees its own back 2 ranks, identified (empty or enemy). Home Vision is not a ray and does not grant Shadow onto the next rank. Under Fog, the HUD shows this Side’s castling rights only. Hidden opponent Moves play one generic SFX; identified Moves (Vision on from/to) and your own Moves use full SFX. Do not animate a Piece across Hidden Squares; a Piece that enters Vision pops in with no path. Fully Hidden Moves have no Piece motion. Last-move markers only on Squares in Vision. Opponent en passant is not a HUD flag; the capturing Pawn’s Vision window is the tell. Legal-move highlights are Core-legal destinations (those Squares are in Vision). Recomputed after every Move.
+Under Fog of War, the Squares a Side is shown. Each Piece grants Vision from its Pattern, not from Core legal Moves. Check and pins do not shrink Vision. A Pawn sees its forward push Squares and its capture Squares, not capture-only. A blocker on a Pawn’s forward Square is shown identified, same as a slider seeing the first occupied Square; that Pawn does not grant Vision behind the blocker (an unmoved Pawn does not see the double-step Square if the Square in front is occupied). An Empowered Rook’s Vision continues through allied Pieces and stops on the first enemy (identified). En passant: for the rest of that Side’s Turn, the capturing Pawn also sees the jumped enemy Pawn, identified. Allied Pieces are always shown. Home Vision: each Side always sees its own back 2 ranks, identified (empty or enemy). Home Vision is not a ray and does not grant Shadow onto the next rank. Under Fog, the HUD shows this Side’s castling rights only. Hidden opponent Moves play one generic SFX; identified Moves (Vision on from/to) and your own Moves use full SFX. Do not animate a Piece across Hidden Squares; a Piece that enters Vision pops in with no path. Fully Hidden Moves have no Piece motion. Last-move markers only on Squares in Vision. Opponent en passant is not a HUD flag; the capturing Pawn’s Vision window is the tell. Legal-move highlights are Core-legal destinations (those Squares are in Vision). Recomputed after every Move.
 _Avoid_: attack-range-only, legal-move vision, memory, trails, Chess.com pawn-sensor, opponent castle HUD, unique Hidden SFX, ghost slides, opponent EP HUD, last-move through Fog
 
 **Shadow**:
@@ -113,7 +133,7 @@ One Core state change: a Piece from–to, including castle, en passant, promotio
 _Avoid_: action, sub-move, Turn, premove
 
 **Capture**:
-A Move that would remove an enemy Piece from the Board, including en passant. A Mode may negate a Capture: both Pieces stay where they were, and the Move is still spent. Pieces that actually leave sit in the Capture tray.
+A Move that would remove an enemy Piece from the Board, including en passant. After the Move is legal, a Mode may change the result: negate, miss, or wound instead of removing. When several apply: miss first, then wound vs remove, then Extra Life only if that Piece would still leave. The Move is still spent. Pieces that actually leave sit in the Capture tray.
 _Avoid_: kill, take (as the noun)
 
 **Capture tray**:

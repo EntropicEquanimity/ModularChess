@@ -51,6 +51,14 @@ namespace ModularChess.Core
 
             return _squares[square.ToIndex()];
         }
+        public bool IsEmpty(Square square)
+        {
+            return square.IsOnBoard && _squares[square.ToIndex()] == null;
+        }
+        public bool CanPlace(Square square)
+        {
+            return IsEmpty(square);
+        }
         public Square? FindKing(Side side)
         {
             for (int i = 0; i < _squares.Length; i++)

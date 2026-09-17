@@ -84,32 +84,37 @@ namespace ModularChess.Core
             Board nextBoard = Board;
             bool bounced = false;
 
-            if (captured != null && nextRuntime.ExtraLifeAvailable(captured.Id))
+            if (captured != null)
             {
-                bounced = true;
-                nextRuntime = nextRuntime.SpendExtraLife(captured.Id);
-            }
-            else
-            {
-                nextBoard = Board.ApplyUnchecked(move);
-                if (captured != null)
+                CaptureResolution resolved = Rules.Hooks.ResolveCapture(Board, move, captured, nextRuntime);
+                nextRuntime = resolved.Runtime;
+                if (resolved.Kind == CaptureResolutionKind.Negate)
                 {
+                    bounced = true;
+                }
+                else
+                {
+                    nextBoard = Board.ApplyUnchecked(move);
                     Square origin = move.Kind == MoveKind.EnPassant
                         ? new Square(move.To.File, move.From.Rank)
                         : move.To;
                     nextRuntime = nextRuntime.AddCapture(captured, false, origin);
-                }
-                if (captured != null && Rules.Has(ModeId.Martyr) && !nextRuntime.IsSummoned(captured.Id))
-                {
-                    int? value = PieceValues.Get(captured.Type);
-                    if (value != null)
+                    if (Rules.Has(ModeId.Martyr) && !nextRuntime.IsSummoned(captured.Id))
                     {
-                        nextRuntime = nextRuntime.AddLostMaterial(
-                            captured.Side,
-                            value.Value,
-                            Rules.Settings.MartyrThreshold);
+                        int? value = PieceValues.Get(captured.Type);
+                        if (value != null)
+                        {
+                            nextRuntime = nextRuntime.AddLostMaterial(
+                                captured.Side,
+                                value.Value,
+                                Rules.Settings.MartyrThreshold);
+                        }
                     }
                 }
+            }
+            else
+            {
+                nextBoard = Board.ApplyUnchecked(move);
             }
 
             if (move.Kind == MoveKind.Promotion

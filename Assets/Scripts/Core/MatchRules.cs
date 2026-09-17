@@ -12,6 +12,7 @@ namespace ModularChess.Core
         public IReadOnlyList<ModeId> Modes { get; }
         public MatchSettings Settings { get; }
         public bool IsCoreOnly => Modes.Count == 0;
+        internal ModeHooks Hooks { get; }
         #endregion
 
         #region Public Methods
@@ -21,6 +22,7 @@ namespace ModularChess.Core
             if (modes == null || modes.Count == 0)
             {
                 Modes = Array.Empty<ModeId>();
+                Hooks = ModeHooks.None;
                 return;
             }
 
@@ -31,6 +33,7 @@ namespace ModularChess.Core
             }
 
             Modes = copy;
+            Hooks = ModeHooks.For(Modes);
         }
         public bool Has(ModeId id)
         {

@@ -182,12 +182,7 @@ namespace ModularChess.Core
         }
         static bool TryPlacePawn(ref Board board, ref ModeRuntime runtime, Side side, Square square, int back)
         {
-            if (!square.IsOnBoard || square.Rank != back)
-            {
-                return false;
-            }
-            Piece occupant = board.GetPiece(square);
-            if (occupant != null)
+            if (!square.IsOnBoard || square.Rank != back || !board.CanPlace(square))
             {
                 return false;
             }
@@ -338,7 +333,7 @@ namespace ModularChess.Core
         }
         static Square? ReturnSquare(Board board, CaptureRecord record)
         {
-            if (record.Origin.IsOnBoard && board.GetPiece(record.Origin) == null)
+            if (record.Origin.IsOnBoard && board.CanPlace(record.Origin))
             {
                 return record.Origin;
             }
@@ -356,7 +351,7 @@ namespace ModularChess.Core
                 for (int file = 0; file < Square.BoardSize; file++)
                 {
                     Square square = new Square(file, rank);
-                    if (board.GetPiece(square) == null)
+                    if (board.CanPlace(square))
                     {
                         empties.Add(square);
                     }
@@ -378,7 +373,7 @@ namespace ModularChess.Core
                 for (int file = 0; file < Square.BoardSize; file++)
                 {
                     Square square = new Square(file, rank);
-                    if (board.GetPiece(square) == null)
+                    if (board.CanPlace(square))
                     {
                         return square;
                     }

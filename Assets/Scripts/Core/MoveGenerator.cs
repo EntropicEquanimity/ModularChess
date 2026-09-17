@@ -13,6 +13,7 @@ namespace ModularChess.Core
             PieceType.Bishop,
             PieceType.Knight
         };
+        static readonly List<PatternStep> RayBuffer = new List<PatternStep>(8);
         #endregion
 
         #region Public Methods
@@ -31,13 +32,13 @@ namespace ModularChess.Core
             for (int i = 0; i < pseudo.Count; i++)
             {
                 Move move = pseudo[i];
-                if (!IsAllowedByRuntime(board, move, rules, runtime))
+                if (!IsAllowedByRuntime(board, move, runtime))
                 {
                     continue;
                 }
 
-                Board next = ApplyForLegality(board, move, runtime);
-                if (!AttackMap.IsInCheck(next, side, rules, RuntimeAfterMove(board, move, runtime)))
+                Board next = ApplyForLegality(board, move, rules, runtime);
+                if (!AttackMap.IsInCheck(next, side, rules, RuntimeAfterMove(board, move, rules, runtime)))
                 {
                     legal.Add(move);
                 }
@@ -105,7 +106,6 @@ namespace ModularChess.Core
                                 Directions.BishopFiles,
                                 Directions.BishopRanks,
                                 false,
-                                runtime,
                                 moves);
                             break;
                         case PieceType.Rook:
@@ -116,7 +116,6 @@ namespace ModularChess.Core
                                 Directions.RookFiles,
                                 Directions.RookRanks,
                                 runtime.IsEmpowered(piece.Id),
-                                runtime,
                                 moves);
                             break;
                         case PieceType.Queen:
@@ -127,7 +126,6 @@ namespace ModularChess.Core
                                 Directions.BishopFiles,
                                 Directions.BishopRanks,
                                 false,
-                                runtime,
                                 moves);
                             AddSliderMoves(
                                 board,
@@ -136,7 +134,6 @@ namespace ModularChess.Core
                                 Directions.RookFiles,
                                 Directions.RookRanks,
                                 false,
-                                runtime,
                                 moves);
                             if (runtime.IsEmpowered(piece.Id))
                             {
@@ -298,41 +295,33 @@ namespace ModularChess.Core
             int[] fileDeltas,
             int[] rankDeltas,
             bool passAllies,
-            ModeRuntime runtime,
             List<Move> moves)
         {
             for (int i = 0; i < fileDeltas.Length; i++)
             {
-                Square cursor = from.Offset(fileDeltas[i], rankDeltas[i]);
-                while (cursor.IsOnBoard)
+                Pattern.Ray(board, from, fileDeltas[i], rankDeltas[i], RayBuffer);
+                for (int s = 0; s < RayBuffer.Count; s++)
                 {
-                    Piece occupant = board.GetPiece(cursor);
+                    PatternStep step = RayBuffer[s];
+                    Piece occupant = step.Occupant;
                     if (occupant == null)
                     {
-                        moves.Add(new Move(from, cursor, MoveKind.Quiet));
+                        moves.Add(new Move(from, step.Square, MoveKind.Quiet));
+                        continue;
                     }
-                    else
+                    if (occupant.Side == piece.Side)
                     {
-                        if (occupant.Side == piece.Side)
+                        if (passAllies)
                         {
-                            if (passAllies)
-                            {
-                                cursor = cursor.Offset(fileDeltas[i], rankDeltas[i]);
-                                continue;
-                            }
-
-                            break;
+                            continue;
                         }
-
-                        if (occupant.Type != PieceType.King)
-                        {
-                            moves.Add(new Move(from, cursor, MoveKind.Capture, capturedType: occupant.Type));
-                        }
-
                         break;
                     }
-
-                    cursor = cursor.Offset(fileDeltas[i], rankDeltas[i]);
+                    if (occupant.Type != PieceType.King)
+                    {
+                        moves.Add(new Move(from, step.Square, MoveKind.Capture, capturedType: occupant.Type));
+                    }
+                    break;
                 }
             }
         }
@@ -343,94 +332,9 @@ namespace ModularChess.Core
             ModeRuntime runtime,
             List<Move> moves)
         {
-            if (rules == null || rules.IsCoreOnly)
-            {
-                return;
-            }
-
-            if (rules.Has(ModeId.PowerfulPieces))
-            {
-                AddBishopSwaps(board, side, runtime, moves);
-            }
+            HooksOf(rules).AppendMoves(board, side, runtime, moves);
         }
-        private static void AddBishopSwaps(Board board, Side side, ModeRuntime runtime, List<Move> moves)
-        {
-            for (int i = 0; i < 64; i++)
-            {
-                Square from = Square.FromIndex(i);
-                Piece piece = board.GetPiece(from);
-                if (piece == null || piece.Side != side || piece.Type != PieceType.Bishop)
-                {
-                    continue;
-                }
-
-                if (!runtime.IsEmpowered(piece.Id) || runtime.HasStatus(piece.Id, StatusKind.Stasis))
-                {
-                    continue;
-                }
-
-                for (int d = 0; d < Directions.KingFiles.Length; d++)
-                {
-                    Square to = from.Offset(Directions.KingFiles[d], Directions.KingRanks[d]);
-                    if (!to.IsOnBoard)
-                    {
-                        continue;
-                    }
-
-                    Piece occupant = board.GetPiece(to);
-                    if (occupant != null && occupant.Side == side && occupant.Type == PieceType.Pawn)
-                    {
-                        moves.Add(new Move(from, to, MoveKind.Swap));
-                    }
-                }
-            }
-        }
-        private static void AddBombards(Board board, Side side, ModeRuntime runtime, List<Move> moves)
-        {
-            if (!runtime.Bombard(side))
-            {
-                return;
-            }
-
-            for (int i = 0; i < 64; i++)
-            {
-                Square from = Square.FromIndex(i);
-                Piece piece = board.GetPiece(from);
-                if (piece == null || piece.Side != side || piece.Type != PieceType.Rook)
-                {
-                    continue;
-                }
-
-                if (runtime.HasStatus(piece.Id, StatusKind.Stasis))
-                {
-                    continue;
-                }
-
-                for (int d = 0; d < Directions.RookFiles.Length; d++)
-                {
-                    int distance = 0;
-                    Square cursor = from.Offset(Directions.RookFiles[d], Directions.RookRanks[d]);
-                    while (cursor.IsOnBoard)
-                    {
-                        distance++;
-                        Piece occupant = board.GetPiece(cursor);
-                        if (occupant == null)
-                        {
-                            cursor = cursor.Offset(Directions.RookFiles[d], Directions.RookRanks[d]);
-                            continue;
-                        }
-
-                        if (occupant.Side != side && occupant.Type != PieceType.King && distance >= 5)
-                        {
-                            moves.Add(new Move(from, cursor, MoveKind.Bombard, capturedType: occupant.Type));
-                        }
-
-                        break;
-                    }
-                }
-            }
-        }
-        private static bool IsAllowedByRuntime(Board board, Move move, MatchRules rules, ModeRuntime runtime)
+        private static bool IsAllowedByRuntime(Board board, Move move, ModeRuntime runtime)
         {
             Piece moving = board.GetPiece(move.From);
             if (moving == null)
@@ -446,11 +350,9 @@ namespace ModularChess.Core
                     return false;
                 }
 
-                if (rules != null
-                    && rules.Has(ModeId.PowerfulPieces)
-                    && runtime.IsEmpowered(captured.Id)
+                if (runtime.IsEmpowered(captured.Id)
                     && captured.Type == PieceType.Pawn
-                    && !SuperPawn.CanCaptureFrom(PawnSquare(move), captured.Side, move.From))
+                    && !Pattern.SuperPawnAllowsCapture(PawnSquare(move), captured.Side, move.From))
                 {
                     return false;
                 }
@@ -486,33 +388,33 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException();
             }
         }
-        private static Board ApplyForLegality(Board board, Move move, ModeRuntime runtime)
+        private static Board ApplyForLegality(Board board, Move move, MatchRules rules, ModeRuntime runtime)
         {
             Piece captured = CapturedPiece(board, move);
-            if (captured != null
-                && captured.Type == PieceType.Knight
-                && runtime.ExtraLifeAvailable(captured.Id)
-                && move.Kind != MoveKind.Bombard)
+            if (captured != null)
             {
-                return board;
-            }
-
-            if (captured != null && runtime.ExtraLifeAvailable(captured.Id) && captured.Type != PieceType.Pawn)
-            {
-                return board;
+                CaptureResolution resolved = HooksOf(rules).ResolveCapture(board, move, captured, runtime);
+                if (resolved.Kind == CaptureResolutionKind.Negate)
+                {
+                    return board;
+                }
             }
 
             return board.ApplyUnchecked(move);
         }
-        private static ModeRuntime RuntimeAfterMove(Board board, Move move, ModeRuntime runtime)
+        private static ModeRuntime RuntimeAfterMove(Board board, Move move, MatchRules rules, ModeRuntime runtime)
         {
             Piece captured = CapturedPiece(board, move);
-            if (captured != null && runtime.ExtraLifeAvailable(captured.Id))
+            if (captured == null)
             {
-                return runtime.SpendExtraLife(captured.Id);
+                return runtime;
             }
 
-            return runtime;
+            return HooksOf(rules).ResolveCapture(board, move, captured, runtime).Runtime;
+        }
+        private static ModeHooks HooksOf(MatchRules rules)
+        {
+            return rules != null ? rules.Hooks : ModeHooks.None;
         }
         private static void FilterToKing(Board board, List<Move> legal, Guid kingId)
         {
