@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ModularChess.Core;
 using NUnit.Framework;
 
@@ -236,6 +237,35 @@ namespace ModularChess.Core.Tests
             Assert.IsNotNull(revived);
             Assert.AreNotEqual(pawn.Id, revived.Id);
             Assert.IsTrue(state.Runtime.IsSummoned(revived.Id));
+        }
+        [Test]
+        public void RevivalPicksAmongEmptySquaresOnTheOpenRank()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            var files = new HashSet<int>();
+            for (int n = 0; n < 32; n++)
+            {
+                GameState state = GameState.FromFen("4k3/3q4/8/8/8/8/3P4/4K3 b - - 0 1", rules);
+                state = MoveTestHelper.Play(state, "d7d2");
+                Assert.IsTrue(state.DraftPending);
+                Assert.AreEqual(Side.White, state.SideToMove);
+                state = state.ApplyDraft(MartyrPower.Revival, null, null);
+                Square? found = null;
+                for (int i = 0; i < 64; i++)
+                {
+                    Square square = Square.FromIndex(i);
+                    Piece piece = state.Board.GetPiece(square);
+                    if (piece != null && piece.Type == PieceType.Pawn && piece.Side == Side.White)
+                    {
+                        found = square;
+                        break;
+                    }
+                }
+                Assert.IsNotNull(found);
+                Assert.AreEqual(0, found.Value.Rank);
+                files.Add(found.Value.File);
+            }
+            Assert.Greater(files.Count, 1);
         }
         static void AssertOfferHasNoDuplicates(DraftOffer offer)
         {

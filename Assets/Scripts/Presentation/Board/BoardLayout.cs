@@ -37,8 +37,8 @@ namespace ModularChess.Presentation
         }
         public Vector3 CaptureSlotLocal(bool playerSide, int index)
         {
-            float x = playerSide ? -0.5f * SquareSize : (FileCount + 0.5f) * SquareSize;
-            float y = (index + 0.5f) * SquareSize * 0.55f;
+            float x = playerSide ? -1.5f * SquareSize : (FileCount + 1.5f) * SquareSize;
+            float y = (index + 0.5f) * SquareSize;
             return new Vector3(x, y, 0f);
         }
 

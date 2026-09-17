@@ -302,7 +302,7 @@ namespace ModularChess.Presentation
             bounds.Encapsulate(transform.TransformPoint(_layout.BoardSizeLocal));
             bounds.Encapsulate(transform.TransformPoint(new Vector3(_layout.BoardSizeLocal.x, 0f, 0f)));
             bounds.Encapsulate(transform.TransformPoint(new Vector3(0f, _layout.BoardSizeLocal.y, 0f)));
-            float tray = _layout.SquareSize;
+            float tray = _layout.SquareSize * 2f;
             bounds.Encapsulate(transform.TransformPoint(new Vector3(-tray, 0f, 0f)));
             bounds.Encapsulate(transform.TransformPoint(new Vector3(_layout.BoardSizeLocal.x + tray, _layout.BoardSizeLocal.y, 0f)));
             return bounds;
@@ -481,7 +481,7 @@ namespace ModularChess.Presentation
                             && (_state.Runtime.IsEmpowered(piece.Id) || _pendingEmpowered.Contains(piece.Id));
                         view.SetEmpoweredAura(empowered, piece.Side == _viewer);
                     }
-
+                    view.SetGhosted(!shadow && _state.Runtime.HasStatus(piece.Id, StatusKind.Stasis));
                     Vector3 dest = _layout.SquareCenterLocal(square, _viewer);
                     view.gameObject.SetActive(true);
                     bool summoned = identified && !shadow && _state.Runtime.IsSummoned(piece.Id);
@@ -738,6 +738,7 @@ namespace ModularChess.Presentation
                 }
                 view.BindCaptured(record.Id, record.Type, record.Side, theme);
                 view.SetEmpoweredAura(false, false);
+                view.SetGhosted(record.Exiled);
                 int index = record.Side == _viewer ? playerIndex++ : opponentIndex++;
                 Vector3 dest = _layout.CaptureSlotLocal(record.Side == _viewer, index);
                 view.gameObject.SetActive(true);
@@ -786,7 +787,7 @@ namespace ModularChess.Presentation
 
             view.gameObject.SetActive(true);
             Transform t = view.transform;
-            t.localPosition = Vector3.zero;
+            t.localPosition = new Vector3(-_layout.SquareSize * 3f, -_layout.SquareSize, 0f);
             t.localRotation = Quaternion.identity;
             return view;
         }

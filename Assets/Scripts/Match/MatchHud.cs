@@ -6,7 +6,6 @@ using ModularChess.Core;
 using ModularChess.Presentation;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace ModularChess.Match
@@ -18,8 +17,6 @@ namespace ModularChess.Match
         const float StatusFadeIn = 0.28f;
         const float StatusFadeOut = 0.5f;
         const float GameOverFade = 2.5f;
-        const float DraftDescHeight = 128f;
-        const float DraftConfirmHeight = 40f;
         static readonly Color CheckColor = new Color(0.7f, 0.1f, 0.1f, 1f);
         [SerializeField] TMP_Text turnText;
         [SerializeField] TMP_Text moveListText;
@@ -44,7 +41,6 @@ namespace ModularChess.Match
         [SerializeField] PieceDetailsPanel pieceDetails;
         [SerializeField] GameObject statusRoot;
         [SerializeField] GameObject matchChrome;
-        Tween _draftTween;
         Tween _optionsTween;
         Tween _statusTween;
         Tween _gameOverTween;
@@ -52,12 +48,7 @@ namespace ModularChess.Match
         bool _endTurnShown;
         Vector2 _endTurnRest = new Vector2(-8f, 8f);
         Action<MartyrPower> _onDraft;
-        Button _draftConfirm;
-        RectTransform _draftDescClip;
-        RectTransform _draftDescBox;
-        TMP_Text _draftDescText;
-        MartyrPower _previewPower;
-        int _previewIndex = -1;
+        bool _draftOpen;
         bool _wired;
         bool _optionsOpen;
         bool _statusVisible;
@@ -323,30 +314,52 @@ namespace ModularChess.Match
                 return;
             }
 
-            draftRow.gameObject.SetActive(true);
-            draftRow.SetAsLastSibling();
+            if (draftDescription != null)
+            {
+                draftDescription.gameObject.SetActive(false);
+            }
+
+            if (_draftOpen)
+            {
+                return;
+            }
+
+            _draftOpen = true;
             DraftOffer offer = state.Runtime.PendingDraft.Value;
             PieceType? battlefield = state.Runtime.PendingBattlefieldType ?? offer.BattlefieldType;
-            for (int i = 0; i < draftRow.childCount; i++)
+            var powers = new MartyrPower[offer.Count];
+            var choices = new List<DraftChoice>(offer.Count);
+            for (int i = 0; i < offer.Count; i++)
             {
-                Transform child = draftRow.GetChild(i);
-                if (i < offer.Count)
-                {
-                    child.gameObject.SetActive(true);
-                    SetDraftButton(i, offer.At(i), battlefield);
-                }
-                else
-                {
-                    child.gameObject.SetActive(false);
-                }
+                powers[i] = offer.At(i);
+                choices.Add(new DraftChoice(FormatPower(powers[i]), DescribePower(powers[i], battlefield)));
             }
+
+            DraftRow row = EnsureDraft();
+            row.Present(choices, index =>
+            {
+                if (index < 0 || index >= powers.Length)
+                {
+                    return;
+                }
+
+                _onDraft?.Invoke(powers[index]);
+            });
         }
         public void HideDraft()
         {
-            HideDraftInspect();
+            _draftOpen = false;
             if (draftRow != null)
             {
-                draftRow.gameObject.SetActive(false);
+                DraftRow row = draftRow.GetComponent<DraftRow>();
+                if (row != null)
+                {
+                    row.Dismiss();
+                }
+                else
+                {
+                    draftRow.gameObject.SetActive(false);
+                }
             }
 
             if (draftDescription != null)
@@ -515,6 +528,11 @@ namespace ModularChess.Match
                 {
                     draftDescription = box as RectTransform;
                 }
+            }
+
+            if (draftDescription != null)
+            {
+                draftDescription.gameObject.SetActive(false);
             }
 
             if (pieceDetails == null)
@@ -947,221 +965,15 @@ namespace ModularChess.Match
                 gameOverBanner.SetActive(false);
             }
         }
-        void SetDraftButton(int index, MartyrPower power, PieceType? battlefield)
+        DraftRow EnsureDraft()
         {
-            if (draftRow == null || index >= draftRow.childCount)
+            DraftRow row = draftRow.GetComponent<DraftRow>();
+            if (row == null)
             {
-                return;
+                row = draftRow.gameObject.AddComponent<DraftRow>();
             }
 
-            Transform child = draftRow.GetChild(index);
-            var button = child.GetComponent<Button>();
-            TMP_Text label = child.GetComponentInChildren<TMP_Text>();
-            if (label != null)
-            {
-                label.text = FormatPower(power);
-            }
-
-            if (button == null)
-            {
-                return;
-            }
-
-            button.onClick.RemoveAllListeners();
-            EventTrigger trigger = button.GetComponent<EventTrigger>();
-            if (trigger == null)
-            {
-                trigger = button.gameObject.AddComponent<EventTrigger>();
-            }
-
-            trigger.triggers.Clear();
-            MartyrPower captured = power;
-            int capturedIndex = index;
-            PieceType? capturedType = battlefield;
-            button.onClick.AddListener(() =>
-            {
-                GameAudio.PlayUi();
-                PreviewDraft(capturedIndex, captured, capturedType, child);
-            });
-            AddPointer(trigger, EventTriggerType.PointerEnter, () => PreviewDraft(capturedIndex, captured, capturedType, child));
-        }
-        void PreviewDraft(int index, MartyrPower power, PieceType? battlefield, Transform host)
-        {
-            EnsureDraftInspect();
-            if (_draftConfirm == null || host == null)
-            {
-                return;
-            }
-
-            bool same = _previewIndex == index && _draftConfirm.gameObject.activeSelf;
-            _previewIndex = index;
-            _previewPower = power;
-            if (draftRow != null)
-            {
-                draftRow.SetAsLastSibling();
-            }
-            PlaceDraftInspect(host);
-            if (_draftDescText != null)
-            {
-                _draftDescText.text = DescribePower(power, battlefield);
-            }
-
-            _draftConfirm.gameObject.SetActive(true);
-            if (_draftDescClip != null)
-            {
-                _draftDescClip.gameObject.SetActive(true);
-            }
-
-            if (same)
-            {
-                return;
-            }
-
-            SlideDraftDescription();
-        }
-        void ConfirmDraft()
-        {
-            if (_previewIndex < 0)
-            {
-                return;
-            }
-
-            _onDraft?.Invoke(_previewPower);
-        }
-        void EnsureDraftInspect()
-        {
-            if (_draftConfirm != null)
-            {
-                return;
-            }
-
-            _draftConfirm = UiFactory.Button(transform, Loc.Get("martyr.confirm"), ConfirmDraft, new Vector2(180f, DraftConfirmHeight));
-            LocalizedText.Bind(_draftConfirm, "martyr.confirm");
-            IgnoreLayout(_draftConfirm.transform);
-            _draftConfirm.gameObject.SetActive(false);
-
-            GameObject clipPrefab = RuntimePrefabs.Panel;
-            GameObject clipGo = clipPrefab != null
-                ? Instantiate(clipPrefab, _draftConfirm.transform)
-                : new GameObject("DraftDescClip", typeof(RectTransform));
-            clipGo.name = "DraftDescClip";
-            clipGo.transform.SetParent(_draftConfirm.transform, false);
-            if (clipGo.GetComponent<RectMask2D>() == null)
-            {
-                clipGo.AddComponent<RectMask2D>();
-            }
-
-            var clipImage = clipGo.GetComponent<Image>();
-            if (clipImage != null)
-            {
-                Color color = clipImage.color;
-                color.a = 0f;
-                clipImage.color = color;
-                clipImage.raycastTarget = false;
-            }
-
-            _draftDescClip = clipGo.GetComponent<RectTransform>();
-            IgnoreLayout(_draftDescClip);
-            _draftDescClip.anchorMin = new Vector2(0f, 1f);
-            _draftDescClip.anchorMax = new Vector2(1f, 1f);
-            _draftDescClip.pivot = new Vector2(0.5f, 0f);
-            _draftDescClip.anchoredPosition = Vector2.zero;
-            _draftDescClip.sizeDelta = new Vector2(0f, DraftDescHeight);
-
-            GameObject boxPrefab = RuntimePrefabs.DescriptionBox;
-            if (boxPrefab == null)
-            {
-                return;
-            }
-
-            GameObject boxGo = Instantiate(boxPrefab, _draftDescClip);
-            boxGo.name = "DescriptionBox";
-            _draftDescBox = boxGo.GetComponent<RectTransform>();
-            _draftDescBox.anchorMin = new Vector2(0f, 0f);
-            _draftDescBox.anchorMax = new Vector2(1f, 1f);
-            _draftDescBox.pivot = new Vector2(0.5f, 0f);
-            _draftDescBox.offsetMin = Vector2.zero;
-            _draftDescBox.offsetMax = Vector2.zero;
-            _draftDescText = boxGo.GetComponentInChildren<TMP_Text>(true);
-            if (_draftDescText != null)
-            {
-                _draftDescText.fontSize = 16;
-                _draftDescText.overflowMode = TextOverflowModes.Overflow;
-                _draftDescText.textWrappingMode = TextWrappingModes.Normal;
-                _draftDescText.alignment = TextAlignmentOptions.Top;
-            }
-        }
-        void PlaceDraftInspect(Transform host)
-        {
-            var confirmRect = _draftConfirm.transform as RectTransform;
-            confirmRect.SetParent(host, false);
-            confirmRect.anchorMin = new Vector2(0f, 1f);
-            confirmRect.anchorMax = new Vector2(1f, 1f);
-            confirmRect.pivot = new Vector2(0.5f, 0f);
-            confirmRect.anchoredPosition = new Vector2(0f, 4f);
-            confirmRect.sizeDelta = new Vector2(0f, DraftConfirmHeight);
-            confirmRect.SetAsLastSibling();
-        }
-        void SlideDraftDescription()
-        {
-            if (_draftDescBox == null)
-            {
-                return;
-            }
-
-            _draftTween?.Kill();
-            _draftDescBox.anchoredPosition = HiddenDraftDescPos();
-            _draftTween = DOTween.To(
-                    () => _draftDescBox.anchoredPosition,
-                    v => _draftDescBox.anchoredPosition = v,
-                    ShownDraftDescPos(),
-                    UiTime(OptionsDuration))
-                .SetEase(Ease.OutCubic)
-                .SetUpdate(true)
-                .SetTarget(_draftDescBox);
-        }
-        void HideDraftInspect()
-        {
-            _draftTween?.Kill();
-            _previewIndex = -1;
-            if (_draftConfirm != null)
-            {
-                _draftConfirm.gameObject.SetActive(false);
-            }
-
-            if (_draftDescClip != null)
-            {
-                _draftDescClip.gameObject.SetActive(false);
-            }
-        }
-        static Vector2 ShownDraftDescPos()
-        {
-            return Vector2.zero;
-        }
-        static Vector2 HiddenDraftDescPos()
-        {
-            return new Vector2(0f, -DraftDescHeight);
-        }
-        static void AddPointer(EventTrigger trigger, EventTriggerType type, UnityEngine.Events.UnityAction action)
-        {
-            var entry = new EventTrigger.Entry { eventID = type };
-            entry.callback.AddListener(_ => action());
-            trigger.triggers.Add(entry);
-        }
-        static void IgnoreLayout(Transform target)
-        {
-            if (target == null)
-            {
-                return;
-            }
-
-            var element = target.GetComponent<LayoutElement>();
-            if (element == null)
-            {
-                element = target.gameObject.AddComponent<LayoutElement>();
-            }
-
-            element.ignoreLayout = true;
+            return row;
         }
         static string DescribePower(MartyrPower power, PieceType? battlefield)
         {
@@ -1195,7 +1007,6 @@ namespace ModularChess.Match
         }
         void KillTweens()
         {
-            _draftTween?.Kill();
             _optionsTween?.Kill();
             _statusTween?.Kill();
             _gameOverTween?.Kill();

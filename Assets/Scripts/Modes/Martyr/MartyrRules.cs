@@ -358,7 +358,7 @@ namespace ModularChess.Core
                 }
                 if (empties.Count > 0)
                 {
-                    return empties[StablePick(state, side, 80 + rank, empties.Count)];
+                    return empties[UniformPick(empties.Count)];
                 }
             }
             return null;
@@ -490,6 +490,15 @@ namespace ModularChess.Core
             return state.Board.WithPiece(pawnSquare.Value, pawn.WithType(type));
         }
 
+        static int UniformPick(int count)
+        {
+            if (count <= 1)
+            {
+                return 0;
+            }
+
+            return (int)((uint)Guid.NewGuid().GetHashCode() % (uint)count);
+        }
         static int StablePick(GameState state, Side side, int salt, int count)
         {
             if (count <= 1)

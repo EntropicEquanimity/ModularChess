@@ -33,6 +33,7 @@ namespace ModularChess.Presentation
         int _bodyOrder;
         int _glyphOrder;
         bool _cachedVisuals;
+        bool _ghosted;
 
         static readonly Color AlliedAura = new Color(0.22f, 0.82f, 0.32f, 0.55f);
         static readonly Color EnemyAura = new Color(0.9f, 0.18f, 0.18f, 0.55f);
@@ -51,8 +52,8 @@ namespace ModularChess.Presentation
             name = $"{piece.Side} {piece.Type}";
             EnsureRenderers();
             CacheVisuals();
+            _ghosted = false;
             RestorePrefabVisuals();
-
             _glyph.sprite = ChessGlyphs.GetSprite(piece.Type, piece.Side);
             _glyph.enabled = true;
         }
@@ -63,6 +64,7 @@ namespace ModularChess.Presentation
             name = $"{side} {type}";
             EnsureRenderers();
             CacheVisuals();
+            _ghosted = false;
             RestorePrefabVisuals();
             _glyph.sprite = ChessGlyphs.GetSprite(type, side);
             _glyph.enabled = true;
@@ -73,6 +75,7 @@ namespace ModularChess.Presentation
             EnsureRenderers();
             CacheVisuals();
             IsShadow = true;
+            _ghosted = false;
             name = "Shadow";
             _outline.enabled = false;
             _body.enabled = true;
@@ -102,7 +105,12 @@ namespace ModularChess.Presentation
                 return;
             _outline.enabled = selected || _outlineEnabled;
         }
-
+        public void SetGhosted(bool ghosted)
+        {
+            _ghosted = ghosted;
+            ApplyGhostAlpha();
+            CaptureLiveTint();
+        }
         public void SnapTo(Vector3 localPosition)
         {
             KillMotion(invokeEnded: true);
@@ -110,7 +118,7 @@ namespace ModularChess.Presentation
             transform.localScale = _restScale;
             transform.localRotation = Quaternion.identity;
             SetLifted(false);
-            SetRenderAlpha(1f);
+            ApplyGhostAlpha();
         }
 
         public bool PlayMove(Vector3 dest, float duration, Action onEnded)
@@ -589,7 +597,7 @@ namespace ModularChess.Presentation
                 _glyph.color = _glyphColor;
             }
             CaptureLiveTint();
-            SetRenderAlpha(1f);
+            ApplyGhostAlpha();
         }
         void CaptureLiveTint()
         {
@@ -612,6 +620,10 @@ namespace ModularChess.Presentation
                 _body.color = body.Value;
             if (glyph != null && _glyph != null)
                 _glyph.color = glyph.Value;
+        }
+        void ApplyGhostAlpha()
+        {
+            SetRenderAlpha(_ghosted ? 0.45f : 1f);
         }
         void SetRenderAlpha(float alpha)
         {
