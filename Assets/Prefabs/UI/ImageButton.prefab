@@ -138,6 +138,9 @@ MonoBehaviour:
   hoverPadX: 16
   hoverPadY: 16
   duration: 0.1
+  openMinHeight: 8
+  openPop: 4
+  openDuration: 0.15
 --- !u!1 &6703841120809035302
 GameObject:
   m_ObjectHideFlags: 0

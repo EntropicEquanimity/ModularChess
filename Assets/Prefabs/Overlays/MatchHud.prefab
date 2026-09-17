@@ -345,6 +345,7 @@ GameObject:
   - component: {fileID: 2875006431165432470}
   - component: {fileID: 3509316702577012877}
   - component: {fileID: 3610516660300629474}
+  - component: {fileID: 3420407423628609400}
   m_Layer: 5
   m_Name: Options
   m_TagString: Untagged
@@ -454,6 +455,25 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &3420407423628609400
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 546695487780116631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e8a7b1d92f4e6a8c3d5f7b9e1a2c4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
+  image: {fileID: 0}
+  hoverPadX: 40
+  hoverPadY: 10
+  duration: 0.1
+  openMinHeight: 8
+  openPop: 4
+  openDuration: 0.15
 --- !u!1 &548737680657146256
 GameObject:
   m_ObjectHideFlags: 0
@@ -2095,6 +2115,7 @@ GameObject:
   - component: {fileID: 6924600975167642385}
   - component: {fileID: 2894007270926873162}
   - component: {fileID: 590164636108981720}
+  - component: {fileID: 2192737470120631752}
   m_Layer: 5
   m_Name: Leave
   m_TagString: Untagged
@@ -2204,6 +2225,25 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2192737470120631752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3819513549015671293}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e8a7b1d92f4e6a8c3d5f7b9e1a2c4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
+  image: {fileID: 0}
+  hoverPadX: 40
+  hoverPadY: 10
+  duration: 0.1
+  openMinHeight: 8
+  openPop: 4
+  openDuration: 0.15
 --- !u!1 &3864407006787108421
 GameObject:
   m_ObjectHideFlags: 0
@@ -2769,6 +2809,7 @@ GameObject:
   - component: {fileID: 8937386768802990943}
   - component: {fileID: 5868391031073988946}
   - component: {fileID: 4164570999944822423}
+  - component: {fileID: 5390163328327859958}
   m_Layer: 5
   m_Name: Resign
   m_TagString: Untagged
@@ -2878,6 +2919,25 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5390163328327859958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4324302073722372033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e8a7b1d92f4e6a8c3d5f7b9e1a2c4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
+  image: {fileID: 0}
+  hoverPadX: 40
+  hoverPadY: 10
+  duration: 0.1
+  openMinHeight: 8
+  openPop: 4
+  openDuration: 0.15
 --- !u!1 &4417275011185522329
 GameObject:
   m_ObjectHideFlags: 0
@@ -3164,6 +3224,7 @@ GameObject:
   - component: {fileID: 7570988401038995222}
   - component: {fileID: 1287519201571841329}
   - component: {fileID: 1059870657187550432}
+  - component: {fileID: 3175603102614620014}
   m_Layer: 5
   m_Name: Pause
   m_TagString: Untagged
@@ -3273,6 +3334,25 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &3175603102614620014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4598566771083650367}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e8a7b1d92f4e6a8c3d5f7b9e1a2c4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
+  image: {fileID: 0}
+  hoverPadX: 40
+  hoverPadY: 10
+  duration: 0.1
+  openMinHeight: 8
+  openPop: 4
+  openDuration: 0.15
 --- !u!1 &4967250748106175270
 GameObject:
   m_ObjectHideFlags: 0

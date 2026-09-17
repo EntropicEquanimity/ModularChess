@@ -423,10 +423,9 @@ namespace ModularChess.Match
                 },
                 _timePreset,
                 OnTimePresetChanged);
-            EnsureIncrementDropdown();
             BindDropdown(
                 matchSettingsOverlay,
-                "IncrementDropdown",
+                "ExtraTimeDropdown",
                 new[]
                 {
                     Loc.Get("settings.inc.none"),
@@ -440,7 +439,7 @@ namespace ModularChess.Match
                 },
                 _incrementPreset,
                 v => _incrementPreset = v);
-            RefreshIncrementInteractable();
+            RefreshExtraTimeVisible();
             BindDropdown(
                 matchSettingsOverlay,
                 "HostColorDropdown",
@@ -864,49 +863,27 @@ namespace ModularChess.Match
             _timePreset = value;
             if (value == 0)
                 _incrementPreset = 0;
-            RefreshIncrementInteractable();
+            RefreshExtraTimeVisible();
         }
 
-        void RefreshIncrementInteractable()
+        void RefreshExtraTimeVisible()
         {
-            Transform child = matchSettingsOverlay != null ? FindChild(matchSettingsOverlay.transform, "IncrementDropdown") : null;
-            TMP_Dropdown dropdown = child != null ? child.GetComponent<TMP_Dropdown>() : null;
-            if (dropdown == null)
+            Transform child = matchSettingsOverlay != null
+                ? FindChild(matchSettingsOverlay.transform, "ExtraTimeDropdown")
+                : null;
+            if (child == null)
                 return;
             bool on = _timePreset != 0;
-            dropdown.interactable = on;
+            TMP_Dropdown dropdown = child.GetComponent<TMP_Dropdown>();
+            if (dropdown == null)
+                dropdown = child.GetComponentInChildren<TMP_Dropdown>(true);
             if (!on)
             {
-                dropdown.value = 0;
                 _incrementPreset = 0;
+                if (dropdown != null)
+                    dropdown.SetValueWithoutNotify(0);
             }
-        }
-
-        void EnsureIncrementDropdown()
-        {
-            if (matchSettingsOverlay == null)
-                return;
-            if (FindChild(matchSettingsOverlay.transform, "IncrementDropdown") != null)
-                return;
-            Transform time = FindChild(matchSettingsOverlay.transform, "TimeDropdown");
-            if (time == null)
-                return;
-            TMP_Dropdown created = UiFactory.Dropdown(time.parent, new[] { Loc.Get("settings.inc.none") }, 0, null);
-            created.name = "IncrementDropdown";
-            created.gameObject.name = "IncrementDropdown";
-            var rect = created.GetComponent<RectTransform>();
-            var timeRect = time.GetComponent<RectTransform>();
-            rect.sizeDelta = timeRect != null ? timeRect.sizeDelta : new Vector2(200f, 32f);
-            var element = created.gameObject.GetComponent<LayoutElement>();
-            if (element == null)
-                element = created.gameObject.AddComponent<LayoutElement>();
-            element.minWidth = 200f;
-            element.preferredWidth = 200f;
-            element.minHeight = 32f;
-            element.preferredHeight = 32f;
-            element.flexibleWidth = 0f;
-            element.flexibleHeight = 0f;
-            created.transform.SetSiblingIndex(time.GetSiblingIndex() + 1);
+            child.gameObject.SetActive(on);
         }
 
         void DebugUnlockAll()
@@ -1260,6 +1237,8 @@ namespace ModularChess.Match
             if (child == null)
                 return;
             TMP_Dropdown dropdown = child.GetComponent<TMP_Dropdown>();
+            if (dropdown == null)
+                dropdown = child.GetComponentInChildren<TMP_Dropdown>(true);
             if (dropdown == null)
                 return;
             dropdown.ClearOptions();

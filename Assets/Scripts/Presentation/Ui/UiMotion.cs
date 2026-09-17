@@ -12,6 +12,9 @@ namespace ModularChess.Presentation
         [SerializeField] float hoverPadX = 40f;
         [SerializeField] float hoverPadY = 10f;
         [SerializeField] float duration = 0.1f;
+        [SerializeField] float openMinHeight = 8f;
+        [SerializeField] float openPop = 4f;
+        [SerializeField] float openDuration = 0.15f;
         Selectable _selectable;
         Tween _tween;
         Vector2 _restSize;
@@ -23,6 +26,10 @@ namespace ModularChess.Presentation
         void Awake()
         {
             Cache();
+        }
+        void OnEnable()
+        {
+            PlayOpen();
         }
         void OnDisable()
         {
@@ -100,6 +107,38 @@ namespace ModularChess.Presentation
                     target,
                     time)
                 .SetEase(Ease.OutCubic)
+                .SetUpdate(true)
+                .SetTarget(this);
+        }
+        void PlayOpen()
+        {
+            Cache();
+            if (image == null)
+                return;
+            _hover = false;
+            float time = UiAnimPrefs.MoveDuration(openDuration);
+            float startY = openMinHeight;
+            float peakY = _restSize.y + openPop;
+            _tween?.Kill();
+            image.sizeDelta = new Vector2(_restSize.x, startY);
+            if (time <= 0.001f)
+            {
+                image.sizeDelta = _restSize;
+                return;
+            }
+            Sequence sequence = DOTween.Sequence().SetUpdate(true).SetTarget(this);
+            sequence.Append(TweenHeight(peakY, time * 0.7f, Ease.OutCubic));
+            sequence.Append(TweenHeight(_restSize.y, time * 0.3f, Ease.InCubic));
+            _tween = sequence;
+        }
+        Tween TweenHeight(float height, float time, Ease ease)
+        {
+            return DOTween.To(
+                    () => image.sizeDelta.y,
+                    y => image.sizeDelta = new Vector2(_restSize.x, y),
+                    height,
+                    time)
+                .SetEase(ease)
                 .SetUpdate(true)
                 .SetTarget(this);
         }

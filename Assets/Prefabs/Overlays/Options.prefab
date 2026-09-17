@@ -117,16 +117,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5f8a1c3e7b2496d8e0f1a2b3c4d5e6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  backButton: {fileID: 0}
-  notationToggle: {fileID: 0}
-  nameLabel: {fileID: 0}
-  languageDropdown: {fileID: 0}
-  animationSlider: {fileID: 0}
-  uiAnimSlider: {fileID: 0}
-  shakeSlider: {fileID: 0}
-  musicSlider: {fileID: 0}
-  sfxSlider: {fileID: 0}
-  listParent: {fileID: 0}
+  backButton: {fileID: 6268693234095291249}
+  notationToggle: {fileID: 1098935700735318842}
+  nameLabel: {fileID: 7691604928990361039}
+  languageDropdown: {fileID: 7296565007263190168}
+  animationSlider: {fileID: 2248293937198751600}
+  uiAnimSlider: {fileID: 5555406598820241278}
+  shakeSlider: {fileID: 4644710072400359088}
+  musicSlider: {fileID: 2248293937198751444}
+  sfxSlider: {fileID: 2248293937198751304}
+  listParent: {fileID: 7208997885478172423}
 --- !u!1 &8230001001
 GameObject:
   m_ObjectHideFlags: 0
@@ -638,6 +638,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7686386932009609797, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
   m_PrefabInstance: {fileID: 8230001200}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7691604928990361039 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7691604934803255295, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
+  m_PrefabInstance: {fileID: 8230001200}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &8230001300
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -740,6 +751,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
   m_PrefabInstance: {fileID: 8230001300}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7296565007263190168 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7296565006567216652, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+  m_PrefabInstance: {fileID: 8230001300}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b743370ac3e4ec2a1668f5455a8ef8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_Dropdown
 --- !u!1001 &8230001400
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -894,7 +916,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 155
+      value: 156
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -925,6 +947,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
+--- !u!114 &2248293937198751600 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2248293941133608328, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
+  m_PrefabInstance: {fileID: 8230001400}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20756dde2267b394ba1e5905434a8117, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.OptionSliderView
 --- !u!224 &7588318753489427963 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
@@ -1084,7 +1117,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 155
+      value: 156
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -1115,6 +1148,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
+--- !u!114 &2248293937198751444 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2248293941133608328, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
+  m_PrefabInstance: {fileID: 8230001500}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20756dde2267b394ba1e5905434a8117, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.OptionSliderView
 --- !u!224 &7588318753489427551 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
@@ -1274,7 +1318,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 155
+      value: 156
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -1305,6 +1349,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
+--- !u!114 &2248293937198751304 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2248293941133608328, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
+  m_PrefabInstance: {fileID: 8230001600}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20756dde2267b394ba1e5905434a8117, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.OptionSliderView
 --- !u!224 &7588318753489427651 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
@@ -1407,6 +1462,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4a1bdb5e79655aa44adc414fc3595774, type: 3}
+--- !u!114 &1098935700735318842 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1098935704401544990, guid: 4a1bdb5e79655aa44adc414fc3595774, type: 3}
+  m_PrefabInstance: {fileID: 8230001700}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
 --- !u!224 &2477230843067850256 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2477230836986446388, guid: 4a1bdb5e79655aa44adc414fc3595774, type: 3}
@@ -1518,6 +1584,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
   m_PrefabInstance: {fileID: 8230001800}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6268693234095291249 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6268693238030215161, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
+  m_PrefabInstance: {fileID: 8230001800}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &5920913766507354870
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1672,7 +1749,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 155
+      value: 156
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -1708,6 +1785,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
   m_PrefabInstance: {fileID: 5920913766507354870}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5555406598820241278 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2248293941133608328, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
+  m_PrefabInstance: {fileID: 5920913766507354870}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20756dde2267b394ba1e5905434a8117, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.OptionSliderView
 --- !u!1001 &6865412583733898040
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1862,7 +1950,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 155
+      value: 156
       objectReference: {fileID: 0}
     - target: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -1898,3 +1986,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7588318747759724291, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
   m_PrefabInstance: {fileID: 6865412583733898040}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4644710072400359088 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2248293941133608328, guid: 0cefd5d6c8d60dd44a28a49cf54fdba9, type: 3}
+  m_PrefabInstance: {fileID: 6865412583733898040}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20756dde2267b394ba1e5905434a8117, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.OptionSliderView
