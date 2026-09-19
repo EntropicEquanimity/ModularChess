@@ -29,7 +29,7 @@ namespace ModularChess.Match
         MatchController _match;
         BoardView _board;
         MatchHud _hud;
-        bool _menuBound;
+        MainMenuView _mainMenu;
         readonly List<ModeId> _selectedModes = new List<ModeId>();
         readonly HostModeSettings _modeSettings = new HostModeSettings();
         Activity _activity;
@@ -159,23 +159,19 @@ namespace ModularChess.Match
 
         void BindMainMenu()
         {
-            if (_menuBound || mainMenu == null)
-                return;
-
-            BindButton(mainMenu, "PlayButton", ShowPlay);
-            BindButton(mainMenu, "HistoryButton", ShowHistory);
-            BindButton(mainMenu, "UnlocksButton", ShowUnlocks);
-            BindButton(mainMenu, "OptionsButton", ShowOptions);
-            BindButton(mainMenu, "CreditsButton", ShowCredits);
-            BindButton(mainMenu, "FeedbackButton", ShowFeedback);
-            BindButton(mainMenu, "ExitButton", ShowQuitConfirm);
-            Button customize = FindButton(mainMenu, "CustomizeButton");
-            if (customize != null)
-                customize.interactable = false;
-            BindMenuLoc();
+            if (mainMenu == null) return;
+            if (_mainMenu == null)
+                _mainMenu = mainMenu.GetComponent<MainMenuView>();
+            if (_mainMenu == null) return;
+            _mainMenu.Bind(
+                ShowPlay,
+                ShowHistory,
+                ShowUnlocks,
+                ShowOptions,
+                ShowCredits,
+                ShowFeedback,
+                ShowQuitConfirm);
             HookLanguage();
-            OverlayMotion.Ensure(mainMenu);
-            _menuBound = true;
         }
 
         void BindOverlays()
@@ -203,21 +199,19 @@ namespace ModularChess.Match
         void CacheOverlayViews()
         {
             if (_play == null && playOverlay != null)
-                _play = playOverlay.GetComponent<PlayOverlay>() ?? playOverlay.AddComponent<PlayOverlay>();
+                _play = playOverlay.GetComponent<PlayOverlay>();
             if (_matchSettings == null && matchSettingsOverlay != null)
-                _matchSettings = matchSettingsOverlay.GetComponent<MatchSettingsOverlay>()
-                    ?? matchSettingsOverlay.AddComponent<MatchSettingsOverlay>();
+                _matchSettings = matchSettingsOverlay.GetComponent<MatchSettingsOverlay>();
             if (_lobbyView == null && lobbyOverlay != null)
-                _lobbyView = lobbyOverlay.GetComponent<LobbyOverlay>() ?? lobbyOverlay.AddComponent<LobbyOverlay>();
+                _lobbyView = lobbyOverlay.GetComponent<LobbyOverlay>();
             if (_join == null && joinOverlay != null)
-                _join = joinOverlay.GetComponent<JoinOverlay>() ?? joinOverlay.AddComponent<JoinOverlay>();
+                _join = joinOverlay.GetComponent<JoinOverlay>();
             if (_credits == null && creditsOverlay != null)
-                _credits = creditsOverlay.GetComponent<CreditsOverlay>() ?? creditsOverlay.AddComponent<CreditsOverlay>();
+                _credits = creditsOverlay.GetComponent<CreditsOverlay>();
             if (_history == null && historyOverlay != null)
-                _history = historyOverlay.GetComponent<HistoryOverlay>() ?? historyOverlay.AddComponent<HistoryOverlay>();
+                _history = historyOverlay.GetComponent<HistoryOverlay>();
             if (_account == null && accountCreationOverlay != null)
-                _account = accountCreationOverlay.GetComponent<AccountCreationOverlay>()
-                    ?? accountCreationOverlay.AddComponent<AccountCreationOverlay>();
+                _account = accountCreationOverlay.GetComponent<AccountCreationOverlay>();
             if (_unlocks == null && unlocksOverlay != null)
                 _unlocks = unlocksOverlay.GetComponent<UnlocksView>();
         }
@@ -537,13 +531,12 @@ namespace ModularChess.Match
             CacheOverlayViews();
             if (_lobby == null)
                 return;
-            _lobbyView?.Present(_lobby.Code, _lobby.FriendSeated);
+            _lobbyView?.Present(_lobby.Code, _lobby.FriendSeated, _lobby.Rules.AllowsHotseat());
         }
 
         void SitAsFriend()
         {
-            if (_lobby == null)
-                return;
+            if (_lobby == null || !_lobby.Rules.AllowsHotseat()) return;
             _lobby.FriendSeated = true;
             ShowLobby();
         }
@@ -831,15 +824,9 @@ namespace ModularChess.Match
 
         void BindMenuLoc()
         {
-            LocalizedText.Bind(FindButton(mainMenu, "PlayButton"), "menu.play");
-            LocalizedText.Bind(FindButton(mainMenu, "HistoryButton"), "menu.history");
-            LocalizedText.Bind(FindButton(mainMenu, "UnlocksButton"), "menu.unlocks");
-            LocalizedText.Bind(FindButton(mainMenu, "OptionsButton"), "menu.options");
-            LocalizedText.Bind(FindButton(mainMenu, "CreditsButton"), "menu.credits");
-            LocalizedText.Bind(FindButton(mainMenu, "FeedbackButton"), "menu.feedback");
-            LocalizedText.Bind(FindButton(mainMenu, "ExitButton"), "menu.exit");
-            LocalizedText.Bind(FindButton(mainMenu, "CustomizeButton"), "menu.customize");
-            BindTitle(mainMenu, "menu.title");
+            if (_mainMenu == null && mainMenu != null)
+                _mainMenu = mainMenu.GetComponent<MainMenuView>();
+            _mainMenu?.RefreshLoc();
             CacheOverlayViews();
             _play?.RefreshLoc();
             _matchSettings?.RefreshLoc();
@@ -879,8 +866,7 @@ namespace ModularChess.Match
             accountCreationOverlay.name = "AccountCreation";
             accountCreationOverlay.SetActive(false);
             OverlayMotion.Ensure(accountCreationOverlay);
-            _account = accountCreationOverlay.GetComponent<AccountCreationOverlay>()
-                ?? accountCreationOverlay.AddComponent<AccountCreationOverlay>();
+            _account = accountCreationOverlay.GetComponent<AccountCreationOverlay>();
         }
 
         void EnsureFeedbackOverlay()

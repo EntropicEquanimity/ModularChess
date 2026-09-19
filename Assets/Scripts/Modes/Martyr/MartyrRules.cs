@@ -146,13 +146,13 @@ namespace ModularChess.Core
                 case MartyrPower.StasisField:
                 case MartyrPower.Rally:
                 case MartyrPower.Bombard:
+                case MartyrPower.KnightAscension:
                 case MartyrPower.Phalanx:
                     return 1;
                 case MartyrPower.Revival:
                 case MartyrPower.Exile:
                     return 3;
                 case MartyrPower.Reinforcements:
-                case MartyrPower.KnightAscension:
                 case MartyrPower.BattlefieldPromotion:
                     return int.MaxValue;
                 default:

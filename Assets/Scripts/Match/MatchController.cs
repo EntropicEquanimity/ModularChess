@@ -45,7 +45,6 @@ namespace ModularChess.Match
         float _replayWait;
         float _replaySpeed = 1f;
         bool _replayFromHistory;
-        static readonly float[] ReplaySpeeds = { 0.5f, 1f, 2f, 3f, 5f };
         const float ReplayTurnWait = 2f;
         public event Action LeftMatch;
         public event Action RematchRequested;
@@ -364,20 +363,10 @@ namespace ModularChess.Match
             hud?.SetReplayAuto(_replayAuto, _replaySpeed);
         }
 
-        public void CycleReplaySpeed()
+        public void SetReplaySpeed(float speed)
         {
-            if (!_replaying || !_replayAuto)
-                return;
-            int index = 0;
-            for (int i = 0; i < ReplaySpeeds.Length; i++)
-            {
-                if (Mathf.Approximately(ReplaySpeeds[i], _replaySpeed))
-                {
-                    index = i;
-                    break;
-                }
-            }
-            _replaySpeed = ReplaySpeeds[(index + 1) % ReplaySpeeds.Length];
+            if (!_replaying) return;
+            _replaySpeed = speed;
             hud?.SetReplayAuto(_replayAuto, _replaySpeed);
         }
 

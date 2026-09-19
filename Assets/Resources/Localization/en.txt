@@ -55,6 +55,7 @@ lobby.seated=Friend seated
 lobby.start=Start
 lobby.waitingHost=waiting for host
 lobby.sit=Sit
+lobby.sit.disabled=Sit (disabled by mode)
 lobby.leave=Leave
 join.title=Join
 join.enter=Enter

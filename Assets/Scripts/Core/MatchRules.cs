@@ -59,6 +59,15 @@ namespace ModularChess.Core
 
             return true;
         }
+        public bool AllowsHotseat()
+        {
+            for (int i = 0; i < Modes.Count; i++)
+            {
+                if (!ModeCatalog.Get(Modes[i]).AllowsHotseat)
+                    return false;
+            }
+            return true;
+        }
         #endregion
     }
 }

@@ -9,15 +9,22 @@ namespace ModularChess.Core
         public string DisplayName { get; }
         public string Summary { get; }
         public int Priority { get; }
+        public bool AllowsHotseat { get; }
         #endregion
 
         #region Public Methods
-        public ModeDefinition(ModeId id, string displayName, string summary, int priority = 0)
+        public ModeDefinition(
+            ModeId id,
+            string displayName,
+            string summary,
+            int priority = 0,
+            bool allowsHotseat = true)
         {
             Id = id;
             DisplayName = displayName ?? throw new ArgumentNullException(nameof(displayName));
             Summary = summary ?? string.Empty;
             Priority = priority;
+            AllowsHotseat = allowsHotseat;
         }
         public bool Allows(Activity activity)
         {

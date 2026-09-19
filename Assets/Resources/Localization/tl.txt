@@ -54,6 +54,7 @@ lobby.seated=Nakaupo na ang kaibigan
 lobby.start=Simulan
 lobby.waitingHost=hinihintay ang host
 lobby.sit=Umupo
+lobby.sit.disabled=Umupo (disabled by mode)
 lobby.leave=Umalis
 join.title=Sumali
 join.enter=Pasok

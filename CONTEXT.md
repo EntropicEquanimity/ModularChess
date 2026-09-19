@@ -13,7 +13,7 @@ What you came to do. MVP Activities are Versus AI and Versus Friend. Later Activ
 _Avoid_: Opponent, Mode, game mode, match type
 
 **Mode**:
-An optional rule pack that hooks Core for one Match. Never replaces Core. A Mode declares which Activities may use it. After the player picks an Activity, only those Modes are offered. Join is never on that list. The first three Modes (Fog of War, Powerful Pieces, Martyr) allow Versus AI and Versus Friend only and are compatible with each other. Later Modes include Health and Chance Combat. A Match may stack several compatible Modes; both players play that same set.
+An optional rule pack that hooks Core for one Match. Never replaces Core. A Mode declares which Activities may use it. After the player picks an Activity, only those Modes are offered. Join is never on that list. A Mode may disallow hotseat (same-device Sit in Lobby); Fog of War does. The first three Modes (Fog of War, Powerful Pieces, Martyr) allow Versus AI and Versus Friend only and are compatible with each other. Later Modes include Health and Chance Combat. A Match may stack several compatible Modes; both players play that same set.
 _Avoid_: Add-on, DLC, mod, game mode, Activity
 
 **Survivor**:
@@ -49,8 +49,8 @@ The player who authors a Versus Friend Lobby and must own every Mode in that Mat
 _Avoid_: owner, server
 
 **Lobby**:
-A Versus Friend room waiting for the second player. It ends when the Match starts or the Host leaves. If the Host leaves, the other player returns to Activity selection. If the other player leaves, the Host stays and the Join Code stays valid. Not matchmaking. The other player does not Start; they wait for the Host. No in-Match chat in MVP.
-_Avoid_: queue, server browser, matchmaking, in-Match chat
+A Versus Friend room waiting for the second player. It ends when the Match starts or the Host leaves. If the Host leaves, the other player returns to Activity selection. If the other player leaves, the Host stays and the Join Code stays valid. Sit (same-device hotseat) is disabled when any Mode in the set disallows hotseat; the Sit control is not interactable and reads Sit (disabled by mode). Not matchmaking. The other player does not Start; they wait for the Host. No in-Match chat in MVP.
+_Avoid_: queue, server browser, matchmaking, in-Match chat, hotseat Fog
 
 **Join Code**:
 A shareable code that admits a player to a Versus Friend Lobby. Not a spectator seat. Cross-play is allowed among desktop, Android, and iOS. No WebGL in MVP. On mobile this is the only join path. Steam invite is desktop-to-desktop only. No matchmaking in MVP.

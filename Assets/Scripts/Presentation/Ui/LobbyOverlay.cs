@@ -14,6 +14,7 @@ namespace ModularChess.Presentation
         [SerializeField] Button startButton;
         [SerializeField] Button leaveButton;
         [SerializeField] Transform title;
+        bool _sitAllowed = true;
         #endregion
 
         #region Public Methods
@@ -25,13 +26,15 @@ namespace ModularChess.Presentation
             GameAudio.Bind(leaveButton, onLeave);
             RefreshLoc();
         }
-        public void Present(string code, bool friendSeated)
+        public void Present(string code, bool friendSeated, bool sitAllowed = true)
         {
             Resolve();
+            _sitAllowed = sitAllowed;
             if (joinCodeLabel != null)
                 joinCodeLabel.text = Loc.Format("lobby.code", code);
             if (statusLabel != null)
                 statusLabel.text = friendSeated ? Loc.Get("lobby.seated") : Loc.Get("lobby.waiting");
+            ApplySit();
             if (startButton != null)
             {
                 startButton.interactable = friendSeated;
@@ -42,12 +45,18 @@ namespace ModularChess.Presentation
         {
             Resolve();
             LocalizedText.Bind(title, "lobby.title");
-            LocalizedText.Bind(sitButton, "lobby.sit");
+            ApplySit();
             LocalizedText.Bind(leaveButton, "lobby.leave");
         }
         #endregion
 
         #region Private Methods
+        void ApplySit()
+        {
+            if (sitButton == null) return;
+            sitButton.interactable = _sitAllowed;
+            LocalizedText.Bind(sitButton, _sitAllowed ? "lobby.sit" : "lobby.sit.disabled");
+        }
         void Resolve()
         {
             if (joinCodeLabel == null)
@@ -71,8 +80,7 @@ namespace ModularChess.Presentation
         TMP_Text LabelNamed(string name)
         {
             Transform child = FindNamed(name);
-            if (child == null)
-                return null;
+            if (child == null) return null;
             TMP_Text tmp = child.GetComponent<TMP_Text>();
             return tmp != null ? tmp : child.GetComponentInChildren<TMP_Text>(true);
         }
@@ -82,15 +90,12 @@ namespace ModularChess.Presentation
         }
         static Transform FindChild(Transform root, string name)
         {
-            if (root == null)
-                return null;
-            if (root.name == name)
-                return root;
+            if (root == null) return null;
+            if (root.name == name) return root;
             for (int i = 0; i < root.childCount; i++)
             {
                 Transform found = FindChild(root.GetChild(i), name);
-                if (found != null)
-                    return found;
+                if (found != null) return found;
             }
             return null;
         }

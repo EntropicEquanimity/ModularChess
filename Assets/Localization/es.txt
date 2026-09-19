@@ -54,6 +54,7 @@ lobby.seated=Amigo listo
 lobby.start=Empezar
 lobby.waitingHost=esperando al anfitrión
 lobby.sit=Sentarse
+lobby.sit.disabled=Sentarse (deshabilitado por modo)
 lobby.leave=Salir
 join.title=Unirse
 join.enter=Entrar

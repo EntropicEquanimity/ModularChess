@@ -32,18 +32,21 @@ namespace ModularChess.Match
         [SerializeField] Button pauseButton;
         [SerializeField] Button resignButton;
         [SerializeField] Button leaveButton;
+        [SerializeField] Button gameOverLeaveButton;
+        [SerializeField] Button replayLeaveButton;
         [SerializeField] Button rematchButton;
         [SerializeField] Button replayButton;
         [SerializeField] Button setupConfirmButton;
         [SerializeField] Button optionsButton;
         [SerializeField] Button settingsButton;
         [SerializeField] Button replayAutoButton;
-        [SerializeField] Button replaySpeedButton;
+        [SerializeField] TMP_Dropdown replaySpeedDropdown;
         [SerializeField] Button replayNextButton;
         [SerializeField] Button replayLastButton;
         [SerializeField] Button replayRestartButton;
         [SerializeField] RectTransform buttonGroup;
         [SerializeField] RectTransform replayControls;
+        static readonly float[] ReplaySpeeds = { 0.5f, 1f, 2f, 3f, 5f };
         [SerializeField] Transform draftRow;
         [SerializeField] RectTransform draftDescription;
         [SerializeField] PieceDetailsPanel pieceDetails;
@@ -151,21 +154,19 @@ namespace ModularChess.Match
             BindClick(pauseButton, controller.TogglePause);
             BindClick(resignButton, controller.Resign);
             BindClick(leaveButton, controller.LeaveToMenu);
+            BindClick(gameOverLeaveButton, controller.LeaveToMenu);
+            BindClick(replayLeaveButton, controller.LeaveToMenu);
             BindClick(rematchButton, controller.RequestRematch);
             BindClick(replayButton, controller.RequestReplay);
             BindClick(setupConfirmButton, controller.ConfirmSetup);
-            Button drawer = FindButton("OptionsButton");
-            if (drawer != null)
+            if (optionsButton == null)
+                optionsButton = FindButton("OptionsButton");
+            if (settingsButton == null || settingsButton == optionsButton)
             {
-                optionsButton = drawer;
+                Button settings = FindButtonUnder("PopoutMenu", "Options");
+                if (settings != null)
+                    settingsButton = settings;
             }
-
-            Button settings = FindButton("Options");
-            if (settings != null && settings != optionsButton)
-            {
-                settingsButton = settings;
-            }
-
             BindClick(optionsButton, ToggleOptions);
             BindClick(settingsButton, controller.OpenSettings);
             RefreshResultButtons(controller);
@@ -174,11 +175,20 @@ namespace ModularChess.Match
         {
             Wire();
             BindClick(replayAutoButton, controller.ToggleReplayAuto);
-            BindClick(replaySpeedButton, controller.CycleReplaySpeed);
             BindClick(replayNextButton, controller.ReplayNext);
             BindClick(replayLastButton, controller.ReplayLast);
             BindClick(replayRestartButton, controller.ReplayRestart);
+            BindClick(replayLeaveButton, controller.LeaveToMenu);
             BindClick(leaveButton, controller.LeaveToMenu);
+            if (replaySpeedDropdown != null)
+            {
+                replaySpeedDropdown.onValueChanged.RemoveAllListeners();
+                replaySpeedDropdown.onValueChanged.AddListener(index =>
+                {
+                    if (index >= 0 && index < ReplaySpeeds.Length)
+                        controller.SetReplaySpeed(ReplaySpeeds[index]);
+                });
+            }
         }
         public void SetReplayMode(bool enabled)
         {
@@ -193,12 +203,9 @@ namespace ModularChess.Match
                 rematchButton.gameObject.SetActive(false);
             if (replayButton != null)
                 replayButton.gameObject.SetActive(false);
-            if (resignButton != null && enabled)
-                resignButton.gameObject.SetActive(false);
-            if (pauseButton != null && enabled)
-                pauseButton.gameObject.SetActive(false);
             if (endTurnButton != null && enabled)
                 endTurnButton.gameObject.SetActive(false);
+            ApplyReplayPopout();
             if (enabled)
                 HideGameOverImmediate();
         }
@@ -218,12 +225,12 @@ namespace ModularChess.Match
                 if (label != null)
                     label.text = auto ? Loc.Get("replay.auto.on") : Loc.Get("replay.auto");
             }
-            if (replaySpeedButton != null)
+            if (replaySpeedDropdown != null)
             {
-                replaySpeedButton.gameObject.SetActive(auto);
-                TMP_Text label = replaySpeedButton.GetComponentInChildren<TMP_Text>(true);
-                if (label != null)
-                    label.text = Loc.Format("replay.speed", FormatSpeed(speed));
+                replaySpeedDropdown.gameObject.SetActive(auto);
+                int index = SpeedIndex(speed);
+                if (replaySpeedDropdown.value != index)
+                    replaySpeedDropdown.SetValueWithoutNotify(index);
             }
         }
         void RefreshResultButtons(MatchController controller)
@@ -236,34 +243,44 @@ namespace ModularChess.Match
                 rematchButton.gameObject.SetActive(over);
             if (replayButton != null)
             {
-                bool canReplay = over && MatchHistoryStore.Latest() != null && MatchHistoryStore.Latest().Replayable;
+                MatchHistoryRecord latest = MatchHistoryStore.Latest();
                 replayButton.gameObject.SetActive(over);
-                replayButton.interactable = canReplay;
+                replayButton.interactable = latest != null && latest.Replayable;
             }
         }
         void SetReplayButtonsActive(bool enabled)
         {
             SetActive(replayAutoButton, enabled);
-            SetActive(replaySpeedButton, enabled && replaySpeedButton != null && replaySpeedButton.gameObject.activeSelf);
+            if (replaySpeedDropdown != null)
+                replaySpeedDropdown.gameObject.SetActive(enabled && replaySpeedDropdown.gameObject.activeSelf);
             SetActive(replayNextButton, enabled);
             SetActive(replayLastButton, enabled);
             SetActive(replayRestartButton, enabled);
+            SetActive(replayLeaveButton, enabled);
+        }
+        void ApplyReplayPopout()
+        {
+            if (!_replayMode) return;
+            SetActive(pauseButton, false);
+            SetActive(resignButton, false);
+        }
+        static int SpeedIndex(float speed)
+        {
+            for (int i = 0; i < ReplaySpeeds.Length; i++)
+            {
+                if (Mathf.Approximately(ReplaySpeeds[i], speed))
+                    return i;
+            }
+            return 1;
         }
         static void SetActive(Button button, bool enabled)
         {
             if (button != null)
                 button.gameObject.SetActive(enabled);
         }
-        static string FormatSpeed(float speed)
-        {
-            if (Mathf.Approximately(speed, 0.5f))
-                return "0.5";
-            return Mathf.RoundToInt(speed).ToString();
-        }
         static string FormatReplayHeadline(MatchHistoryRecord record)
         {
-            if (record == null)
-                return Loc.Get("replay.headline");
+            if (record == null) return Loc.Get("replay.headline");
             string date = FormatEndedAt(record.endedAtUnix);
             string activity = record.activity == (int)Activity.VersusFriend
                 ? Loc.Get("play.versusFriend")
@@ -275,8 +292,7 @@ namespace ModularChess.Match
         }
         static string FormatEndedAt(long unix)
         {
-            if (unix <= 0)
-                return string.Empty;
+            if (unix <= 0) return string.Empty;
             try
             {
                 return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("g");
@@ -288,8 +304,7 @@ namespace ModularChess.Match
         }
         static string FormatModeNames(int[] modes)
         {
-            if (modes == null || modes.Length == 0)
-                return string.Empty;
+            if (modes == null || modes.Length == 0) return string.Empty;
             var names = new List<string>(modes.Length);
             for (int i = 0; i < modes.Length; i++)
                 names.Add(Loc.ModeName((ModeId)modes[i]));
@@ -418,10 +433,14 @@ namespace ModularChess.Match
         }
         public void SetPauseVisible(bool visible)
         {
+            if (_replayMode)
+                visible = false;
             SetActive(pauseButton, visible);
         }
         public void SetResignVisible(bool visible)
         {
+            if (_replayMode)
+                visible = false;
             SetActive(resignButton, visible);
         }
         public void SetSetupConfirm(bool visible, bool interactable, bool opponentReady)
@@ -652,58 +671,46 @@ namespace ModularChess.Match
 
             if (buttonGroup == null)
             {
-                Transform group = FindChild(transform, "ButtonGroup");
-                if (group != null)
+                Transform popout = FindChild(transform, "PopoutMenu");
+                if (popout != null)
+                    buttonGroup = popout as RectTransform;
+                else
                 {
-                    buttonGroup = group as RectTransform;
+                    Transform group = FindChild(transform, "ButtonGroup");
+                    if (group != null)
+                        buttonGroup = group as RectTransform;
                 }
             }
-
             if (leaveButton == null)
-            {
-                leaveButton = FindButton("Leave");
-            }
-
+                leaveButton = FindButtonUnder("PopoutMenu", "Leave");
+            if (gameOverLeaveButton == null)
+                gameOverLeaveButton = FindButtonUnder("GameOverBanner", "Leave");
+            if (replayLeaveButton == null)
+                replayLeaveButton = FindButtonUnder("ReplayHUD", "Leave");
             if (rematchButton == null)
-                rematchButton = FindButton("Rematch");
+                rematchButton = FindButtonUnder("GameOverBanner", "Rematch");
             if (replayButton == null)
-                replayButton = FindButton("Replay");
-            EnsureResultButton(ref rematchButton, "Rematch", leaveButton);
-            EnsureResultButton(ref replayButton, "Replay", leaveButton);
+                replayButton = FindButtonUnder("GameOverBanner", "Replay");
             if (replayControls == null)
             {
-                Transform found = FindChild(transform, "ReplayControls");
+                Transform found = FindChild(transform, "ReplayHUD");
                 if (found != null)
                     replayControls = found as RectTransform;
             }
-            if (replayControls == null && buttonGroup != null)
-            {
-                var go = new GameObject("ReplayControls", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-                go.transform.SetParent(buttonGroup, false);
-                replayControls = go.GetComponent<RectTransform>();
-                var layout = go.GetComponent<HorizontalLayoutGroup>();
-                layout.spacing = 8f;
-                layout.childAlignment = TextAnchor.MiddleCenter;
-                layout.childForceExpandWidth = false;
-                layout.childForceExpandHeight = false;
-                go.SetActive(false);
-            }
             if (replayAutoButton == null)
-                replayAutoButton = FindButton("ReplayAuto");
-            if (replaySpeedButton == null)
-                replaySpeedButton = FindButton("ReplaySpeed");
+                replayAutoButton = FindButtonUnder("ReplayHUD", "ReplayAuto");
+            if (replaySpeedDropdown == null)
+            {
+                Transform speed = FindChild(FindChild(transform, "ReplayHUD"), "ReplaySpeed");
+                if (speed != null)
+                    replaySpeedDropdown = speed.GetComponent<TMP_Dropdown>();
+            }
             if (replayNextButton == null)
-                replayNextButton = FindButton("ReplayNext");
+                replayNextButton = FindButtonUnder("ReplayHUD", "Next");
             if (replayLastButton == null)
-                replayLastButton = FindButton("ReplayLast");
+                replayLastButton = FindButtonUnder("ReplayHUD", "Last");
             if (replayRestartButton == null)
-                replayRestartButton = FindButton("ReplayRestart");
-            EnsureReplayControl(ref replayAutoButton, "ReplayAuto");
-            EnsureReplayControl(ref replaySpeedButton, "ReplaySpeed");
-            EnsureReplayControl(ref replayNextButton, "ReplayNext");
-            EnsureReplayControl(ref replayLastButton, "ReplayLast");
-            EnsureReplayControl(ref replayRestartButton, "ReplayRestart");
-            ParentReplayControls();
+                replayRestartButton = FindButtonUnder("ReplayHUD", "Restart");
 
             if (setupConfirmButton == null)
             {
@@ -802,11 +809,13 @@ namespace ModularChess.Match
             LocalizedText.Bind(pauseButton, "hud.pause");
             LocalizedText.Bind(resignButton, "hud.resign");
             LocalizedText.Bind(leaveButton, "hud.leave");
+            LocalizedText.Bind(gameOverLeaveButton, "hud.leave");
+            LocalizedText.Bind(replayLeaveButton, "hud.leave");
             LocalizedText.Bind(rematchButton, "hud.rematch");
             LocalizedText.Bind(replayButton, "hud.replay");
             LocalizedText.Bind(setupConfirmButton, "hud.setupConfirm");
             LocalizedText.Bind(settingsButton, "menu.options");
-            LocalizedText.Bind(FindButton("Options"), "menu.options");
+            LocalizedText.Bind(FindButtonUnder("PopoutMenu", "Options"), "menu.options");
             LocalizedText.Bind(replayAutoButton, "replay.auto");
             LocalizedText.Bind(replayNextButton, "replay.next");
             LocalizedText.Bind(replayLastButton, "replay.last");
@@ -1350,55 +1359,16 @@ namespace ModularChess.Match
 
             return Loc.Format("hud.bot", difficulty);
         }
-        void EnsureResultButton(ref Button button, string name, Button sibling)
-        {
-            if (button != null || buttonGroup == null)
-                return;
-            GameObject prefab = RuntimePrefabs.TextButton;
-            if (prefab == null)
-                return;
-            GameObject instance = Instantiate(prefab, buttonGroup);
-            instance.name = name;
-            button = instance.GetComponent<Button>();
-            if (sibling != null)
-                instance.transform.SetSiblingIndex(sibling.transform.GetSiblingIndex());
-            instance.SetActive(false);
-        }
-        void EnsureReplayControl(ref Button button, string name)
-        {
-            if (button != null)
-                return;
-            Transform parent = replayControls != null ? replayControls : (Transform)buttonGroup;
-            if (parent == null)
-                return;
-            GameObject prefab = RuntimePrefabs.TextButton;
-            if (prefab == null)
-                return;
-            GameObject instance = Instantiate(prefab, parent);
-            instance.name = name;
-            button = instance.GetComponent<Button>();
-            instance.SetActive(false);
-        }
-        void ParentReplayControls()
-        {
-            if (replayControls == null)
-                return;
-            MoveUnder(replayAutoButton, replayControls);
-            MoveUnder(replaySpeedButton, replayControls);
-            MoveUnder(replayNextButton, replayControls);
-            MoveUnder(replayLastButton, replayControls);
-            MoveUnder(replayRestartButton, replayControls);
-        }
-        static void MoveUnder(Button button, Transform parent)
-        {
-            if (button == null || parent == null)
-                return;
-            if (button.transform.parent != parent)
-                button.transform.SetParent(parent, false);
-        }
         Button FindButton(string name)
         {
             Transform child = FindChild(transform, name);
+            return child != null ? child.GetComponent<Button>() : null;
+        }
+        Button FindButtonUnder(string parentName, string buttonName)
+        {
+            Transform parent = FindChild(transform, parentName);
+            if (parent == null) return null;
+            Transform child = FindChild(parent, buttonName);
             return child != null ? child.GetComponent<Button>() : null;
         }
         static void BindClick(Button button, UnityEngine.Events.UnityAction action)

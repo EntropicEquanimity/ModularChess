@@ -467,6 +467,7 @@ MonoBehaviour:
   unlocksOverlay: {fileID: 9300500003}
   optionsOverlay: {fileID: 9300600003}
   creditsOverlay: {fileID: 9300700003}
+  historyOverlay: {fileID: 2124830332}
   accountCreationOverlay: {fileID: 9300800003}
   feedbackOverlay: {fileID: 9300900003}
   match: {fileID: 910000005}
@@ -566,6 +567,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2124830332 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4468423598701187311, guid: 0bf297c985fcf9c48922c187209d2696, type: 3}
+  m_PrefabInstance: {fileID: 4129894825518158375}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &9100100001
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2237,6 +2243,22 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6213382642583973942, guid: 0bf297c985fcf9c48922c187209d2696, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6213382642583973952, guid: 0bf297c985fcf9c48922c187209d2696, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6213382642583973952, guid: 0bf297c985fcf9c48922c187209d2696, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6213382642583973952, guid: 0bf297c985fcf9c48922c187209d2696, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6213382642583973952, guid: 0bf297c985fcf9c48922c187209d2696, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
