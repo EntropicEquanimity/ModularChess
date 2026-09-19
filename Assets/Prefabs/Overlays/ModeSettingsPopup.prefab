@@ -305,7 +305,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Fog of War
+  m_text: Powerful Pieces
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -408,6 +408,7 @@ GameObject:
   - component: {fileID: 1323627049977326061}
   - component: {fileID: 6341499848019816920}
   - component: {fileID: 4137679100705905593}
+  - component: {fileID: 2710373259891864423}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -534,6 +535,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2710373259891864423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3827416976811608450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
+  key: mode.settings.close
+  label: {fileID: 4137679100705905593}
 --- !u!1 &3975884200311677057
 GameObject:
   m_ObjectHideFlags: 0
@@ -650,8 +665,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: You see Squares in Vision. Shadow marks a ray one Square beyond. Hidden
-    occupancy is unknown.
+  m_text: Each Side empowers N Pieces in Setup. Each Core PieceType has one power.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -1021,7 +1035,7 @@ MonoBehaviour:
   closeButton: {fileID: 8661582976166766990}
   title: {fileID: 901379128143165463}
   summary: {fileID: 5544637866562702781}
-  fields: {fileID: 8769681804116887052}
+  fields: {fileID: 3952424552331222558}
   settingsControlPrefab: {fileID: 6238522664044639229, guid: 318e171c2e146434f9aec465fdc229a1, type: 3}
 --- !u!1001 &1455725555698553089
 PrefabInstance:
@@ -1133,7 +1147,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7892538062008669962, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 128
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7892538062008669962, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1186,13 +1200,36 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2515844913831268127, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -999830658431247982}
   m_SourcePrefab: {fileID: 100100000, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
---- !u!1 &8769681804116887052 stripped
+--- !u!1 &3952424552331222558 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2515844913831268127, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
   m_PrefabInstance: {fileID: 1455725555698553089}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &-999830658431247982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3952424552331222558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: 8
+  m_PreferredWidth: -1
+  m_PreferredHeight: 8
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!224 &8769681804116887051 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7892538062008669962, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}

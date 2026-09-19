@@ -19,6 +19,7 @@ namespace ModularChess.Match
         [SerializeField] GameObject unlocksOverlay;
         [SerializeField] GameObject optionsOverlay;
         [SerializeField] GameObject creditsOverlay;
+        [SerializeField] GameObject historyOverlay;
         [SerializeField] GameObject accountCreationOverlay;
         [SerializeField] GameObject feedbackOverlay;
         [SerializeField] MatchController match;
@@ -37,6 +38,7 @@ namespace ModularChess.Match
         LobbyOverlay _lobbyView;
         JoinOverlay _join;
         CreditsOverlay _credits;
+        HistoryOverlay _history;
         AccountCreationOverlay _account;
         UnlocksView _unlocks;
         LocalLobby _lobby;
@@ -47,6 +49,8 @@ namespace ModularChess.Match
         bool _locHooked;
         bool _pausedForOptions;
         bool _optionsHooked;
+        MatchSession _lastSession;
+        int _historyReturnIndex = -1;
 
         public void Initialize()
         {
@@ -60,7 +64,11 @@ namespace ModularChess.Match
         {
             ResolveReferences();
             if (_match != null)
+            {
                 _match.LeftMatch += ShowMainMenu;
+                _match.RematchRequested += OnRematchRequested;
+                _match.ReplayLeftToHistory += OnReplayLeftToHistory;
+            }
             BindMainMenu();
             BindOverlays();
             GameAudio.Ensure();
@@ -71,7 +79,11 @@ namespace ModularChess.Match
         {
             Loc.Changed -= OnLanguageChanged;
             if (_match != null)
+            {
                 _match.LeftMatch -= ShowMainMenu;
+                _match.RematchRequested -= OnRematchRequested;
+                _match.ReplayLeftToHistory -= OnReplayLeftToHistory;
+            }
             UnhookOptionsOverlay();
         }
 
@@ -79,11 +91,9 @@ namespace ModularChess.Match
         {
             if (_dialogs == null)
                 _dialogs = OverlayDialogs.Ensure(transform);
-
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null)
                 return;
-
             if (keyboard[Key.Backquote].wasPressedThisFrame)
                 HandleGrave();
             if (keyboard.escapeKey.wasPressedThisFrame)
@@ -98,12 +108,15 @@ namespace ModularChess.Match
             if (_gravePresses.Count < 4)
                 return;
             _gravePresses.Clear();
+            if (_dialogs == null)
+                _dialogs = OverlayDialogs.Ensure(transform);
+            if (_dialogs == null)
+                return;
             if (_dialogs.DebugOpen)
             {
                 _dialogs.HideDebugImmediate();
                 return;
             }
-
             _dialogs.ShowDebug(DebugResetSave, DebugUnlockAll, DebugWin, DebugLose, DebugResetTimer);
         }
 
@@ -138,6 +151,7 @@ namespace ModularChess.Match
                 unlocksOverlay,
                 optionsOverlay,
                 creditsOverlay,
+                historyOverlay,
                 accountCreationOverlay,
                 feedbackOverlay
             };
@@ -149,6 +163,7 @@ namespace ModularChess.Match
                 return;
 
             BindButton(mainMenu, "PlayButton", ShowPlay);
+            BindButton(mainMenu, "HistoryButton", ShowHistory);
             BindButton(mainMenu, "UnlocksButton", ShowUnlocks);
             BindButton(mainMenu, "OptionsButton", ShowOptions);
             BindButton(mainMenu, "CreditsButton", ShowCredits);
@@ -176,6 +191,8 @@ namespace ModularChess.Match
             _join?.Bind(EnterJoinCode, ShowPlay);
             _unlocks?.Bind(ShowMainMenu);
             _credits?.Bind(ShowMainMenu);
+            EnsureHistoryOverlay();
+            _history?.Bind(ShowMainMenu, StartHistoryReplay);
             HookOptionsOverlay();
             BindAccountCreation();
             BindMenuLoc();
@@ -196,6 +213,8 @@ namespace ModularChess.Match
                 _join = joinOverlay.GetComponent<JoinOverlay>() ?? joinOverlay.AddComponent<JoinOverlay>();
             if (_credits == null && creditsOverlay != null)
                 _credits = creditsOverlay.GetComponent<CreditsOverlay>() ?? creditsOverlay.AddComponent<CreditsOverlay>();
+            if (_history == null && historyOverlay != null)
+                _history = historyOverlay.GetComponent<HistoryOverlay>() ?? historyOverlay.AddComponent<HistoryOverlay>();
             if (_account == null && accountCreationOverlay != null)
                 _account = accountCreationOverlay.GetComponent<AccountCreationOverlay>()
                     ?? accountCreationOverlay.AddComponent<AccountCreationOverlay>();
@@ -381,6 +400,56 @@ namespace ModularChess.Match
             ShowOverlay(creditsOverlay);
         }
 
+        void ShowHistory()
+        {
+            EnsureHistoryOverlay();
+            CacheOverlayViews();
+            ShowOverlay(historyOverlay);
+            _history?.Refresh();
+            if (_historyReturnIndex >= 0)
+            {
+                _history?.SelectIndex(_historyReturnIndex);
+                _historyReturnIndex = -1;
+            }
+        }
+
+        void StartHistoryReplay(MatchHistoryRecord record)
+        {
+            if (record == null || !record.Replayable || _match == null)
+                return;
+            _historyReturnIndex = _history != null ? _history.SelectedIndex : -1;
+            ShowBoard();
+            _match.LaunchReplay(record, fromHistory: true);
+            GameAudio.PlayMatchMusic();
+        }
+
+        void OnReplayLeftToHistory()
+        {
+            ShowHistory();
+            GameAudio.PlayMenuMusic();
+        }
+
+        void OnRematchRequested()
+        {
+            if (_lastSession == null || _match == null)
+                return;
+            if (_lastSession.Activity == Activity.VersusFriend)
+            {
+                ShowMainMenu();
+                OpenPrep(Activity.VersusFriend);
+                return;
+            }
+            MatchSession next = new MatchSession
+            {
+                Activity = _lastSession.Activity,
+                Rules = _lastSession.Rules,
+                PlayerSide = ResolveColor(_lastSession.Rules.Settings.HostColor),
+                Hotseat = _lastSession.Hotseat,
+                JoinCode = _lastSession.JoinCode
+            };
+            StartMatch(next);
+        }
+
         void ShowFeedback()
         {
             EnsureFeedbackOverlay();
@@ -519,6 +588,8 @@ namespace ModularChess.Match
         {
             if (_dialogs == null)
                 _dialogs = OverlayDialogs.Ensure(transform);
+            if (_dialogs == null)
+                return;
             _dialogs.ShowQuit(ExitGame, () => _dialogs.HideQuit());
         }
 
@@ -526,7 +597,7 @@ namespace ModularChess.Match
         {
             if (_dialogs == null)
                 _dialogs = OverlayDialogs.Ensure(transform);
-            if (_dialogs.CloseTop())
+            if (_dialogs != null && _dialogs.CloseTop())
                 return;
             if (IsActive(accountCreationOverlay))
             {
@@ -549,6 +620,11 @@ namespace ModularChess.Match
 
             if (_match != null && _match.IsPlaying && _board != null && _board.gameObject.activeSelf)
             {
+                if (_match.IsReplaying)
+                {
+                    _match.LeaveToMenu();
+                    return;
+                }
                 _hud?.ToggleOptions();
                 return;
             }
@@ -574,7 +650,8 @@ namespace ModularChess.Match
                 return;
             }
 
-            if (IsActive(unlocksOverlay) || IsActive(optionsOverlay) || IsActive(creditsOverlay) || IsActive(feedbackOverlay))
+            if (IsActive(unlocksOverlay) || IsActive(optionsOverlay) || IsActive(creditsOverlay)
+                || IsActive(historyOverlay) || IsActive(feedbackOverlay))
             {
                 ShowMainMenu();
                 return;
@@ -641,11 +718,24 @@ namespace ModularChess.Match
 
         void StartMatch(MatchSession session)
         {
+            _lastSession = session;
             ShowBoard();
             if (_match == null)
                 _match = FindAnyObjectByType<MatchController>();
             _match.Launch(session);
             GameAudio.PlayMatchMusic();
+        }
+
+        void EnsureHistoryOverlay()
+        {
+            if (historyOverlay != null)
+                return;
+            GameObject prefab = RuntimePrefabs.History;
+            if (prefab == null)
+                return;
+            historyOverlay = Instantiate(prefab, transform);
+            historyOverlay.name = "History";
+            historyOverlay.SetActive(false);
         }
 
         TimeControl TimeFromPreset(int timePreset, int incrementPreset)
@@ -742,6 +832,7 @@ namespace ModularChess.Match
         void BindMenuLoc()
         {
             LocalizedText.Bind(FindButton(mainMenu, "PlayButton"), "menu.play");
+            LocalizedText.Bind(FindButton(mainMenu, "HistoryButton"), "menu.history");
             LocalizedText.Bind(FindButton(mainMenu, "UnlocksButton"), "menu.unlocks");
             LocalizedText.Bind(FindButton(mainMenu, "OptionsButton"), "menu.options");
             LocalizedText.Bind(FindButton(mainMenu, "CreditsButton"), "menu.credits");
@@ -755,6 +846,7 @@ namespace ModularChess.Match
             _lobbyView?.RefreshLoc();
             _join?.RefreshLoc();
             _credits?.RefreshLoc();
+            _history?.RefreshLoc();
             _account?.RefreshLoc();
             LocalizedText.Bind(FindButton(unlocksOverlay, "BackButton"), "play.back");
             BindTitle(unlocksOverlay, "menu.unlocks");

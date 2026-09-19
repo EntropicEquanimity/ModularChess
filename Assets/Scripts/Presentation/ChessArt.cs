@@ -6,20 +6,44 @@ namespace ModularChess.Presentation
 {
     public static class ChessArt
     {
+        const string ResourcesName = "ChessArt";
+        const string EditorAssetPath = "Assets/Resources/ChessArt.asset";
+        static ChessArtSet _set;
+
         public static Sprite Get(PieceType type, Side side)
         {
-            string path = PathFor(type, side);
+            ChessArtSet set = Set;
+            if (set != null)
+            {
+                Sprite fromSet = set.Get(type, side);
+                if (fromSet != null)
+                    return fromSet;
+            }
 #if UNITY_EDITOR
+            string path = PathFor(type, side);
             if (!string.IsNullOrEmpty(path))
             {
                 Sprite sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
                 if (sprite != null)
-                {
                     return sprite;
-                }
             }
 #endif
             return null;
+        }
+
+        static ChessArtSet Set
+        {
+            get
+            {
+                if (_set != null)
+                    return _set;
+                _set = Resources.Load<ChessArtSet>(ResourcesName);
+#if UNITY_EDITOR
+                if (_set == null)
+                    _set = UnityEditor.AssetDatabase.LoadAssetAtPath<ChessArtSet>(EditorAssetPath);
+#endif
+                return _set;
+            }
         }
 
         static string PathFor(PieceType type, Side side)
@@ -50,7 +74,6 @@ namespace ModularChess.Presentation
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
-
             return $"Assets/Sprites/Simple_Chess_by_skyel/{folder}/{name}";
         }
     }

@@ -37,7 +37,7 @@ A Play-screen action that enters a Versus Friend Lobby with a Join Code. Not an 
 _Avoid_: Activity, Opponent, watcher
 
 **Play**:
-Main-menu path to pick Versus AI, Versus Friend, or Join. Then Mode multi-select (only Modes allowed for that Activity), each Mode’s settings, then Versus AI starts after confirm or Versus Friend goes to Lobby. Match Settings stay on the left until Start. Main menu also has Unlocks, a disabled Customize control, Options, Credits, Exit, and Feedback (Google Form). Escape closes the top popup, then the overlay, back toward the main menu.
+Main-menu path to pick Versus AI, Versus Friend, or Join. Then Mode multi-select (only Modes allowed for that Activity), each Mode’s settings, then Versus AI starts after confirm or Versus Friend goes to Lobby. Match Settings stay on the left until Start. Main menu also has History, Unlocks, a disabled Customize control, Options, Credits, Exit, and Feedback (Google Form). Escape closes the top popup, then the overlay, back toward the main menu.
 _Avoid_: Opponent row
 
 **Exit**:
@@ -61,20 +61,32 @@ One playthrough of Versus AI or Versus Friend: Core, Match Settings, and one sha
 _Avoid_: game, game mode, Activity
 
 **Match history**:
-A stored record of a finished Match: Moves as Square from–to plus a small Move kind and promotion PieceType; seconds the Match clock was actually ticking (both Sides; not Setup, Draft, Disconnect, or Pause; increment does not add; none stores 0); the Mode set and those Modes’ settings; Match Settings (main time, increment, resolved Host Side, Versus AI strength); and result (0 White, 1 Black, 2 Draw). No mover PieceType. Written only for a complete Match: Checkmate, Draw (including Stalemate and FIDE draws), Timeout, Resign, and Disconnect (that Side loses). Not Setup Leave. Not the Game. Not live notation. Bombard is one live Move (the Rook stays) and two history actions: from→target, then target→from. An Empowered King’s extra Move is two live Moves and two history actions; no synthetic return.
-_Avoid_: game history, PGN as the store, Host as the winner field, Bombard as a single from–to that looks like a slide-capture
+A stored record of a finished Match, written only for a complete Match: Checkmate, Draw (including Stalemate and FIDE draws), Timeout, Resign, and Disconnect (that Side loses). Not Setup Leave. Not the Game. Not live notation. Payload is a compact event log for re-simulation: history actions (Square from–to, Move kind, promotion PieceType), Setup Empowered picks, Draft picks and targets, and Mode settings — enough to rebuild Piece identity, PieceType, Empowered, Status, and summons. Also stores clock seconds actually ticking (both Sides; not Setup, Draft, Disconnect, or Pause; increment does not add; none stores 0), the Mode set and those Modes’ settings, Match Settings (main time, increment, resolved Host Side, Versus AI strength), result (0 White, 1 Black, 2 Draw), and when the Match ended. Bombard is one live Move and two history actions: from→target, then target→from. An Empowered King’s extra Move is two history actions. Replay re-sims this log; it does not write a second store. Records that lack the event-log payload stay listed in History but cannot open Replay. Versus Friend: each device writes its own local record when the Match completes.
+_Avoid_: game history, PGN as the store, Host as the winner field, Bombard as a single from–to that looks like a slide-capture, Replay as the store, full Board snapshot per action, Host-only Match history
+
+**History**:
+Main-menu overlay of past Match history records. Scroll list, newest first, capped at N records (default 10; Options slider 5–50 in steps of 5; oldest drop when over cap). Lowering the cap in Options drops oldest records immediately until the list fits. No clear-all and no per-row delete — only the cap drops oldest. Each row shows date/time, Activity as `Versus AI` or `Versus Friend` (Joiners also show `Versus Friend`, not `Join`), Mode names, and result as Win, Loss, or Draw from this player’s Side (not White/Black/Draw). Tap a row to select it. Bottom controls: Replay (opens Replay for the selected row; disabled if none selected or the record is not Replayable) and Back. Records that lack the event-log payload stay listed but are not Replayable. Empty list shows a short empty-state line (“No matches yet”) with Replay disabled. History is main-menu only — not available mid-Match or mid-Replay. Not Match history (the store). Not Replay (the session).
+_Avoid_: Replay menu, save browser, unlimited keep-all, History mid-Match, White/Black as the row result, Join as the History Activity label, clear History
+
+**Replay**:
+A viewing session of one Replayable Match history record. Uses the normal Match Board and Match HUD, not a separate screen. Not interactive play. Match clocks are hidden. Controls at the bottom: Auto play, Auto play speed (shown only while Auto play is on), Next Move, Last Move, Restart, Leave. No Draft cards, no Mode popups. Next/Last advance one history action per click. Next on the final action and Last on the opening are no-ops. Setup picks and Draft results apply instantly with no UI when that event is reached. Auto play advances actions; the wait applies when a Turn ends. Default Turn wait is 2 seconds; speed is a multiplier on that wait: 0.5×, 1×, 2×, 3×, 5×. When Auto play reaches the final action, it stops and stays on the end position. Tapping Next, Last, or Restart while Auto play is on stops Auto play, then applies that control. Entered from Results Replay or from History’s Replay. Restart resets to the opening position of that record. Leave ends the Replay (from Results path → main menu; from History path → History with the same row still selected). Escape does the same as Leave. Options is not available mid-Replay. Match HUD top line is `Replaying · {date} · {Activity} · {Mode names}`, replacing the Side-to-move line. Notation follows Options “show notation”; when shown, lines are the full true log as actions advance (no Fog-obscured lines). Capture tray / lost material updates as captures re-sim, same as a live Match. Board clicks are view-only and do not attempt Moves. Piece clicks play `tap.wav` and may show status; empty/Hidden-looking Squares play `piece-move.wav`; never invalid-click. Replay Vision is review: Fog regions stay marked, but Pieces are always shown identified, and Empowered/Status auras show whenever those marks exist. Not Rematch. Not a live Match.
+_Avoid_: Play Again, Rematch, spectator as Join, editing history, 3s default wait, Draft UI in Replay, Match clocks in Replay, Fog-obscured notation in Replay, Options mid-Replay, interactive Moves in Replay
+
+**Results**:
+The game-over panel after a Match ends. Bottom button group only: Rematch, Replay, Leave. Replay dismisses Results and opens a Replay of this Match’s history at the opening position. Leave returns to the main menu. Rematch follows Rematch. Not Options.
+_Avoid_: Play Again, extra Results actions beyond that trio, Results kept under Replay
 
 **Rematch**:
-From Results, keep the same Modes and Match Settings. Versus Friend: new Lobby, same Host, same Join Code if the friend is still on Results; Host Starts; new Setup. Random Host color re-rolls. Versus AI: Confirm starts a new Match immediately. Either player may leave to Activity selection. If the friend already left, Host returns to Activity selection.
-_Avoid_: skip Setup, keep last Empowered set
+From Results, keep the same Modes and Match Settings. Versus Friend: new Lobby, same Host, same Join Code if the friend is still on Results; Host Starts; new Setup. Random Host color re-rolls. Versus AI: Confirm starts a new Match immediately. Either player may leave to Activity selection. If the friend already left, Host returns to Activity selection. Versus Friend Rematch waits for the other player; if they Leave, that control greys out and reads that they left.
+_Avoid_: Play Again, skip Setup, keep last Empowered set
 
 **Match Settings**:
 Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control is two Host picks: main time (default none; none, Bullet 1 minute, Blitz 5 minutes, Rapid 15 minutes, Standard 30 minutes, or Extended 120 minutes) and increment (none, 1, 2, 5, 10, 15, 30, or 60 seconds). When main time is none, increment is none and that control is hidden. 0+0 is none. Host color (White, Black, or Random; White or Black shows in the Lobby immediately, Random resolves at Start before Setup), Versus AI strength (Easy, Medium, Hard; the AI uses the same Vision as a human — strength is play quality, not omniscience), and whether a Side may End Turn with zero Moves this Turn (default off).
 _Avoid_: Base Settings, Time Pressure, Options, delay clock, hourglass, 0+0 as a second None, combined 10+5 labels, custom minutes
 
 **Options**:
-Account and app settings. Includes show notation. Not a Match and not Customization. With Fog of War, notation is per-Side: your Moves are full; opponent Moves are full only if you had Vision on the relevant Squares, otherwise a generic line. After the Match, a full true PGN is available.
-_Avoid_: Match Settings, Customization, live true notation under Fog
+Account and app settings. Includes show notation and History list size (default 10; slider 5–50 in steps of 5). Main-menu only — not available mid-Match or mid-Replay. Not a Match and not Customization. With Fog of War, notation is per-Side: your Moves are full; opponent Moves are full only if you had Vision on the relevant Squares, otherwise a generic line. After the Match, a full true PGN is available.
+_Avoid_: Match Settings, Customization, live true notation under Fog, Options mid-Match
 
 **Unlocks**:
 The catalog of Modes the player can Buy. Each Mode is shown owned or not; Buy happens on a covering popup, not on the row. MVP Buys Modes. Later also Activities and Customization. Core, Versus AI, Versus Friend, and Join are not Bought here. Ownership is per platform (Steam, iOS, Android), not synced across platforms in MVP. Versus Friend: the Host must own the Mode set; the friend downloads missing content and need not own.
@@ -109,8 +121,8 @@ One file and rank on the Board (a1–h8 in Core).
 _Avoid_: tile, cell, position
 
 **Board**:
-Occupancy of Pieces on Squares. Core is 8×8 until a Mode changes it. A King is not replaced by placing another Piece on its Square. Not a Match Setting.
-_Avoid_: map, grid
+Occupancy of Pieces on Squares. Core is 8×8 until a Mode changes it. A King is not replaced by placing another Piece on its Square. Not a Match Setting. During a live Match, Square clicks: invalid-click SFX only when the player attempts an illegal Move (not on casual empty clicks or other non-Move taps). Clicking a Piece (yours or the opponent’s) plays `Assets/Audio/tap.wav` and may show that Piece’s status. Clicking an empty Square — including one that only holds a Hidden Piece — plays `Assets/Audio/piece-move.wav`. Replay uses the same inspect/empty-tile SFX and never plays invalid-click.
+_Avoid_: map, grid, invalid-click on every empty tap
 
 **Pattern**:
 A Piece’s movement and capture geometry on the Board. Legal Moves, Attack, and Vision use it. Not legal Moves. Not Vision. Not a Mode.

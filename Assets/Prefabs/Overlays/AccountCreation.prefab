@@ -116,11 +116,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1b2c3d4e5f64789a0b1c2d3e4f50605, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nameInput: {fileID: 0}
-  languageDropdown: {fileID: 0}
-  confirmButton: {fileID: 0}
-  title: {fileID: 0}
-  languageLabel: {fileID: 0}
+  nameInput: {fileID: 6627303382072148974}
+  languageDropdown: {fileID: 5736708778414844112}
+  confirmButton: {fileID: 568056351681520430}
+  title: {fileID: 7686386933827024553}
+  languageLabel: {fileID: 8652450587955047942}
 --- !u!1 &8168315283164129830
 GameObject:
   m_ObjectHideFlags: 0
@@ -569,6 +569,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+--- !u!114 &5736708778414844112 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7296565006567216652, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+  m_PrefabInstance: {fileID: 3089039485354393308}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b743370ac3e4ec2a1668f5455a8ef8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_Dropdown
 --- !u!224 &9206510368782191302 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
@@ -708,6 +719,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1262155772023396937, guid: a6f7edac49cea4c4a9306006597c54c8, type: 3}
   m_PrefabInstance: {fileID: 5251193426850408340}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6627303382072148974 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1380095766620480634, guid: a6f7edac49cea4c4a9306006597c54c8, type: 3}
+  m_PrefabInstance: {fileID: 5251193426850408340}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da0c512f12947e489f739169773d7ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_InputField
 --- !u!1001 &5844822894282966231
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -814,3 +836,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
   m_PrefabInstance: {fileID: 5844822894282966231}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &568056351681520430 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6268693238030215161, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
+  m_PrefabInstance: {fileID: 5844822894282966231}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button

@@ -27,6 +27,9 @@ namespace ModularChess.Presentation
         const string ScrollViewPath = "Assets/Prefabs/UI/Components/Scroll View.prefab";
         const string AccountCreationPath = "Assets/Prefabs/Overlays/AccountCreation.prefab";
         const string FeedbackSurveyPath = "Assets/Prefabs/Overlays/FeedbackSurvey.prefab";
+        const string OverlayDialogsPath = "Assets/Prefabs/Overlays/OverlayDialogs.prefab";
+        const string DebugMenuPath = "Assets/Prefabs/Popup/DebugMenu.prefab";
+        const string HistoryPath = "Assets/Prefabs/Overlays/History.prefab";
 
         public static GameObject Canvas => Load(CanvasPath, "UI/Canvas");
         public static GameObject TextButton => Load(ButtonPath, "UI/TextButton");
@@ -51,6 +54,9 @@ namespace ModularChess.Presentation
         public static GameObject ScrollView => Load(ScrollViewPath, "UI/Scroll View");
         public static GameObject AccountCreation => Load(AccountCreationPath, "Overlays/AccountCreation");
         public static GameObject FeedbackSurvey => Load(FeedbackSurveyPath, "Overlays/FeedbackSurvey");
+        public static GameObject OverlayDialogs => Load(OverlayDialogsPath, "Overlays/OverlayDialogs");
+        public static GameObject DebugMenu => Load(DebugMenuPath, "Popup/DebugMenu");
+        public static GameObject History => Load(HistoryPath, "Overlays/History");
 
         static GameObject Load(string assetPath, string resourcesName)
         {

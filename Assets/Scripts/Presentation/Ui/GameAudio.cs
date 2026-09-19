@@ -80,6 +80,12 @@ namespace ModularChess.Presentation
             audio.PlayOne(audio.pieceSelect);
         }
 
+        public static void PlayTap()
+        {
+            GameAudio audio = Ensure();
+            audio.PlayOne(audio.uiTap);
+        }
+
         public static void PlayMove()
         {
             GameAudio audio = Ensure();

@@ -39,11 +39,11 @@ namespace ModularChess.Presentation
         public static ModeSettingsPopup Ensure(Transform overlayRoot)
         {
             ModeSettingsPopup existing = overlayRoot.GetComponentInChildren<ModeSettingsPopup>(true);
-            if (existing != null)
+            if (existing != null && existing.gameObject.scene.IsValid())
                 return existing;
 
             GameObject prefab = RuntimePrefabs.ModeSettingsPopup;
-            if (prefab == null)
+            if (prefab == null || overlayRoot == null || !overlayRoot.gameObject.scene.IsValid())
                 return null;
 
             GameObject go = UnityEngine.Object.Instantiate(prefab, overlayRoot);
@@ -204,7 +204,13 @@ namespace ModularChess.Presentation
             if (content != null)
             {
                 for (int i = content.childCount - 1; i >= 0; i--)
-                    DestroyImmediate(content.GetChild(i).gameObject);
+                {
+                    GameObject child = content.GetChild(i).gameObject;
+                    if (Application.isPlaying)
+                        Destroy(child);
+                    else
+                        DestroyImmediate(child);
+                }
             }
 
             bool hasFields = id != ModeId.FogOfWar;
@@ -233,7 +239,7 @@ namespace ModularChess.Presentation
 
         void AddStepper(Transform content, string label, Func<int> get, Action<int> set, int min, int max)
         {
-            if (content == null || settingsControlPrefab == null)
+            if (content == null || !content.gameObject.scene.IsValid() || settingsControlPrefab == null)
                 return;
 
             GameObject go = Instantiate(settingsControlPrefab, content);

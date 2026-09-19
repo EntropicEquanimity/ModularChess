@@ -117,6 +117,8 @@ namespace ModularChess.Presentation
                 title = FindChild(transform, "Title");
             if (selectionRowPrefab == null)
                 selectionRowPrefab = RuntimePrefabs.SelectionRow;
+            if (modeSettingsPopup != null && !modeSettingsPopup.gameObject.scene.IsValid())
+                modeSettingsPopup = null;
             if (modeSettingsPopup == null)
                 modeSettingsPopup = ModeSettingsPopup.Ensure(transform);
         }

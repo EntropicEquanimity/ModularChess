@@ -1,5 +1,4 @@
 using ModularChess.Presentation;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -8,52 +7,55 @@ namespace ModularChess.Match
 {
     public sealed class OverlayDialogs : MonoBehaviour
     {
-        GameObject _quit;
-        GameObject _debug;
+        #region Fields
+        [SerializeField] GameObject background;
+        [SerializeField] GameObject quitConfirm;
+        [SerializeField] GameObject debugMenu;
+        [SerializeField] GameObject debugMenuPrefab;
+        bool _woken;
+        #endregion
 
-        public bool QuitOpen => _quit != null && _quit.activeSelf;
-        public bool DebugOpen => _debug != null && _debug.activeSelf;
-
+        #region Public Methods
+        public bool QuitOpen => quitConfirm != null && quitConfirm.activeSelf;
+        public bool DebugOpen => debugMenu != null && debugMenu.activeSelf;
+        public bool IsOpen => QuitOpen || DebugOpen;
         public static OverlayDialogs Ensure(Transform parent)
         {
-            OverlayDialogs existing = parent.GetComponentInChildren<OverlayDialogs>(true);
+            OverlayDialogs existing = parent != null
+                ? parent.GetComponentInChildren<OverlayDialogs>(true)
+                : FindAnyObjectByType<OverlayDialogs>(FindObjectsInactive.Include);
             if (existing != null)
+            {
+                existing.Wake();
                 return existing;
-            var go = new GameObject("OverlayDialogs", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(OverlayDialogs));
-            go.transform.SetParent(parent, false);
-            var canvas = go.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 300;
-            canvas.pixelPerfect = true;
-            var scaler = go.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(960f, 540f);
-            scaler.referencePixelsPerUnit = 16f;
-            var rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            go.SetActive(true);
-            return go.GetComponent<OverlayDialogs>();
+            }
+            GameObject prefab = RuntimePrefabs.OverlayDialogs;
+            if (prefab == null || parent == null)
+                return null;
+            GameObject go = Instantiate(prefab, parent);
+            go.name = "OverlayDialogs";
+            OverlayDialogs dialogs = go.GetComponent<OverlayDialogs>();
+            if (dialogs == null)
+                dialogs = go.AddComponent<OverlayDialogs>();
+            dialogs.Wake();
+            go.SetActive(false);
+            return dialogs;
         }
-
         public void ShowQuit(UnityAction confirm, UnityAction cancel)
         {
+            Wake();
             HideDebugImmediate();
-            if (_quit == null)
-                _quit = BuildPanel("QuitConfirm", "dialog.quit.title", new[] { "dialog.yes", "dialog.close" });
-            BindButtons(_quit, new[] { confirm, cancel });
-            _quit.SetActive(true);
-            transform.SetAsLastSibling();
+            if (quitConfirm == null)
+                return;
+            BindButtons(quitConfirm, new[] { confirm, cancel ?? HideQuit });
+            Present(quitConfirm);
         }
-
         public void HideQuit()
         {
-            if (_quit != null)
-                _quit.SetActive(false);
+            if (quitConfirm != null)
+                quitConfirm.SetActive(false);
+            RefreshChrome();
         }
-
         public void ShowDebug(
             UnityAction resetSave,
             UnityAction unlockAll,
@@ -61,34 +63,22 @@ namespace ModularChess.Match
             UnityAction lose,
             UnityAction resetTimer)
         {
+            Wake();
             HideQuit();
-            if (_debug == null)
-            {
-                _debug = BuildPanel(
-                    "DebugMenu",
-                    "dialog.debug",
-                    new[]
-                    {
-                        "dialog.resetSave",
-                        "dialog.unlockAll",
-                        "dialog.win",
-                        "dialog.lose",
-                        "dialog.resetTimer",
-                        "dialog.close"
-                    });
-            }
-
-            BindButtons(_debug, new[] { resetSave, unlockAll, win, lose, resetTimer, HideDebugImmediate });
-            _debug.SetActive(true);
-            transform.SetAsLastSibling();
+            EnsureDebugMenu();
+            if (debugMenu == null)
+                return;
+            BindButtons(
+                debugMenu,
+                new[] { resetSave, unlockAll, win, lose, resetTimer, HideDebugImmediate });
+            Present(debugMenu);
         }
-
         public void HideDebugImmediate()
         {
-            if (_debug != null)
-                _debug.SetActive(false);
+            if (debugMenu != null)
+                debugMenu.SetActive(false);
+            RefreshChrome();
         }
-
         public bool CloseTop()
         {
             if (DebugOpen)
@@ -96,52 +86,74 @@ namespace ModularChess.Match
                 HideDebugImmediate();
                 return true;
             }
-
             if (QuitOpen)
             {
                 HideQuit();
                 return true;
             }
-
             return false;
         }
+        #endregion
 
-        GameObject BuildPanel(string name, string titleKey, string[] buttonKeys)
+        #region Private Methods
+        void Wake()
         {
-            RectTransform panel = UiFactory.Panel(transform, new Vector2(420f, 40f + buttonKeys.Length * 40f + 48f));
-            panel.name = name;
-            panel.anchorMin = new Vector2(0.5f, 0.5f);
-            panel.anchorMax = new Vector2(0.5f, 0.5f);
-            panel.anchoredPosition = Vector2.zero;
-            var layout = panel.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(16, 16, 16, 16);
-            layout.spacing = 8;
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.childControlWidth = true;
-            layout.childControlHeight = false;
-            layout.childForceExpandWidth = true;
-            TMP_Text heading = UiFactory.Label(panel, Loc.Get(titleKey), 32, TextAlignmentOptions.Center);
-            heading.color = Color.black;
-            LocalizedText.Bind(heading, titleKey);
-            var headingElement = heading.gameObject.AddComponent<LayoutElement>();
-            headingElement.minHeight = 40f;
-            headingElement.preferredHeight = 40f;
-            for (int i = 0; i < buttonKeys.Length; i++)
+            if (_woken)
+                return;
+            if (background == null)
             {
-                Button button = UiFactory.Button(panel, Loc.Get(buttonKeys[i]), null, new Vector2(200f, 32f));
-                button.name = buttonKeys[i];
-                LocalizedText.Bind(button, buttonKeys[i]);
-                var element = button.gameObject.AddComponent<LayoutElement>();
-                element.minWidth = 200f;
-                element.preferredWidth = 200f;
-                element.minHeight = 32f;
-                element.preferredHeight = 32f;
+                Transform child = transform.Find("BG");
+                if (child != null)
+                    background = child.gameObject;
             }
-
-            panel.gameObject.SetActive(false);
-            return panel.gameObject;
+            if (quitConfirm == null)
+            {
+                Transform child = transform.Find("QuitConfirm");
+                if (child != null)
+                    quitConfirm = child.gameObject;
+            }
+            if (debugMenu == null)
+            {
+                Transform child = transform.Find("DebugMenu");
+                if (child != null)
+                    debugMenu = child.gameObject;
+            }
+            EnsureDebugMenu();
+            if (background != null)
+                background.SetActive(false);
+            if (quitConfirm != null)
+                quitConfirm.SetActive(false);
+            if (debugMenu != null)
+                debugMenu.SetActive(false);
+            _woken = true;
         }
-
+        void EnsureDebugMenu()
+        {
+            if (debugMenu != null)
+                return;
+            GameObject prefab = debugMenuPrefab != null ? debugMenuPrefab : RuntimePrefabs.DebugMenu;
+            if (prefab == null)
+                return;
+            debugMenu = Instantiate(prefab, transform);
+            debugMenu.name = "DebugMenu";
+            debugMenu.SetActive(false);
+        }
+        void Present(GameObject panel)
+        {
+            gameObject.SetActive(true);
+            transform.SetAsLastSibling();
+            if (background != null)
+                background.SetActive(true);
+            panel.SetActive(true);
+        }
+        void RefreshChrome()
+        {
+            if (IsOpen)
+                return;
+            if (background != null)
+                background.SetActive(false);
+            gameObject.SetActive(false);
+        }
         static void BindButtons(GameObject root, UnityAction[] actions)
         {
             Button[] buttons = root.GetComponentsInChildren<Button>(true);
@@ -149,8 +161,10 @@ namespace ModularChess.Match
             for (int i = 0; i < count; i++)
             {
                 buttons[i].onClick.RemoveAllListeners();
-                GameAudio.Bind(buttons[i], actions[i]);
+                if (actions[i] != null)
+                    GameAudio.Bind(buttons[i], actions[i]);
             }
         }
+        #endregion
     }
 }

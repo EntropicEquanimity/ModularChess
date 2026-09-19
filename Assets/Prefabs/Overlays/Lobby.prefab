@@ -117,12 +117,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1b2c3d4e5f64789a0b1c2d3e4f50602, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  joinCodeLabel: {fileID: 0}
-  statusLabel: {fileID: 0}
-  sitButton: {fileID: 0}
-  startButton: {fileID: 0}
-  leaveButton: {fileID: 0}
-  title: {fileID: 0}
+  joinCodeLabel: {fileID: 7691604929011887377}
+  statusLabel: {fileID: 7691604929011887375}
+  sitButton: {fileID: 6268693234149254411}
+  startButton: {fileID: 6268693234149254413}
+  leaveButton: {fileID: 6268693234149254415}
+  title: {fileID: 7686386933765793961}
 --- !u!1 &8220001001
 GameObject:
   m_ObjectHideFlags: 0
@@ -438,6 +438,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7686386932009609797, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
   m_PrefabInstance: {fileID: 8220001006}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7691604929011887377 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7691604934803255295, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
+  m_PrefabInstance: {fileID: 8220001006}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &8220001008
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -553,6 +564,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7686386932009609797, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
   m_PrefabInstance: {fileID: 8220001008}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7691604929011887375 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7691604934803255295, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
+  m_PrefabInstance: {fileID: 8220001008}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &8220001010
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -659,6 +681,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
   m_PrefabInstance: {fileID: 8220001010}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6268693234149254411 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6268693238030215161, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
+  m_PrefabInstance: {fileID: 8220001010}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &8220001012
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -765,6 +798,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
   m_PrefabInstance: {fileID: 8220001012}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6268693234149254413 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6268693238030215161, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
+  m_PrefabInstance: {fileID: 8220001012}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1001 &8220001014
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -871,3 +915,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
   m_PrefabInstance: {fileID: 8220001014}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6268693234149254415 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6268693238030215161, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
+  m_PrefabInstance: {fileID: 8220001014}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button

@@ -12,6 +12,7 @@ namespace ModularChess.Presentation
         public event Action<bool> MatchChromeHidden;
 
         [SerializeField] float squareSize = 1f;
+        [SerializeField] float captureSpacing = 0.7f;
         [SerializeField] BoardTheme theme;
         [SerializeField] bool allowSelectionWhenFinished;
         [SerializeField] bool buildOnAwake = true;
@@ -60,7 +61,8 @@ namespace ModularChess.Presentation
         }
         public Square? SelectedSquare => _selected;
         public float SquareSize => _built ? _layout.SquareSize : squareSize;
-        public BoardLayout Layout => _built ? _layout : new BoardLayout(squareSize);
+        public BoardLayout Layout => _built ? _layout : new BoardLayout(squareSize, captureSpacing);
+        public bool ReviewVision { get; set; }
 
         public bool AllowSelectionWhenFinished
         {
@@ -350,7 +352,7 @@ namespace ModularChess.Presentation
         void Build()
         {
             EnsureTheme();
-            _layout = new BoardLayout(squareSize);
+            _layout = new BoardLayout(squareSize, captureSpacing);
             EnsureRoots();
 
             for (int file = 0; file < BoardLayout.FileCount; file++)
@@ -455,7 +457,7 @@ namespace ModularChess.Presentation
                     }
 
                     SquareSight sight = _vision[square];
-                    if (sight == SquareSight.Hidden && piece.Side != _viewer)
+                    if (sight == SquareSight.Hidden && piece.Side != _viewer && !ReviewVision)
                         continue;
 
                     _seenIds.Add(piece.Id);
@@ -468,8 +470,8 @@ namespace ModularChess.Presentation
                     }
 
                     bool wasShadow = view.IsShadow;
-                    bool shadow = sight == SquareSight.Shadow && piece.Side != _viewer;
-                    bool identified = sight == SquareSight.Identified || piece.Side == _viewer;
+                    bool shadow = !ReviewVision && sight == SquareSight.Shadow && piece.Side != _viewer;
+                    bool identified = ReviewVision || sight == SquareSight.Identified || piece.Side == _viewer;
                     if (shadow)
                     {
                         view.BindShadow(_layout.SquareSize, theme);
@@ -976,7 +978,7 @@ namespace ModularChess.Presentation
 
         void OnDrawGizmosSelected()
         {
-            BoardLayout layout = Application.isPlaying && _built ? _layout : new BoardLayout(squareSize);
+            BoardLayout layout = Application.isPlaying && _built ? _layout : new BoardLayout(squareSize, captureSpacing);
             Vector3 center = transform.TransformPoint(layout.BoardCenterLocal);
             Vector3 size = transform.TransformVector(layout.BoardSizeLocal);
             Gizmos.color = new Color(1f, 1f, 1f, 0.3f);

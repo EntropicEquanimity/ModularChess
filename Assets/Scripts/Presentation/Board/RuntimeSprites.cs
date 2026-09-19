@@ -4,6 +4,9 @@ namespace ModularChess.Presentation
 {
     internal static class RuntimeSprites
     {
+        const string OutlineBodyEditorPath = "Assets/Sprites/Effects/OutlineBody.png";
+        const string OutlineBodyResourcesName = "Effects/OutlineBody";
+        const string PointSpriteName = "point";
         static Sprite _pixel;
         static Sprite _circle;
         static Sprite _lock;
@@ -38,16 +41,41 @@ namespace ModularChess.Presentation
             get
             {
                 if (_circle == null)
-                    _circle = CreateCircle(64, 64f);
+                    _circle = LoadNamedSprite(OutlineBodyEditorPath, OutlineBodyResourcesName, PointSpriteName)
+                        ?? CreateCircle(64, 64f);
                 return _circle;
             }
+        }
+
+        static Sprite LoadNamedSprite(string editorPath, string resourcesName, string spriteName)
+        {
+#if UNITY_EDITOR
+            Object[] editorAssets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(editorPath);
+            if (editorAssets != null)
+            {
+                for (int i = 0; i < editorAssets.Length; i++)
+                {
+                    if (editorAssets[i] is Sprite editorSprite && editorSprite.name == spriteName)
+                        return editorSprite;
+                }
+            }
+#endif
+            Sprite[] loaded = Resources.LoadAll<Sprite>(resourcesName);
+            if (loaded == null)
+                return null;
+            for (int i = 0; i < loaded.Length; i++)
+            {
+                if (loaded[i] != null && loaded[i].name == spriteName)
+                    return loaded[i];
+            }
+            return null;
         }
 
         static Sprite CreateSolid(int size, float pixelsPerUnit)
         {
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
             {
-                filterMode = FilterMode.Bilinear,
+                filterMode = FilterMode.Point,
                 wrapMode = TextureWrapMode.Clamp,
                 hideFlags = HideFlags.HideAndDontSave
             };
@@ -74,7 +102,7 @@ namespace ModularChess.Presentation
         {
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
             {
-                filterMode = FilterMode.Bilinear,
+                filterMode = FilterMode.Point,
                 wrapMode = TextureWrapMode.Clamp,
                 hideFlags = HideFlags.HideAndDontSave
             };

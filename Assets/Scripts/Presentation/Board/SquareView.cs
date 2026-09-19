@@ -40,8 +40,7 @@ namespace ModularChess.Presentation
             _overlay.enabled = false;
 
             _marker = FindRenderer("Marker") ?? CreateRenderer("Marker", BoardRenderOrder.Legal);
-            if (_marker.sprite == null)
-                _marker.sprite = RuntimeSprites.Circle;
+            _marker.sprite = RuntimeSprites.Circle;
             _marker.transform.localScale = new Vector3(size * 0.32f, size * 0.32f, 1f);
             _marker.enabled = false;
 

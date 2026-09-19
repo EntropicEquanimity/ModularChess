@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7c4e91f2b8d4e6a9c1f3d5e7b0a2c4d, type: 3}
+  m_Name: ChessArt
+  m_EditorClassIdentifier: 
+  whitePawn: {fileID: 21300000, guid: 78141671f29637e4eb9a850d0b160219, type: 3}
+  whiteKnight: {fileID: 21300000, guid: 7f22bfb94b53b37468eb829be859d398, type: 3}
+  whiteBishop: {fileID: 21300000, guid: c50b0819c9a05be4bb8c795190a131e7, type: 3}
+  whiteRook: {fileID: 21300000, guid: 8514ddd88beb168419a0ff0d3b9df30e, type: 3}
+  whiteQueen: {fileID: 21300000, guid: 1e58c56cdf8a0fc4bb22c822885b106a, type: 3}
+  whiteKing: {fileID: 21300000, guid: b5c021c7aab95b449b0d6c31cc001983, type: 3}
+  blackPawn: {fileID: 21300000, guid: 6f70fe69a4a58ed488e498072fb9f583, type: 3}
+  blackKnight: {fileID: 21300000, guid: ff04cdc9c55d35745ad1379d96f35aeb, type: 3}
+  blackBishop: {fileID: 21300000, guid: 48b41e8267884d446938c4d5e4ae9e90, type: 3}
+  blackRook: {fileID: 21300000, guid: 7affd90bd727e8f4f98b13a1d7595d9b, type: 3}
+  blackQueen: {fileID: 21300000, guid: 8b933aea674d773439cd67553718f492, type: 3}
+  blackKing: {fileID: 21300000, guid: 106e311487e389848ac332dbf106a14d, type: 3}

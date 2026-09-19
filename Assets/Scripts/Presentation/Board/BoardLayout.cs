@@ -8,12 +8,14 @@ namespace ModularChess.Presentation
         public const int FileCount = 8;
         public const int RankCount = 8;
 
-        public BoardLayout(float squareSize)
+        public BoardLayout(float squareSize, float captureSpacing = 0f)
         {
             SquareSize = squareSize > 0f ? squareSize : 1f;
+            CaptureSpacing = captureSpacing > 0f ? captureSpacing : SquareSize;
         }
 
         public float SquareSize { get; }
+        public float CaptureSpacing { get; }
 
         public Vector3 BoardCenterLocal => new Vector3(
             FileCount * SquareSize * 0.5f,
@@ -38,7 +40,7 @@ namespace ModularChess.Presentation
         public Vector3 CaptureSlotLocal(bool playerSide, int index)
         {
             float x = playerSide ? -1.5f * SquareSize : (FileCount + 1.5f) * SquareSize;
-            float y = (index + 0.5f) * SquareSize;
+            float y = (index + 0.5f) * CaptureSpacing;
             return new Vector3(x, y, 0f);
         }
 

@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   squareSize: 2
+  captureSpacing: 1
   theme:
     LightSquare: {r: 0, g: 0, b: 0, a: 0}
     DarkSquare: {r: 0, g: 0, b: 0, a: 0}

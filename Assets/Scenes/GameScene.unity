@@ -622,6 +622,10 @@ PrefabInstance:
       propertyPath: squareSize
       value: 1.5
       objectReference: {fileID: 0}
+    - target: {fileID: 1900002, guid: 75e3779890ec4681bb70a20b63a485cd, type: 3}
+      propertyPath: captureSpacing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1900003, guid: 75e3779890ec4681bb70a20b63a485cd, type: 3}
       propertyPath: pickCamera
       value: 

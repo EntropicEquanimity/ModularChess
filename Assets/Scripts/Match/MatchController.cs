@@ -26,6 +26,7 @@ namespace ModularChess.Match
         int _setupConfirms;
         readonly List<Guid> _whitePicks = new List<Guid>();
         readonly List<Guid> _blackPicks = new List<Guid>();
+        readonly List<MatchHistoryEvent> _historyEvents = new List<MatchHistoryEvent>();
         MatchClock _clock;
         bool _historyWritten;
         bool _draftTiming;
@@ -37,10 +38,25 @@ namespace ModularChess.Match
         readonly List<Square> _reinforcementPicks = new List<Square>();
         Square? _hovered;
         Guid? _pinnedPieceId;
+        bool _replaying;
+        MatchHistoryRecord _replayRecord;
+        int _replayIndex;
+        bool _replayAuto;
+        float _replayWait;
+        float _replaySpeed = 1f;
+        bool _replayFromHistory;
+        static readonly float[] ReplaySpeeds = { 0.5f, 1f, 2f, 3f, 5f };
+        const float ReplayTurnWait = 2f;
         public event Action LeftMatch;
+        public event Action RematchRequested;
+        public event Action ReplayRequested;
+        public event Action ReplayLeftToHistory;
 
         public GameState State => _state;
         public bool IsPlaying => _session != null && _state != null;
+        public bool IsReplaying => _replaying;
+        public bool ReplayFromHistory => _replayFromHistory;
+        public MatchHistoryRecord ReplayRecord => _replayRecord;
 
         public void Configure(BoardView view, PromotionPicker picker, MatchHud matchHud)
         {
@@ -85,6 +101,12 @@ namespace ModularChess.Match
         {
             if (_session == null || _state == null)
                 return;
+
+            if (_replaying)
+            {
+                TickReplay();
+                return;
+            }
 
             if (_paused)
             {
@@ -163,6 +185,14 @@ namespace ModularChess.Match
             _hovered = null;
             _pinnedPieceId = null;
             _paused = false;
+            _replaying = false;
+            _replayRecord = null;
+            _replayIndex = 0;
+            _replayAuto = false;
+            _replayWait = 0f;
+            _replaySpeed = 1f;
+            _replayFromHistory = false;
+            _historyEvents.Clear();
             _clock = new MatchClock(session.Rules.Settings.Time);
             _historyWritten = false;
             _draftTiming = false;
@@ -173,9 +203,12 @@ namespace ModularChess.Match
             _aiWait = -1f;
             boardView?.CompleteMotion();
             boardView?.SetMotionPaused(false);
+            if (boardView != null)
+                boardView.ReviewVision = false;
             BoardCamera.ClearTrauma();
             hud?.SetDeferGameOver(false);
             hud?.SetMatchChromeVisible(true);
+            hud?.SetReplayMode(false);
             hud?.BindActions(this);
             if (promotionPicker != null)
                 promotionPicker.Hide();
@@ -204,6 +237,11 @@ namespace ModularChess.Match
 
         public void LeaveToMenu()
         {
+            if (_replaying)
+            {
+                EndReplay();
+                return;
+            }
             if (_state != null && _state.Status == GameStatus.InProgress)
             {
                 _state = _state.WithTerminal(_inSetup ? GameStatus.Aborted : GameStatus.Resign);
@@ -219,9 +257,210 @@ namespace ModularChess.Match
             boardView?.ClearTargeting();
             boardView?.SetPendingEmpowered(null);
             boardView?.CompleteMotion();
+            if (boardView != null)
+                boardView.ReviewVision = false;
             hud?.HidePieceDetails();
             hud?.SetSetupConfirm(false, false, false);
+            hud?.SetReplayMode(false);
             LeftMatch?.Invoke();
+        }
+
+        public void RequestRematch()
+        {
+            if (_replaying || _session == null)
+                return;
+            RematchRequested?.Invoke();
+        }
+
+        public void RequestReplay()
+        {
+            if (_replaying)
+                return;
+            MatchHistoryRecord record = MatchHistoryStore.Latest();
+            if (record == null || !record.Replayable)
+                return;
+            ReplayRequested?.Invoke();
+            LaunchReplay(record, fromHistory: false);
+        }
+
+        public void LaunchReplay(MatchHistoryRecord record, bool fromHistory)
+        {
+            if (record == null || !record.Replayable)
+                return;
+            _replayRecord = record;
+            _replayFromHistory = fromHistory;
+            _replaying = true;
+            _replayIndex = 0;
+            _replayAuto = false;
+            _replayWait = 0f;
+            _replaySpeed = 1f;
+            _session = MatchHistoryStore.SessionFrom(record);
+            _state = MatchHistoryPlayback.StartingState(record);
+            _pendingPromotions = null;
+            ClearSelection();
+            _whitePicks.Clear();
+            _blackPicks.Clear();
+            _setupConfirms = 0;
+            _hovered = null;
+            _pinnedPieceId = null;
+            _paused = false;
+            _inSetup = false;
+            _historyWritten = true;
+            _historyEvents.Clear();
+            _draftTiming = false;
+            _draftTargeting = null;
+            _draftTargets.Clear();
+            _reinforcementPicks.Clear();
+            _aiWait = -1f;
+            _clock = null;
+            Subscribe();
+            boardView?.CompleteMotion();
+            boardView?.SetMotionPaused(false);
+            if (boardView != null)
+                boardView.ReviewVision = true;
+            BoardCamera.ClearTrauma();
+            hud?.SetDeferGameOver(false);
+            hud?.SetMatchChromeVisible(true);
+            hud?.SetReplayMode(true);
+            hud?.BindActions(this);
+            hud?.BindReplay(this);
+            promotionPicker?.Hide();
+            RefreshPresentation();
+        }
+
+        public void ReplayNext()
+        {
+            if (!_replaying)
+                return;
+            StopReplayAuto();
+            StepReplay(1);
+        }
+
+        public void ReplayLast()
+        {
+            if (!_replaying)
+                return;
+            StopReplayAuto();
+            StepReplay(-1);
+        }
+
+        public void ReplayRestart()
+        {
+            if (!_replaying || _replayRecord == null)
+                return;
+            StopReplayAuto();
+            _replayIndex = 0;
+            _state = MatchHistoryPlayback.StartingState(_replayRecord);
+            ClearSelection();
+            RefreshPresentation();
+        }
+
+        public void ToggleReplayAuto()
+        {
+            if (!_replaying)
+                return;
+            _replayAuto = !_replayAuto;
+            _replayWait = 0f;
+            hud?.SetReplayAuto(_replayAuto, _replaySpeed);
+        }
+
+        public void CycleReplaySpeed()
+        {
+            if (!_replaying || !_replayAuto)
+                return;
+            int index = 0;
+            for (int i = 0; i < ReplaySpeeds.Length; i++)
+            {
+                if (Mathf.Approximately(ReplaySpeeds[i], _replaySpeed))
+                {
+                    index = i;
+                    break;
+                }
+            }
+            _replaySpeed = ReplaySpeeds[(index + 1) % ReplaySpeeds.Length];
+            hud?.SetReplayAuto(_replayAuto, _replaySpeed);
+        }
+
+        void EndReplay()
+        {
+            bool toHistory = _replayFromHistory;
+            _replaying = false;
+            _replayRecord = null;
+            _replayIndex = 0;
+            _replayAuto = false;
+            _session = null;
+            _state = null;
+            _clock = null;
+            if (boardView != null)
+                boardView.ReviewVision = false;
+            hud?.SetReplayMode(false);
+            hud?.HidePieceDetails();
+            if (toHistory)
+                ReplayLeftToHistory?.Invoke();
+            else
+                LeftMatch?.Invoke();
+        }
+
+        void TickReplay()
+        {
+            hud?.SetClock(null, ClockSide());
+            if (!_replayAuto)
+                return;
+            if (boardView != null && boardView.PiecesBusy)
+                return;
+            if (_replayWait > 0f)
+            {
+                _replayWait -= Time.deltaTime;
+                return;
+            }
+            if (!StepReplay(1))
+            {
+                _replayAuto = false;
+                hud?.SetReplayAuto(false, _replaySpeed);
+            }
+        }
+
+        bool StepReplay(int delta)
+        {
+            if (_replayRecord?.events == null)
+                return false;
+            int next = _replayIndex + delta;
+            if (next < 0 || next > _replayRecord.events.Length)
+                return false;
+            if (delta == 0)
+                return false;
+            GameState before = _state;
+            if (delta > 0)
+            {
+                for (int i = 0; i < delta; i++)
+                {
+                    if (_replayIndex >= _replayRecord.events.Length)
+                        return false;
+                    MatchHistoryEvent e = _replayRecord.events[_replayIndex];
+                    if (!MatchHistoryPlayback.TryApply(ref _state, e))
+                        return false;
+                    _replayIndex++;
+                }
+                if (_replayAuto && MatchHistoryPlayback.EndsTurn(before, _state))
+                    _replayWait = ReplayTurnWait / Mathf.Max(0.5f, _replaySpeed);
+            }
+            else
+            {
+                _replayIndex = next;
+                _state = MatchHistoryPlayback.StateAt(_replayRecord, _replayIndex);
+            }
+            ClearSelection();
+            RefreshPresentation();
+            return _replayIndex < (_replayRecord.events?.Length ?? 0);
+        }
+
+        void StopReplayAuto()
+        {
+            if (!_replayAuto)
+                return;
+            _replayAuto = false;
+            _replayWait = 0f;
+            hud?.SetReplayAuto(false, _replaySpeed);
         }
 
         public void Resign()
@@ -277,13 +516,13 @@ namespace ModularChess.Match
 
         void WriteHistory()
         {
-            if (_historyWritten || _session == null || _state == null)
+            if (_historyWritten || _session == null || _state == null || _replaying)
                 return;
             if (_state.Status == GameStatus.InProgress || _state.Status == GameStatus.Aborted)
                 return;
             _historyWritten = true;
             int seconds = _clock != null ? Mathf.FloorToInt(_clock.ElapsedSeconds) : 0;
-            MatchHistoryStore.Record(_session, _state, seconds);
+            MatchHistoryStore.Record(_session, _state, seconds, _historyEvents);
         }
 
         public void TogglePause()
@@ -370,6 +609,12 @@ namespace ModularChess.Match
             if (BoardPointerInput.IsScreenBlockedByUi())
                 return;
             PinFromClick(square);
+            if (_replaying)
+            {
+                PlayBoardTapSfx(square);
+                RefreshPieceDetails();
+                return;
+            }
             if (_draftTargeting != null)
             {
                 HandleDraftTarget(square);
@@ -382,6 +627,7 @@ namespace ModularChess.Match
             }
             if (!CanAcceptBoardInput())
             {
+                PlayBoardTapSfx(square);
                 RefreshPieceDetails();
                 return;
             }
@@ -391,6 +637,7 @@ namespace ModularChess.Match
                 if (_selected.Value.Equals(square))
                 {
                     ClearSelection();
+                    GameAudio.PlayTap();
                     RefreshPresentation();
                     return;
                 }
@@ -411,6 +658,21 @@ namespace ModularChess.Match
                     RefreshPresentation();
                     return;
                 }
+                Piece inspect = InspectablePiece(square);
+                if (inspect != null)
+                {
+                    GameAudio.PlayTap();
+                    ClearSelection();
+                    RefreshPresentation();
+                    return;
+                }
+                if (_state.Board.GetPiece(square) == null || !IsVisibleOccupant(square))
+                {
+                    GameAudio.PlayMove();
+                    ClearSelection();
+                    RefreshPresentation();
+                    return;
+                }
                 GameAudio.PlayIllegal();
                 ClearSelection();
                 RefreshPresentation();
@@ -422,7 +684,25 @@ namespace ModularChess.Match
                 RefreshPresentation();
                 return;
             }
-            GameAudio.PlayIllegal();
+            PlayBoardTapSfx(square);
+        }
+
+        void PlayBoardTapSfx(Square square)
+        {
+            if (InspectablePiece(square) != null)
+            {
+                GameAudio.PlayTap();
+                return;
+            }
+            GameAudio.PlayMove();
+        }
+
+        bool IsVisibleOccupant(Square square)
+        {
+            Piece piece = _state?.Board.GetPiece(square);
+            if (piece == null)
+                return false;
+            return InspectablePiece(square) != null;
         }
 
         void HandleSetupClick(Square square)
@@ -445,7 +725,7 @@ namespace ModularChess.Match
                 return;
             }
 
-            GameAudio.PlaySelect();
+            GameAudio.PlayTap();
             RefreshPresentation();
         }
 
@@ -478,11 +758,24 @@ namespace ModularChess.Match
             var all = new List<Guid>();
             all.AddRange(_whitePicks);
             all.AddRange(_blackPicks);
+            AppendEmpoweredEvent(all);
             _state = _state.ConfirmEmpowered(all);
             _inSetup = false;
             _setupConfirms = 0;
             _clock?.Start();
             RefreshPresentation();
+        }
+
+        void AppendEmpoweredEvent(IReadOnlyList<Guid> ids)
+        {
+            var squares = new List<Square>(ids.Count);
+            for (int i = 0; i < ids.Count; i++)
+            {
+                Square? square = _state.Board.FindSquare(ids[i]);
+                if (square.HasValue)
+                    squares.Add(square.Value);
+            }
+            _historyEvents.Add(MatchHistoryStore.EmpoweredEvent(squares));
         }
 
         private void OnPromotionChosen(PieceType pieceType)
@@ -532,7 +825,7 @@ namespace ModularChess.Match
             _selected = square;
             _selectionSide = _state.SideToMove;
             _movesFromSelection = _state.LegalMovesFrom(square);
-            GameAudio.PlaySelect();
+            GameAudio.PlayTap();
         }
 
         private void ClearSelection()
@@ -566,6 +859,7 @@ namespace ModularChess.Match
         {
             Side moved = _state.SideToMove;
             Piece victim = FindVictim(_state, move);
+            _historyEvents.Add(MatchHistoryStore.MoveEvent(move.From, move.To, move.Kind, move.PromotionType));
             _state = _state.Apply(move);
             _pendingPromotions = null;
             ClearSelection();
@@ -773,6 +1067,10 @@ namespace ModularChess.Match
             _draftTargeting = null;
             _reinforcementPicks.Clear();
             ClearSelection();
+            Square? targetSquare = null;
+            if (targetId.HasValue)
+                targetSquare = _state.Board.FindSquare(targetId.Value);
+            _historyEvents.Add(MatchHistoryStore.DraftEvent(power, targetSquare, reinforcements));
             _state = _state.ApplyDraft(power, targetId, reinforcements);
             RefreshPresentation();
             boardView?.PlayPowerFeel(power, targetId);
@@ -955,6 +1253,7 @@ namespace ModularChess.Match
             Side viewer = _session != null && _session.Hotseat ? _state.SideToMove : (_session?.PlayerSide ?? Side.White);
             VisionMap vision = VisionMap.Compute(_state, viewer);
             boardView.ViewerSide = viewer;
+            boardView.ReviewVision = _replaying;
             if (_inSetup)
             {
                 boardView.SetPendingEmpowered(PendingEmpoweredIds());
@@ -990,6 +1289,28 @@ namespace ModularChess.Match
 
             hud.Bind(_state, _state.History);
             hud.SetNames(_session);
+            if (_replaying)
+            {
+                hud.SetClock(null, ClockSide());
+                hud.SetEndTurnVisible(false);
+                hud.SetPauseVisible(false);
+                hud.SetResignVisible(false);
+                hud.SetSetupConfirm(false, false, false);
+                hud.HideDraft();
+                hud.SetLostMaterial(
+                    _session != null && _session.Rules.Has(ModeId.Martyr)
+                        ? _state.Runtime.LostMaterial(Side.White)
+                        : (int?)null,
+                    _session != null && _session.Rules.Has(ModeId.Martyr)
+                        ? _state.Runtime.LostMaterial(Side.Black)
+                        : (int?)null,
+                    _session != null ? _session.Rules.Settings.MartyrThreshold : 0);
+                hud.SetReplayHeadline(_replayRecord);
+                hud.SetReplayAuto(_replayAuto, _replaySpeed);
+                RefreshPieceDetails();
+                return;
+            }
+
             hud.SetClock(_clock, ClockSide());
             bool localTurn = _session == null || _session.Hotseat || _state.SideToMove == _session.PlayerSide;
             hud.SetEndTurnVisible(!_inSetup && localTurn && _state.CanEndTurn());
@@ -1037,7 +1358,6 @@ namespace ModularChess.Match
                 if (!_paused)
                     hud.SetStatusLine(string.Empty);
             }
-
             RefreshPieceDetails();
         }
 
@@ -1143,6 +1463,8 @@ namespace ModularChess.Match
             Piece piece = _state.Board.GetPiece(square);
             if (piece == null)
                 return null;
+            if (_replaying)
+                return piece;
 
             Side viewer = _session != null && _session.Hotseat ? _state.SideToMove : (_session?.PlayerSide ?? Side.White);
             if (piece.Side == viewer)

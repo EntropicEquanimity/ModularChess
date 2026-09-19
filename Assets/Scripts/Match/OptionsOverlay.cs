@@ -21,6 +21,7 @@ namespace ModularChess.Match
         [SerializeField] OptionSliderView shakeSlider;
         [SerializeField] OptionSliderView musicSlider;
         [SerializeField] OptionSliderView sfxSlider;
+        [SerializeField] OptionSliderView historySlider;
         [SerializeField] Transform listParent;
         static OptionsOverlay _instance;
         bool _fromMatch;
@@ -149,6 +150,7 @@ namespace ModularChess.Match
             shakeSlider = ResolveSlider(shakeSlider, "CameraShake", "CameraShakeSlider");
             musicSlider = ResolveSlider(musicSlider, "MusicSlider");
             sfxSlider = ResolveSlider(sfxSlider, "SfxSlider");
+            historySlider = ResolveSlider(historySlider, "HistorySize", "HistorySlider");
         }
         void BindSliders()
         {
@@ -198,6 +200,14 @@ namespace ModularChess.Match
                 AudioPrefs.Sfx,
                 v => AudioPrefs.Sfx = Mathf.RoundToInt(v),
                 () => Loc.Format("options.volume", AudioPrefs.Sfx));
+            historySlider = BindSlider(
+                historySlider,
+                Loc.Get("options.history"),
+                HistoryPrefs.MinUnits,
+                HistoryPrefs.MaxUnits,
+                HistoryPrefs.SliderUnits,
+                v => HistoryPrefs.SliderUnits = Mathf.RoundToInt(v),
+                () => Loc.Format("options.history.size", HistoryPrefs.Cap));
         }
         void BindNotation()
         {
