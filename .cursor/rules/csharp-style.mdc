@@ -33,7 +33,7 @@ No `//`, `/* */`, or commented-out code. Names carry meaning. `#region` / `#endr
 
 ## Prefabs
 
-Prefer a prefab over `new GameObject` + `AddComponent` trees. Instantiate and tune the prefab. Plain Core C# stays prefab-free. Do not mass-convert existing bootstrap HUD; only new work and files we edit.
+Prefer a prefab over `new GameObject` + `AddComponent` trees. Instantiate and tune the prefab. Plain Core C# stays prefab-free. Do not mass-convert existing bootstrap HUD; only new work and files we edit. See also `prefab-components.mdc`.
 
 ## References
 

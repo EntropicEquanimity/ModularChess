@@ -12,6 +12,7 @@ namespace ModularChess.Presentation
         [SerializeField] Camera pickCamera;
         [SerializeField] PromotionPicker promotionPicker;
 
+        static readonly List<RaycastResult> SharedHits = new List<RaycastResult>(16);
         readonly List<RaycastResult> _uiHits = new List<RaycastResult>(8);
         BoardView _board;
 
@@ -47,6 +48,8 @@ namespace ModularChess.Presentation
             bool uiBlocked = IsBlockedByUi(screen);
             if (!uiBlocked && !IsPromotionOpen())
                 UpdateHover(screen);
+            else
+                _board.NotifySquareHovered(null);
 
             if (!pointer.press.wasPressedThisFrame)
                 return;
@@ -63,6 +66,14 @@ namespace ModularChess.Presentation
                 return;
 
             _board.NotifySquareClicked(square);
+        }
+
+        public static bool IsScreenBlockedByUi()
+        {
+            Pointer pointer = Pointer.current;
+            if (pointer == null)
+                return false;
+            return IsBlockedByUiAt(pointer.position.ReadValue(), SharedHits);
         }
 
         void UpdateHover(Vector2 screen)
@@ -91,6 +102,11 @@ namespace ModularChess.Presentation
 
         bool IsBlockedByUi(Vector2 screen)
         {
+            return IsBlockedByUiAt(screen, _uiHits);
+        }
+
+        static bool IsBlockedByUiAt(Vector2 screen, List<RaycastResult> hits)
+        {
             EventSystem eventSystem = EventSystem.current;
             if (eventSystem == null)
                 return false;
@@ -99,9 +115,21 @@ namespace ModularChess.Presentation
             {
                 position = screen
             };
-            _uiHits.Clear();
-            eventSystem.RaycastAll(eventData, _uiHits);
-            return _uiHits.Count > 0;
+            hits.Clear();
+            eventSystem.RaycastAll(eventData, hits);
+            for (int i = 0; i < hits.Count; i++)
+            {
+                GameObject hit = hits[i].gameObject;
+                if (hit == null)
+                    continue;
+                if (hit.GetComponentInParent<Canvas>() == null)
+                    continue;
+                if (hit.GetComponentInParent<BoardView>() != null)
+                    continue;
+                return true;
+            }
+
+            return false;
         }
     }
 }

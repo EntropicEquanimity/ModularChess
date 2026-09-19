@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5764122720078405960}
   - component: {fileID: 8247768110753042134}
   - component: {fileID: 5927241772958131100}
+  - component: {fileID: 5927241772958131101}
   m_Layer: 5
   m_Name: PromotionPopup
   m_TagString: Untagged
@@ -95,12 +96,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
   m_Padding:
-    m_Left: 4
-    m_Right: 4
+    m_Left: 6
+    m_Right: 6
     m_Top: 40
-    m_Bottom: 4
+    m_Bottom: 6
   m_ChildAlignment: 4
-  m_Spacing: 4
+  m_Spacing: 6
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
@@ -122,6 +123,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 2
   m_VerticalFit: 2
+--- !u!114 &5927241772958131101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5175041004725933283}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f64789a0b1c2d3e4f50607, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttons: []
+  icons: []
 --- !u!1 &5333848300471748908
 GameObject:
   m_ObjectHideFlags: 0

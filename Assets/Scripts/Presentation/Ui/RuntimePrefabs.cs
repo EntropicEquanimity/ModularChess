@@ -4,25 +4,27 @@ namespace ModularChess.Presentation
 {
     public static class RuntimePrefabs
     {
-        const string ButtonPath = "Assets/Prefabs/UI/TextButton.prefab";
-        const string CanvasPath = "Assets/Prefabs/UI/Canvas.prefab";
-        const string TogglePath = "Assets/Prefabs/UI/Toggle.prefab";
-        const string DropdownPath = "Assets/Prefabs/UI/Dropdown.prefab";
-        const string InputPath = "Assets/Prefabs/UI/InputField.prefab";
+        const string ButtonPath = "Assets/Prefabs/UI/Components/TextButton.prefab";
+        const string CanvasPath = "Assets/Prefabs/UI/Components/Canvas.prefab";
+        const string TogglePath = "Assets/Prefabs/UI/Components/Toggle.prefab";
+        const string DropdownPath = "Assets/Prefabs/UI/Components/Dropdown.prefab";
+        const string InputPath = "Assets/Prefabs/UI/Components/InputField.prefab";
         const string DescriptionPath = "Assets/Prefabs/UI/DescriptionBox.prefab";
-        const string ImageButtonPath = "Assets/Prefabs/UI/ImageButton.prefab";
-        const string PanelPath = "Assets/Prefabs/UI/Panel.prefab";
-        const string SelectionRowPath = "Assets/Prefabs/UI/SelectionRow.prefab";
+        const string ImageButtonPath = "Assets/Prefabs/UI/Components/ImageButton.prefab";
+        const string PanelPath = "Assets/Prefabs/UI/Components/Panel.prefab";
+        const string SelectionRowPath = "Assets/Prefabs/UI/Components/SelectionRow.prefab";
         const string ChessPiecePath = "Assets/Prefabs/Game/ChessPiece.prefab";
         const string ChessboardTilePath = "Assets/Prefabs/Game/ChessboardTile.prefab";
         const string PieceDetailsPath = "Assets/Prefabs/UI/UnitDetails.prefab";
         const string EffectDescriptionPath = "Assets/Prefabs/UI/EffectDescription.prefab";
+        const string DraftRowPath = "Assets/Prefabs/Popup/DraftRow.prefab";
         const string ModeSettingsPopupPath = "Assets/Prefabs/Overlays/ModeSettingsPopup.prefab";
+        const string UnlocksDetailPopupPath = "Assets/Prefabs/Popup/UnlocksDetailPopup.prefab";
         const string SettingsControlPath = "Assets/Prefabs/UI/SettingsControl.prefab";
-        const string OptionSliderPath = "Assets/Prefabs/UI/OptionSlider.prefab";
+        const string OptionSliderPath = "Assets/Prefabs/UI/Components/OptionSlider.prefab";
         const string PromotionPopupPath = "Assets/Prefabs/Overlays/PromotionPopup.prefab";
         const string MatchHudPath = "Assets/Prefabs/Overlays/MatchHud.prefab";
-        const string ScrollViewPath = "Assets/Prefabs/UI/Scroll View.prefab";
+        const string ScrollViewPath = "Assets/Prefabs/UI/Components/Scroll View.prefab";
         const string AccountCreationPath = "Assets/Prefabs/Overlays/AccountCreation.prefab";
         const string FeedbackSurveyPath = "Assets/Prefabs/Overlays/FeedbackSurvey.prefab";
 
@@ -39,7 +41,9 @@ namespace ModularChess.Presentation
         public static GameObject ChessboardTile => Load(ChessboardTilePath, "Game/ChessboardTile");
         public static GameObject PieceDetails => Load(PieceDetailsPath, "UI/UnitDetails");
         public static GameObject EffectDescription => Load(EffectDescriptionPath, "UI/EffectDescription");
+        public static GameObject DraftRow => Load(DraftRowPath, "Popup/DraftRow");
         public static GameObject ModeSettingsPopup => Load(ModeSettingsPopupPath, "Overlays/ModeSettingsPopup");
+        public static GameObject UnlocksDetailPopup => Load(UnlocksDetailPopupPath, "Popup/UnlocksDetailPopup");
         public static GameObject SettingsControl => Load(SettingsControlPath, "UI/SettingsControl");
         public static GameObject OptionSlider => Load(OptionSliderPath, "UI/OptionSlider");
         public static GameObject PromotionPopup => Load(PromotionPopupPath, "Overlays/PromotionPopup");
@@ -53,8 +57,13 @@ namespace ModularChess.Presentation
 #if UNITY_EDITOR
             GameObject editor = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
             if (editor != null)
-            {
                 return editor;
+            if (assetPath.Contains("/Components/"))
+            {
+                string legacy = assetPath.Replace("/Components/", "/");
+                editor = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(legacy);
+                if (editor != null)
+                    return editor;
             }
 #endif
             return Resources.Load<GameObject>(resourcesName);

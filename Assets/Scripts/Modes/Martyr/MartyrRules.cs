@@ -24,13 +24,14 @@ namespace ModularChess.Core
             MartyrPower.Exile
         };
 
-        public static DraftOffer BuildOffer(GameState state, ModeRuntime runtime, Side side)
+        public static DraftOffer BuildOffer(GameState state, ModeRuntime runtime, Side side, Board board = null)
         {
+            board = board ?? state.Board;
             var eligible = new List<MartyrPower>(Pool.Length);
             for (int i = 0; i < Pool.Length; i++)
             {
                 MartyrPower power = Pool[i];
-                if (!IsOffered(power) || !IsRelevant(state, runtime, side, power) || !CanObtain(runtime, side, power))
+                if (!IsOffered(power) || !IsRelevant(board, state.Rules, runtime, side, power) || !CanObtain(runtime, side, power))
                 {
                     continue;
                 }
@@ -38,22 +39,29 @@ namespace ModularChess.Core
             }
             if (eligible.Count == 0)
             {
-                eligible.Add(MartyrPower.Reinforcements);
+                eligible.Add(MartyrPower.Rally);
+            }
+            int want = state.Rules.Settings.MartyrDraftOptions;
+            if (want < 1)
+            {
+                want = 3;
+            }
+            if (want > 5)
+            {
+                want = 5;
+            }
+            if (want > eligible.Count)
+            {
+                want = eligible.Count;
             }
             var bag = new List<MartyrPower>(eligible);
-            MartyrPower? second = null;
-            MartyrPower? third = null;
-            MartyrPower first = TakePick(state, side, 0, bag);
-            if (bag.Count > 0)
+            var picked = new List<MartyrPower>(want);
+            for (int i = 0; i < want; i++)
             {
-                second = TakePick(state, side, 1, bag);
-            }
-            if (bag.Count > 0)
-            {
-                third = TakePick(state, side, 2, bag);
+                picked.Add(TakePick(state, side, i, bag));
             }
             PieceType battlefield = StablePick(state, side, 99, 2) == 0 ? PieceType.Knight : PieceType.Bishop;
-            return new DraftOffer(first, second, third, battlefield);
+            return new DraftOffer(picked, battlefield);
         }
 
         public static ModeRuntime Apply(
@@ -207,23 +215,38 @@ namespace ModularChess.Core
             }
             return true;
         }
-        static bool IsRelevant(GameState state, ModeRuntime runtime, Side side, MartyrPower power)
+        static bool IsRelevant(Board board, MatchRules rules, ModeRuntime runtime, Side side, MartyrPower power)
         {
             switch (power)
             {
+                case MartyrPower.Reinforcements:
+                    return CountEmptyBackRank(board, side) > 0;
                 case MartyrPower.StasisField:
-                    return HasPiece(state.Board, side.Opponent(), PieceType.Queen);
+                    return HasPiece(board, side.Opponent(), PieceType.Queen);
                 case MartyrPower.KnightAscension:
-                    return HasPiece(state.Board, side, PieceType.Knight);
+                    return HasPiece(board, side, PieceType.Knight);
                 case MartyrPower.BattlefieldPromotion:
-                    return HasPiece(state.Board, side, PieceType.Pawn);
+                    return HasPiece(board, side, PieceType.Pawn);
                 case MartyrPower.Revival:
                     return LastFriendlyCaptureIndex(runtime, side) >= 0;
                 case MartyrPower.Exile:
-                    return HasExilableEnemy(state.Board, side);
+                    return HasExilableEnemy(board, rules, runtime, side);
                 default:
                     return true;
             }
+        }
+        static int CountEmptyBackRank(Board board, Side side)
+        {
+            int back = side == Side.White ? 0 : 7;
+            int empty = 0;
+            for (int file = 0; file < Square.BoardSize; file++)
+            {
+                if (board.CanPlace(new Square(file, back)))
+                {
+                    empty++;
+                }
+            }
+            return empty;
         }
         static bool HasPiece(Board board, Side side, PieceType type)
         {
@@ -245,18 +268,45 @@ namespace ModularChess.Core
             bag.RemoveAt(index);
             return power;
         }
-        static bool HasExilableEnemy(Board board, Side side)
+        static bool HasExilableEnemy(Board board, MatchRules rules, ModeRuntime runtime, Side side)
         {
             Side enemy = side.Opponent();
             for (int i = 0; i < 64; i++)
             {
-                Piece piece = board.GetPiece(Square.FromIndex(i));
-                if (piece != null && piece.Side == enemy && piece.Type != PieceType.King)
+                Square square = Square.FromIndex(i);
+                Piece piece = board.GetPiece(square);
+                if (piece != null
+                    && piece.Side == enemy
+                    && piece.Type != PieceType.King
+                    && !IsAbsolutelyPinned(board, square, rules, runtime))
                 {
                     return true;
                 }
             }
             return false;
+        }
+        public static bool IsAbsolutelyPinned(Board board, Square square, MatchRules rules, ModeRuntime runtime)
+        {
+            Piece piece = board.GetPiece(square);
+            if (piece == null || piece.Type == PieceType.King)
+            {
+                return false;
+            }
+            if (AttackMap.IsInCheck(board, piece.Side, rules, runtime))
+            {
+                return false;
+            }
+            Board without = board.WithPiece(square, null);
+            return AttackMap.IsInCheck(without, piece.Side, rules, runtime);
+        }
+        public static bool CanExile(Board board, Square square, MatchRules rules, ModeRuntime runtime, Side draftingSide)
+        {
+            Piece piece = board.GetPiece(square);
+            if (piece == null || piece.Side == draftingSide || piece.Type == PieceType.King)
+            {
+                return false;
+            }
+            return !IsAbsolutelyPinned(board, square, rules, runtime);
         }
         static int LastFriendlyCaptureIndex(ModeRuntime runtime, Side side)
         {
@@ -298,13 +348,10 @@ namespace ModularChess.Core
             if (targetId != null)
             {
                 targetSquare = state.Board.FindSquare(targetId.Value);
-                if (targetSquare != null)
+                if (targetSquare != null
+                    && CanExile(state.Board, targetSquare.Value, state.Rules, runtime, state.SideToMove))
                 {
-                    Piece piece = state.Board.GetPiece(targetSquare.Value);
-                    if (piece != null && piece.Side != state.SideToMove && piece.Type != PieceType.King)
-                    {
-                        target = piece;
-                    }
+                    target = state.Board.GetPiece(targetSquare.Value);
                 }
             }
             if (target == null)
@@ -312,16 +359,17 @@ namespace ModularChess.Core
                 for (int i = 0; i < 64; i++)
                 {
                     Square square = Square.FromIndex(i);
-                    Piece piece = state.Board.GetPiece(square);
-                    if (piece != null && piece.Side != state.SideToMove && piece.Type != PieceType.King)
+                    if (!CanExile(state.Board, square, state.Rules, runtime, state.SideToMove))
                     {
-                        if (target != null)
-                        {
-                            return state.Board;
-                        }
-                        target = piece;
-                        targetSquare = square;
+                        continue;
                     }
+                    Piece piece = state.Board.GetPiece(square);
+                    if (target != null)
+                    {
+                        return state.Board;
+                    }
+                    target = piece;
+                    targetSquare = square;
                 }
             }
             if (target == null || targetSquare == null)

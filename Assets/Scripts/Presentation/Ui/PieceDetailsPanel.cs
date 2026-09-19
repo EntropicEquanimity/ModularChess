@@ -10,7 +10,7 @@ namespace ModularChess.Presentation
     public sealed class PieceDetailsPanel : MonoBehaviour
     {
         readonly List<EffectDescriptionView> _rows = new List<EffectDescriptionView>();
-        TMP_Text _pieceName;
+        [SerializeField] TMP_Text pieceName;
         GameObject _effectPrefab;
 
         public void Show(Piece piece, GameState state, IReadOnlyCollection<Guid> pendingEmpowered)
@@ -23,8 +23,8 @@ namespace ModularChess.Presentation
 
             EnsureName();
             gameObject.SetActive(true);
-            if (_pieceName != null)
-                _pieceName.text = Loc.PieceName(piece.Type);
+            if (pieceName != null)
+                pieceName.text = Loc.PieceName(piece.Type);
 
             int row = 0;
             bool empowered = state.Runtime.IsEmpowered(piece.Id)
@@ -64,11 +64,15 @@ namespace ModularChess.Presentation
 
         void EnsureName()
         {
-            if (_pieceName != null)
+            if (pieceName != null)
                 return;
             Transform nameTf = transform.Find("UnitName");
+            if (nameTf == null)
+                nameTf = transform.Find("Unit/UnitName");
             if (nameTf != null)
-                _pieceName = nameTf.GetComponent<TMP_Text>();
+                pieceName = nameTf.GetComponent<TMP_Text>();
+            if (pieceName == null)
+                pieceName = GetComponentInChildren<TMP_Text>(true);
         }
 
         void BindRow(int index, string effectName, string description)

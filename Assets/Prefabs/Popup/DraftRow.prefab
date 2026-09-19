@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Power
+  m_text: Untouchable King
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -298,6 +298,7 @@ MonoBehaviour:
   items:
   - {fileID: 5590292795596313515}
   - {fileID: 8694050977615507091}
+  - {fileID: 4475092823546255118}
 --- !u!114 &6202661940672608492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -311,8 +312,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
   image: {fileID: 3961039336142654619}
-  hoverPadX: 40
-  hoverPadY: 10
+  hoverPadX: 10
+  hoverPadY: 0
   duration: 0.1
   openMinHeight: 8
   openPop: 4
@@ -493,10 +494,10 @@ RectTransform:
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 88}
-  m_SizeDelta: {x: 0, y: 48}
-  m_Pivot: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2511009487146661919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -512,9 +513,9 @@ MonoBehaviour:
   m_Padding:
     m_Left: 0
     m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 1
+    m_Top: 400
+    m_Bottom: 100
+  m_ChildAlignment: 4
   m_Spacing: 4
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
@@ -535,7 +536,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3f8c2e91b6d4e7a90c1d5f8b2e4a617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.DraftRow
-  optionRoots: []
+  optionRoots:
+  - {fileID: 4677089871872401804}
+  - {fileID: 3961039336142654619}
+  - {fileID: 9189141654204770571}
+  - {fileID: 2941736012778174943}
+  - {fileID: 6794871040845316102}
   hideShowButton: {fileID: 3864877861275543521}
   hideIcon: {fileID: 4491427219541599806}
   showIcon: {fileID: 5727262974384985247}
@@ -705,6 +711,7 @@ MonoBehaviour:
   items:
   - {fileID: 5730109156699590225}
   - {fileID: 8023304175648457350}
+  - {fileID: 3018890425535068955}
 --- !u!114 &2507301864134363611
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -718,8 +725,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
   image: {fileID: 9189141654204770571}
-  hoverPadX: 40
-  hoverPadY: 10
+  hoverPadX: 10
+  hoverPadY: 0
   duration: 0.1
   openMinHeight: 8
   openPop: 4
@@ -789,7 +796,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Power
+  m_text: Stasis Field
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -1022,6 +1029,7 @@ MonoBehaviour:
   items:
   - {fileID: 404494791437720145}
   - {fileID: 3843483458565816986}
+  - {fileID: 8352782767524739847}
 --- !u!114 &6716506775030134505
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1035,8 +1043,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
   image: {fileID: 4677089871872401804}
-  hoverPadX: 40
-  hoverPadY: 10
+  hoverPadX: 10
+  hoverPadY: 0
   duration: 0.1
   openMinHeight: 8
   openPop: 4
@@ -1202,6 +1210,7 @@ MonoBehaviour:
   items:
   - {fileID: 1013639078774918546}
   - {fileID: 7427153298402698919}
+  - {fileID: 2427243289601040186}
 --- !u!114 &6486009691626453382
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1215,8 +1224,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
   image: {fileID: 2941736012778174943}
-  hoverPadX: 40
-  hoverPadY: 10
+  hoverPadX: 10
+  hoverPadY: 0
   duration: 0.1
   openMinHeight: 8
   openPop: 4
@@ -1382,6 +1391,7 @@ MonoBehaviour:
   items:
   - {fileID: 2108891074816494673}
   - {fileID: 1353069804281705150}
+  - {fileID: 6087408378298207011}
 --- !u!114 &4870572596959011409
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1395,8 +1405,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
   image: {fileID: 6794871040845316102}
-  hoverPadX: 40
-  hoverPadY: 10
+  hoverPadX: 10
+  hoverPadY: 0
   duration: 0.1
   openMinHeight: 8
   openPop: 4
@@ -1493,7 +1503,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6284933672087691334
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1753,7 +1763,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Power
+  m_text: Reinforcements
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -1837,9 +1847,7 @@ GameObject:
   - component: {fileID: 4712542550764031992}
   - component: {fileID: 6887325618398311685}
   - component: {fileID: 3864877861275543521}
-  - component: {fileID: 1432217599552680784}
   - component: {fileID: 5949051751378796824}
-  - component: {fileID: 7024338192258410248}
   m_Layer: 5
   m_Name: Hide/Show
   m_TagString: Untagged
@@ -1863,10 +1871,10 @@ RectTransform:
   - {fileID: 6284933672087691334}
   m_Father: {fileID: 4877837644907615138}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -102}
-  m_SizeDelta: {x: 120, y: 64}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 12}
+  m_SizeDelta: {x: 120, y: 54}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &4712542550764031992
 CanvasRenderer:
@@ -1925,15 +1933,15 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 0
+  m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 0.60784316}
+    m_PressedColor: {r: 0.6792453, g: 0.6792453, b: 0.6792453, a: 0.6156863}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_DisabledColor: {r: 0.6415094, g: 0.6415094, b: 0.6415094, a: 0.6117647}
     m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
+    m_FadeDuration: 0
   m_SpriteState:
     m_HighlightedSprite: {fileID: -303667802, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_PressedSprite: {fileID: -465902496, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
@@ -1945,30 +1953,11 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 6887325618398311685}
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &1432217599552680784
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6728119662099831702}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4e8a7b1d92f4e6a8c3d5f7b9e1a2c4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  image: {fileID: 3847846696039307887}
-  hoverPadX: 16
-  hoverPadY: 16
-  duration: 0.1
-  openMinHeight: 8
-  openPop: 4
-  openDuration: 0.15
 --- !u!114 &5949051751378796824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1989,25 +1978,6 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!114 &7024338192258410248
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6728119662099831702}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4e8a7b1d92f4e6a8c3d5f7b9e1a2c4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
-  image: {fileID: 3847846696039307887}
-  hoverPadX: 20
-  hoverPadY: 0
-  duration: 0.1
-  openMinHeight: 8
-  openPop: 4
-  openDuration: 0.5
 --- !u!1001 &3358884716882900196
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2019,6 +1989,11 @@ PrefabInstance:
     - target: {fileID: 4468423600117816206, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_Name
       value: DescriptionBox
+      objectReference: {fileID: 0}
+    - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+      propertyPath: m_text
+      value: Freeze an enemy queen for 3 of her turns. She cannot move, attack, or
+        be captured.
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSize
@@ -2113,6 +2088,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+--- !u!224 &4475092823546255118 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1191095363232392170, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+  m_PrefabInstance: {fileID: 3358884716882900196}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &8694050977615507091 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
@@ -2223,6 +2203,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+--- !u!224 &2427243289601040186 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1191095363232392170, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+  m_PrefabInstance: {fileID: 3542312027974941904}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &7427153298402698919 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
@@ -2239,6 +2224,10 @@ PrefabInstance:
     - target: {fileID: 4468423600117816206, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_Name
       value: DescriptionBox
+      objectReference: {fileID: 0}
+    - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+      propertyPath: m_text
+      value: Place up to 2 summoned pawns on empty squares of your back rank.
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSize
@@ -2333,6 +2322,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+--- !u!224 &3018890425535068955 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1191095363232392170, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+  m_PrefabInstance: {fileID: 4135111726939805937}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &8023304175648457350 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
@@ -2448,6 +2442,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
   m_PrefabInstance: {fileID: 4971216729849424073}
   m_PrefabAsset: {fileID: 0}
+--- !u!224 &6087408378298207011 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1191095363232392170, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+  m_PrefabInstance: {fileID: 4971216729849424073}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7164265209404856557
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2459,6 +2458,10 @@ PrefabInstance:
     - target: {fileID: 4468423600117816206, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_Name
       value: DescriptionBox
+      objectReference: {fileID: 0}
+    - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+      propertyPath: m_text
+      value: Your king cannot be targeted for 5 of your turns.
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSize
@@ -2556,5 +2559,10 @@ PrefabInstance:
 --- !u!224 &3843483458565816986 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
+  m_PrefabInstance: {fileID: 7164265209404856557}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &8352782767524739847 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1191095363232392170, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
   m_PrefabInstance: {fileID: 7164265209404856557}
   m_PrefabAsset: {fileID: 0}

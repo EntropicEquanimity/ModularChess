@@ -63,6 +63,8 @@ namespace ModularChess.Match
         LayoutElement _moveListLayout;
         float _optionsRestY;
         public bool OptionsOpen => _optionsOpen;
+        public bool DraftOpen => _draftOpen;
+        public bool BlocksBoardInput => _optionsOpen || _draftOpen;
         #endregion
 
         #region Unity
@@ -135,13 +137,20 @@ namespace ModularChess.Match
             BindClick(resignButton, controller.Resign);
             BindClick(leaveButton, controller.LeaveToMenu);
             BindClick(setupConfirmButton, controller.ConfirmSetup);
+            Button drawer = FindButton("OptionsButton");
+            if (drawer != null)
+            {
+                optionsButton = drawer;
+            }
+
+            Button settings = FindButton("Options");
+            if (settings != null && settings != optionsButton)
+            {
+                settingsButton = settings;
+            }
+
             BindClick(optionsButton, ToggleOptions);
             BindClick(settingsButton, controller.OpenSettings);
-            Button drawerOptions = FindButton("Options");
-            if (drawerOptions != null && drawerOptions != settingsButton && drawerOptions != optionsButton)
-            {
-                BindClick(drawerOptions, controller.OpenSettings);
-            }
         }
         public void ToggleOptions()
         {
@@ -309,7 +318,7 @@ namespace ModularChess.Match
         {
             Wire();
             _onDraft = onPick;
-            if (draftRow == null || state?.Runtime.PendingDraft == null)
+            if (state?.Runtime.PendingDraft == null)
             {
                 return;
             }
@@ -317,6 +326,11 @@ namespace ModularChess.Match
             if (draftDescription != null)
             {
                 draftDescription.gameObject.SetActive(false);
+            }
+
+            if (!EnsureDraftRowInstance())
+            {
+                return;
             }
 
             if (_draftOpen)
@@ -336,6 +350,12 @@ namespace ModularChess.Match
             }
 
             DraftRow row = EnsureDraft();
+            if (row == null)
+            {
+                _draftOpen = false;
+                return;
+            }
+
             row.Present(choices, index =>
             {
                 if (index < 0 || index >= powers.Length)
@@ -502,9 +522,13 @@ namespace ModularChess.Match
                 optionsButton = FindButton("OptionsButton");
             }
 
-            if (settingsButton == null)
+            if (settingsButton == null || settingsButton == optionsButton)
             {
-                settingsButton = FindButton("SettingsButton");
+                Button settings = FindButton("Options");
+                if (settings != null && settings != optionsButton)
+                {
+                    settingsButton = settings;
+                }
             }
 
             if (buttonGroup == null)
@@ -518,7 +542,11 @@ namespace ModularChess.Match
 
             if (draftRow == null)
             {
-                draftRow = FindChild(transform, "DraftRow");
+                Transform found = FindChild(transform, "DraftRow");
+                if (found != null && found.gameObject.scene.IsValid())
+                {
+                    draftRow = found;
+                }
             }
 
             if (draftDescription == null)
@@ -967,6 +995,11 @@ namespace ModularChess.Match
         }
         DraftRow EnsureDraft()
         {
+            if (!EnsureDraftRowInstance())
+            {
+                return null;
+            }
+
             DraftRow row = draftRow.GetComponent<DraftRow>();
             if (row == null)
             {
@@ -974,6 +1007,48 @@ namespace ModularChess.Match
             }
 
             return row;
+        }
+        bool EnsureDraftRowInstance()
+        {
+            if (draftRow != null && draftRow.gameObject.scene.IsValid())
+            {
+                return true;
+            }
+
+            GameObject source = draftRow != null ? draftRow.gameObject : RuntimePrefabs.DraftRow;
+            if (source == null)
+            {
+                Transform found = FindChild(transform, "DraftRow");
+                if (found != null && found.gameObject.scene.IsValid())
+                {
+                    draftRow = found;
+                    return true;
+                }
+
+                return false;
+            }
+
+            GameObject instance = Instantiate(source, transform);
+            instance.name = "DraftRow";
+            draftRow = instance.transform;
+            IgnoreLayout(draftRow);
+            draftRow.gameObject.SetActive(false);
+            return true;
+        }
+        static void IgnoreLayout(Transform target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var element = target.GetComponent<LayoutElement>();
+            if (element == null)
+            {
+                element = target.gameObject.AddComponent<LayoutElement>();
+            }
+
+            element.ignoreLayout = true;
         }
         static string DescribePower(MartyrPower power, PieceType? battlefield)
         {

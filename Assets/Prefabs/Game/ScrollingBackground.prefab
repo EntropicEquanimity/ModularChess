@@ -82,12 +82,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -100
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1537655665, guid: ab30f82c5eaaa9e4593c9b047b7a4ed4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: ab30f82c5eaaa9e4593c9b047b7a4ed4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2, y: 2}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -104,6 +104,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c4e2a71f8b64d0e9a3c5f7b1d8e2a46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  viewCamera: {fileID: 0}
   target: {fileID: 8124000003}
   scrollSpeed: {x: 0.03, y: 0.02}

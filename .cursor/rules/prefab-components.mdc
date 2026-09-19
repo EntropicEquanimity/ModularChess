@@ -1,0 +1,24 @@
+---
+description: Prefab-first UI — no bootstrap builders; components own their logic and serialized refs.
+alwaysApply: true
+---
+
+# Prefab-first components
+
+## No bootstrap UI
+
+Do not build HUD, overlays, popups, or rows with `new GameObject` + `AddComponent` trees, layout math in code, or RuntimePrefabs assembly of children. Create a basic prefab under `Assets/Prefabs/` with the needed GameObjects, RectTransforms, and components. The human will visual-tune it in the Editor.
+
+## Component ownership
+
+Each prefab / overlay / interactive object holds its own MonoBehaviour and `[SerializeField]` refs. Drag children and assets on the prefab. Avoid god classes that Find-and-wire every control. Match / AppRoot may call public methods on those components (`Present`, `Open`, `Dismiss`) but must not invent their hierarchy at runtime.
+
+## Instantiating
+
+Instantiate the prefab as a child and leave RectTransform / LayoutGroup values as authored on the prefab. Do not re-anchor, resize, or re-pad after spawn unless fixing a clear bug the prefab cannot express.
+
+## Exceptions
+
+- Plain Core C# (rules, board, state) stays prefab-free.
+- `RuntimePrefabs.Load` is only an editor/missing-ref fallback, not the design path.
+- Do not mass-convert old bootstrap HUD outside Overlays; apply this on new work and files we edit. Overlays under `Assets/Prefabs/Overlays` should own a MonoBehaviour.

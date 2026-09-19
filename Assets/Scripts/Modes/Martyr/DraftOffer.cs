@@ -1,58 +1,50 @@
 using System;
+using System.Collections.Generic;
 
 namespace ModularChess.Core
 {
     public readonly struct DraftOffer
     {
-        public MartyrPower First { get; }
-        public MartyrPower? Second { get; }
-        public MartyrPower? Third { get; }
+        readonly MartyrPower[] _powers;
         public PieceType? BattlefieldType { get; }
-        public int Count { get; }
+        public int Count => _powers == null ? 0 : _powers.Length;
 
-        public DraftOffer(MartyrPower first, MartyrPower? second, MartyrPower? third, PieceType? battlefieldType)
+        public DraftOffer(IReadOnlyList<MartyrPower> powers, PieceType? battlefieldType)
         {
-            First = first;
-            Second = second;
-            Third = third;
+            if (powers == null || powers.Count == 0)
+            {
+                throw new ArgumentException("Draft offer needs at least one power.", nameof(powers));
+            }
+
+            _powers = new MartyrPower[powers.Count];
+            for (int i = 0; i < powers.Count; i++)
+            {
+                _powers[i] = powers[i];
+            }
+
             BattlefieldType = battlefieldType;
-            int count = 1;
-            if (second != null)
-            {
-                count++;
-            }
-            if (third != null)
-            {
-                count++;
-            }
-            Count = count;
         }
 
         public bool Contains(MartyrPower power)
         {
-            return First == power || Second == power || Third == power;
+            for (int i = 0; i < Count; i++)
+            {
+                if (_powers[i] == power)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
         public MartyrPower At(int index)
         {
-            switch (index)
+            if (index < 0 || index >= Count)
             {
-                case 0:
-                    return First;
-                case 1:
-                    if (Second == null)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index));
-                    }
-                    return Second.Value;
-                case 2:
-                    if (Third == null)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index));
-                    }
-                    return Third.Value;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(index));
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
+
+            return _powers[index];
         }
     }
 }

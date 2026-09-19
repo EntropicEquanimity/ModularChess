@@ -16,6 +16,7 @@ namespace ModularChess.Match
         MatchSession _session;
         GameState _state;
         Square? _selected;
+        Side? _selectionSide;
         IReadOnlyList<Move> _movesFromSelection = Array.Empty<Move>();
         List<Move> _pendingPromotions;
         bool _subscribed;
@@ -30,6 +31,7 @@ namespace ModularChess.Match
         bool _draftTiming;
         float _draftRemaining;
         float _aiWait = -1f;
+        const float AiThinkSeconds = 1f;
         MartyrPower? _draftTargeting;
         readonly List<Square> _draftTargets = new List<Square>();
         readonly List<Square> _reinforcementPicks = new List<Square>();
@@ -135,7 +137,7 @@ namespace ModularChess.Match
                 if (boardView != null && boardView.PiecesBusy)
                     return;
                 if (_aiWait < 0f)
-                    _aiWait = UnityEngine.Random.Range(1f, 3f);
+                    _aiWait = AiThinkSeconds;
                 _aiWait -= Time.deltaTime;
                 if (_aiWait > 0f)
                     return;
@@ -363,6 +365,10 @@ namespace ModularChess.Match
 
         private void OnSquareClicked(Square square)
         {
+            if (OptionsOverlay.IsOpen || (hud != null && hud.BlocksBoardInput))
+                return;
+            if (BoardPointerInput.IsScreenBlockedByUi())
+                return;
             PinFromClick(square);
             if (_draftTargeting != null)
             {
@@ -381,6 +387,7 @@ namespace ModularChess.Match
             }
             if (_selected.HasValue)
             {
+                _movesFromSelection = _state.LegalMovesFrom(_selected.Value);
                 if (_selected.Value.Equals(square))
                 {
                     ClearSelection();
@@ -505,6 +512,8 @@ namespace ModularChess.Match
                 return false;
             if (_state.DraftPending || _paused || _inSetup)
                 return false;
+            if (OptionsOverlay.IsOpen || (hud != null && hud.BlocksBoardInput))
+                return false;
             if (_session != null && _session.IsAi && _state.SideToMove != _session.PlayerSide)
                 return false;
             if (boardView != null && boardView.PiecesBusy)
@@ -521,6 +530,7 @@ namespace ModularChess.Match
         private void Select(Square square)
         {
             _selected = square;
+            _selectionSide = _state.SideToMove;
             _movesFromSelection = _state.LegalMovesFrom(square);
             GameAudio.PlaySelect();
         }
@@ -528,6 +538,7 @@ namespace ModularChess.Match
         private void ClearSelection()
         {
             _selected = null;
+            _selectionSide = null;
             _movesFromSelection = Array.Empty<Move>();
         }
 
@@ -659,11 +670,14 @@ namespace ModularChess.Match
 
         void PlayAi()
         {
+            if (_state.DraftPending)
+                return;
             if (_state.TurnOpen)
             {
                 Side ended = _state.SideToMove;
                 _state = _state.EndTurn();
                 _clock?.AddIncrement(ended);
+                ClearSelection();
                 RefreshPresentation();
                 return;
             }
@@ -678,7 +692,15 @@ namespace ModularChess.Match
         {
             if (_session != null && _session.IsAi && _state.SideToMove != _session.PlayerSide)
             {
-                ResolveAiDraft();
+                if (!_draftTiming)
+                {
+                    _draftTiming = true;
+                    _draftRemaining = AiThinkSeconds;
+                }
+                _draftRemaining -= Time.deltaTime;
+                hud?.SetClock(_clock, ClockSide());
+                if (_draftRemaining <= 0f)
+                    ResolveAiDraft();
                 return;
             }
 
@@ -708,17 +730,7 @@ namespace ModularChess.Match
         void ResolveAiDraft()
         {
             ApplyRandomDraft();
-        }
-
-        bool TryResolveAiDraft()
-        {
-            if (_state == null || !_state.DraftPending)
-                return false;
-            if (_session == null || !_session.IsAi || _state.SideToMove == _session.PlayerSide)
-                return false;
-
-            ApplyRandomDraft();
-            return true;
+            _aiWait = AiThinkSeconds;
         }
 
         void ApplyRandomDraft()
@@ -760,6 +772,7 @@ namespace ModularChess.Match
             _draftTiming = false;
             _draftTargeting = null;
             _reinforcementPicks.Clear();
+            ClearSelection();
             _state = _state.ApplyDraft(power, targetId, reinforcements);
             RefreshPresentation();
             boardView?.PlayPowerFeel(power, targetId);
@@ -801,7 +814,7 @@ namespace ModularChess.Match
             }
             if (_draftTargeting == MartyrPower.Exile)
             {
-                if (piece.Side == _state.SideToMove || piece.Type == PieceType.King)
+                if (!_state.IsExileTarget(square))
                 {
                     GameAudio.PlayIllegal();
                     return;
@@ -879,12 +892,10 @@ namespace ModularChess.Match
             }
             else if (power == MartyrPower.Exile)
             {
-                Side enemy = _state.SideToMove.Opponent();
                 for (int i = 0; i < 64; i++)
                 {
                     Square square = Square.FromIndex(i);
-                    Piece piece = _state.Board.GetPiece(square);
-                    if (piece != null && piece.Side == enemy && piece.Type != PieceType.King)
+                    if (_state.IsExileTarget(square))
                         _draftTargets.Add(square);
                 }
                 return;
@@ -938,8 +949,8 @@ namespace ModularChess.Match
         {
             if (boardView == null || _state == null)
                 return;
-            if (TryResolveAiDraft())
-                return;
+            if (_selected.HasValue && _selectionSide != _state.SideToMove)
+                ClearSelection();
 
             Side viewer = _session != null && _session.Hotseat ? _state.SideToMove : (_session?.PlayerSide ?? Side.White);
             VisionMap vision = VisionMap.Compute(_state, viewer);
@@ -1032,6 +1043,13 @@ namespace ModularChess.Match
 
         void OnSquareHovered(Square? square)
         {
+            if (OptionsOverlay.IsOpen || (hud != null && hud.BlocksBoardInput) || BoardPointerInput.IsScreenBlockedByUi())
+            {
+                _hovered = null;
+                RefreshPieceDetails();
+                return;
+            }
+
             _hovered = square;
             RefreshPieceDetails();
         }

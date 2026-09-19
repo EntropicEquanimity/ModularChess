@@ -96,6 +96,35 @@ namespace ModularChess.Core.Tests
             Assert.AreEqual(2, pawns);
         }
         [Test]
+        public void ReinforcementsNeverReplaceRookOnBackRank()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("r3k2r/3p4/8/8/8/8/8/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d7");
+            Square aRook = new Square(0, 7);
+            Square hRook = new Square(7, 7);
+            Piece left = state.Board.GetPiece(aRook);
+            Piece right = state.Board.GetPiece(hRook);
+            Assert.IsNotNull(left);
+            Assert.IsNotNull(right);
+            state = state.ApplyDraft(
+                MartyrPower.Reinforcements,
+                null,
+                new[] { aRook, hRook });
+            Assert.AreEqual(PieceType.Rook, state.Board.GetPiece(aRook).Type);
+            Assert.AreEqual(left.Id, state.Board.GetPiece(aRook).Id);
+            Assert.AreEqual(PieceType.Rook, state.Board.GetPiece(hRook).Type);
+            Assert.AreEqual(right.Id, state.Board.GetPiece(hRook).Id);
+            int pawns = 0;
+            for (int file = 0; file < Square.BoardSize; file++)
+            {
+                Piece piece = state.Board.GetPiece(new Square(file, 7));
+                if (piece != null && piece.Type == PieceType.Pawn && piece.Side == Side.Black)
+                    pawns++;
+            }
+            Assert.AreEqual(2, pawns);
+        }
+        [Test]
         public void StasisFieldIsNotOfferedWhenOpponentHasNoQueen()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
@@ -270,15 +299,70 @@ namespace ModularChess.Core.Tests
         static void AssertOfferHasNoDuplicates(DraftOffer offer)
         {
             Assert.Greater(offer.Count, 0);
-            if (offer.Count >= 2)
+            for (int i = 0; i < offer.Count; i++)
             {
-                Assert.AreNotEqual(offer.At(0), offer.At(1));
+                for (int j = i + 1; j < offer.Count; j++)
+                {
+                    Assert.AreNotEqual(offer.At(i), offer.At(j));
+                }
             }
-            if (offer.Count >= 3)
-            {
-                Assert.AreNotEqual(offer.At(0), offer.At(2));
-                Assert.AreNotEqual(offer.At(1), offer.At(2));
-            }
+        }
+        [Test]
+        public void DraftOfferUsesMartyrDraftOptionsCount()
+        {
+            MatchRules rules = new MatchRules(
+                new[] { ModeId.Martyr },
+                new MatchSettings(martyrThreshold: 1, martyrDraftOptions: 5));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            Assert.IsTrue(state.DraftPending);
+            DraftOffer offer = state.Runtime.PendingDraft.Value;
+            Assert.AreEqual(5, offer.Count);
+            AssertOfferHasNoDuplicates(offer);
+        }
+        [Test]
+        public void ReinforcementsNotOfferedWhenBackRankIsFull()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("rnbqkbnr/3p4/8/8/8/8/3P4/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            Assert.IsTrue(state.DraftPending);
+            DraftOffer offer = state.Runtime.PendingDraft.Value;
+            for (int i = 0; i < offer.Count; i++)
+                Assert.AreNotEqual(MartyrPower.Reinforcements, offer.At(i));
+        }
+        [Test]
+        public void ExileCannotTargetAbsolutelyPinnedPieces()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4q3/8/8/8/8/4N3/3p4/R2QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            Assert.IsTrue(state.DraftPending);
+            Square pinned = new Square(4, 2);
+            Piece knight = state.Board.GetPiece(pinned);
+            Assert.IsNotNull(knight);
+            Assert.AreEqual(PieceType.Knight, knight.Type);
+            Assert.IsFalse(state.IsExileTarget(pinned));
+            Assert.IsTrue(state.IsExileTarget(new Square(0, 0)));
+            state = state.ApplyDraft(MartyrPower.Exile, knight.Id, null);
+            Assert.IsNotNull(state.Board.GetPiece(pinned));
+            Assert.AreEqual(0, CountExiled(state.Runtime));
+        }
+        [Test]
+        public void BattlefieldPromotionPieceHasLegalMoves()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/2pp4/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            Piece pawn = state.Board.GetPiece(new Square(2, 1));
+            Assert.IsNotNull(pawn);
+            Assert.AreEqual(PieceType.Pawn, pawn.Type);
+            state = state.ApplyDraft(MartyrPower.BattlefieldPromotion, pawn.Id, null);
+            Piece promoted = state.Board.GetPiece(new Square(2, 1));
+            Assert.IsNotNull(promoted);
+            Assert.AreNotEqual(PieceType.Pawn, promoted.Type);
+            Assert.AreEqual(pawn.Id, promoted.Id);
+            Assert.Greater(state.LegalMovesFrom(new Square(2, 1)).Count, 0);
         }
         static int CountExiled(ModeRuntime runtime)
         {

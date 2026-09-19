@@ -138,7 +138,7 @@ namespace ModularChess.Core
                 nextRuntime = nextRuntime.TickStatuses(SideToMove);
                 nextBoard = MartyrRules.ResolveExpiredExiles(nextBoard, nextRuntime, SideToMove, out nextRuntime);
                 nextRuntime = nextRuntime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false);
-                nextRuntime = MaybeOpenDraft(nextRuntime, nextSide);
+                nextRuntime = MaybeOpenDraft(nextRuntime, nextSide, nextBoard);
             }
             else
             {
@@ -179,7 +179,7 @@ namespace ModularChess.Core
             Board nextBoard = MartyrRules.ResolveExpiredExiles(Board, nextRuntime, SideToMove, out nextRuntime);
             nextRuntime = nextRuntime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false);
             Side nextSide = SideToMove.Opponent();
-            nextRuntime = MaybeOpenDraft(nextRuntime, nextSide);
+            nextRuntime = MaybeOpenDraft(nextRuntime, nextSide, nextBoard);
             int nextFullmove = SideToMove == Side.Black ? FullmoveNumber + 1 : FullmoveNumber;
             return new GameState(
                 nextBoard,
@@ -236,7 +236,7 @@ namespace ModularChess.Core
             }
 
             ModeRuntime next = Runtime.WithEmpowered(ids, extraLife);
-            next = MaybeOpenDraft(next, SideToMove);
+            next = MaybeOpenDraft(next, SideToMove, Board);
             return CloneWithRuntime(next);
         }
         public GameState WithSideToMove(Side side)
@@ -324,6 +324,10 @@ namespace ModularChess.Core
 
             return matches;
         }
+        public bool IsExileTarget(Square square)
+        {
+            return MartyrRules.CanExile(Board, square, Rules, Runtime, SideToMove);
+        }
         #endregion
 
         #region Private Methods
@@ -409,7 +413,7 @@ namespace ModularChess.Core
             }
             return true;
         }
-        private ModeRuntime MaybeOpenDraft(ModeRuntime runtime, Side sideToMove)
+        private ModeRuntime MaybeOpenDraft(ModeRuntime runtime, Side sideToMove, Board board)
         {
             if (!Rules.Has(ModeId.Martyr) || runtime.PendingDraft != null)
             {
@@ -422,7 +426,7 @@ namespace ModularChess.Core
                 return runtime;
             }
 
-            DraftOffer offer = MartyrRules.BuildOffer(this, runtime, sideToMove);
+            DraftOffer offer = MartyrRules.BuildOffer(this, runtime, sideToMove, board);
             PieceType? battlefield = offer.Contains(MartyrPower.BattlefieldPromotion)
                 ? offer.BattlefieldType
                 : null;

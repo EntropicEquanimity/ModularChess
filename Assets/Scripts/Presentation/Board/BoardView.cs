@@ -543,6 +543,7 @@ namespace ModularChess.Presentation
                 _pieces.Remove(id);
                 if (view == null)
                     continue;
+                view.gameObject.SetActive(false);
                 if (defer)
                     _deferredDestroy.Add(view);
                 else

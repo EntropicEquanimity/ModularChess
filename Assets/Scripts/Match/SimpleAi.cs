@@ -8,7 +8,7 @@ namespace ModularChess.Match
     {
         public static Move? Choose(GameState state, AiStrength strength, Side aiSide)
         {
-            if (state == null || state.LegalMoves.Count == 0)
+            if (state == null || state.DraftPending || state.LegalMoves.Count == 0)
             {
                 return null;
             }
@@ -73,7 +73,7 @@ namespace ModularChess.Match
 
         static int Evaluate(GameState state, Side aiSide, int depth, int alpha, int beta)
         {
-            if (state.Status != GameStatus.InProgress || depth == 0)
+            if (state.Status != GameStatus.InProgress || depth == 0 || state.DraftPending)
             {
                 return Score(state, aiSide);
             }

@@ -28,5 +28,16 @@ namespace ModularChess.Core.Tests
             Assert.AreEqual(PieceType.King, still.Type);
             Assert.AreEqual(king.Id, still.Id);
         }
+        [Test]
+        public void WithPiece_DoesNotReplaceADifferentPiece()
+        {
+            GameState state = GameState.StartingPosition();
+            Square rookSquare = new Square(0, 0);
+            Piece rook = state.Board.GetPiece(rookSquare);
+            Board next = state.Board.WithPiece(rookSquare, new Piece(PieceType.Pawn, Side.White));
+            Piece still = next.GetPiece(rookSquare);
+            Assert.AreEqual(PieceType.Rook, still.Type);
+            Assert.AreEqual(rook.Id, still.Id);
+        }
     }
 }

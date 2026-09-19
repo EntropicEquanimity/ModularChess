@@ -125,32 +125,26 @@ namespace ModularChess.Presentation
             _popup = Instantiate(prefab, _canvas.transform);
             _popup.name = "PromotionPopup";
             LocalizedText.Bind(FindNamed(_popup.transform, "Title"), "promotion.title");
-            WireButtons();
-        }
-        void WireButtons()
-        {
-            Button[] found = _popup.GetComponentsInChildren<Button>(true);
-            int count = Mathf.Min(Options.Length, found.Length, _buttons.Length);
-            for (int i = 0; i < count; i++)
-            {
-                Button button = found[i];
-                _buttons[i] = button;
-                _icons[i] = FindIcon(button.transform);
-                PieceType type = Options[i];
-                button.onClick.RemoveAllListeners();
-                GameAudio.Bind(button, () => Choose(type));
-            }
+            var view = _popup.GetComponent<PromotionPopupView>();
+            if (view == null)
+                view = _popup.AddComponent<PromotionPopupView>();
+            view.Bind(Choose);
+            if (view.FirstButton != null)
+                _buttons[0] = view.FirstButton;
         }
         void ApplySide(Side side)
         {
+            var view = _popup != null ? _popup.GetComponent<PromotionPopupView>() : null;
+            if (view != null)
+            {
+                view.SetSide(side);
+                return;
+            }
             for (int i = 0; i < Options.Length; i++)
             {
                 Image icon = _icons[i];
                 if (icon == null)
-                {
                     continue;
-                }
-
                 icon.sprite = ChessGlyphs.GetSprite(Options[i], side);
                 icon.preserveAspect = true;
                 icon.raycastTarget = false;

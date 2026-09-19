@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using ModularChess.Core;
 using ModularChess.Presentation;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -31,17 +30,18 @@ namespace ModularChess.Match
         MatchHud _hud;
         bool _menuBound;
         readonly List<ModeId> _selectedModes = new List<ModeId>();
-        readonly List<GameObject> _spawnedModeToggles = new List<GameObject>();
         readonly HostModeSettings _modeSettings = new HostModeSettings();
         Activity _activity;
-        HostColor _hostColor = HostColor.White;
-        AiStrength _aiStrength = AiStrength.Medium;
-        int _timePreset;
-        int _incrementPreset;
+        PlayOverlay _play;
+        MatchSettingsOverlay _matchSettings;
+        LobbyOverlay _lobbyView;
+        JoinOverlay _join;
+        CreditsOverlay _credits;
+        AccountCreationOverlay _account;
+        UnlocksView _unlocks;
         LocalLobby _lobby;
         static LocalLobby _openLobby;
         bool _prepConfirmArmed;
-        ModeSettingsPopup _modeSettingsPopup;
         OverlayDialogs _dialogs;
         readonly List<float> _gravePresses = new List<float>();
         bool _locHooked;
@@ -165,40 +165,50 @@ namespace ModularChess.Match
 
         void BindOverlays()
         {
-            BindButton(playOverlay, "VersusAiButton", () => OpenPrep(Activity.VersusAi));
-            BindButton(playOverlay, "VersusFriendButton", () => OpenPrep(Activity.VersusFriend));
-            BindButton(playOverlay, "JoinButton", ShowJoin);
-            BindButton(playOverlay, "BackButton", ShowMainMenu);
-
-            BindButton(matchSettingsOverlay, "ConfirmButton", ConfirmPrep);
-            BindButton(matchSettingsOverlay, "BackButton", ShowPlay);
-
-            BindButton(lobbyOverlay, "SitButton", SitAsFriend);
-            BindButton(lobbyOverlay, "StartButton", StartLobbyMatch);
-            BindButton(lobbyOverlay, "LeaveButton", LeaveLobby);
-
-            BindButton(joinOverlay, "EnterButton", EnterJoinCode);
-            BindButton(joinOverlay, "BackButton", ShowPlay);
-
-            BindButton(unlocksOverlay, "BackButton", ShowMainMenu);
-            BindButton(creditsOverlay, "BackButton", ShowMainMenu);
-
+            CacheOverlayViews();
+            _play?.Bind(
+                () => OpenPrep(Activity.VersusAi),
+                () => OpenPrep(Activity.VersusFriend),
+                ShowJoin,
+                ShowMainMenu);
+            _matchSettings?.Bind(ConfirmPrep, ShowPlay);
+            _lobbyView?.Bind(SitAsFriend, StartLobbyMatch, LeaveLobby);
+            _join?.Bind(EnterJoinCode, ShowPlay);
+            _unlocks?.Bind(ShowMainMenu);
+            _credits?.Bind(ShowMainMenu);
             HookOptionsOverlay();
-            EnsureLanguageDropdown();
             BindAccountCreation();
             BindMenuLoc();
-            ApplyWebGlPlayLimits();
+            _play?.ApplyWebGlLimits();
             HookLanguage();
             WarmOverlayMotions();
+        }
+        void CacheOverlayViews()
+        {
+            if (_play == null && playOverlay != null)
+                _play = playOverlay.GetComponent<PlayOverlay>() ?? playOverlay.AddComponent<PlayOverlay>();
+            if (_matchSettings == null && matchSettingsOverlay != null)
+                _matchSettings = matchSettingsOverlay.GetComponent<MatchSettingsOverlay>()
+                    ?? matchSettingsOverlay.AddComponent<MatchSettingsOverlay>();
+            if (_lobbyView == null && lobbyOverlay != null)
+                _lobbyView = lobbyOverlay.GetComponent<LobbyOverlay>() ?? lobbyOverlay.AddComponent<LobbyOverlay>();
+            if (_join == null && joinOverlay != null)
+                _join = joinOverlay.GetComponent<JoinOverlay>() ?? joinOverlay.AddComponent<JoinOverlay>();
+            if (_credits == null && creditsOverlay != null)
+                _credits = creditsOverlay.GetComponent<CreditsOverlay>() ?? creditsOverlay.AddComponent<CreditsOverlay>();
+            if (_account == null && accountCreationOverlay != null)
+                _account = accountCreationOverlay.GetComponent<AccountCreationOverlay>()
+                    ?? accountCreationOverlay.AddComponent<AccountCreationOverlay>();
+            if (_unlocks == null && unlocksOverlay != null)
+                _unlocks = unlocksOverlay.GetComponent<UnlocksView>();
         }
 
         void ShowOverlay(GameObject overlay)
         {
             if (overlay != matchSettingsOverlay)
-                _modeSettingsPopup?.HideImmediate();
-            UnlocksView unlocks = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
+                _matchSettings?.HideModeSettingsImmediate();
             if (overlay != unlocksOverlay)
-                unlocks?.HideDetailImmediate();
+                _unlocks?.HideDetailImmediate();
 
             HideBoard();
             DismissScreens(overlay);
@@ -207,9 +217,8 @@ namespace ModularChess.Match
 
         void HideOverlays()
         {
-            _modeSettingsPopup?.HideImmediate();
-            UnlocksView unlocks = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
-            unlocks?.HideDetailImmediate();
+            _matchSettings?.HideModeSettingsImmediate();
+            _unlocks?.HideDetailImmediate();
             DismissScreens(null);
         }
 
@@ -293,15 +302,15 @@ namespace ModularChess.Match
         void ShowPlay()
         {
             ShowOverlay(playOverlay);
-            ApplyWebGlPlayLimits();
+            CacheOverlayViews();
+            _play?.ApplyWebGlLimits();
         }
 
         void ShowUnlocks()
         {
             ShowOverlay(unlocksOverlay);
-            UnlocksView view = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
-            if (view != null)
-                view.Refresh();
+            CacheOverlayViews();
+            _unlocks?.Refresh();
         }
 
         void ShowOptions()
@@ -345,9 +354,8 @@ namespace ModularChess.Match
         {
             if (optionsOverlay == null && OptionsOverlay.Instance != null)
                 optionsOverlay = OptionsOverlay.Instance.gameObject;
-            _modeSettingsPopup?.HideImmediate();
-            UnlocksView unlocks = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
-            unlocks?.HideDetailImmediate();
+            _matchSettings?.HideModeSettingsImmediate();
+            _unlocks?.HideDetailImmediate();
             HideBoard();
             DismissScreens(optionsOverlay);
         }
@@ -406,294 +414,32 @@ namespace ModularChess.Match
         void ShowPrep()
         {
             ShowOverlay(matchSettingsOverlay);
-            if (matchSettingsOverlay == null)
-                return;
-
-            BindDropdown(
-                matchSettingsOverlay,
-                "TimeDropdown",
-                new[]
-                {
-                    Loc.Get("settings.time.none"),
-                    Loc.Get("settings.time.bullet"),
-                    Loc.Get("settings.time.blitz"),
-                    Loc.Get("settings.time.rapid"),
-                    Loc.Get("settings.time.standard"),
-                    Loc.Get("settings.time.extended")
-                },
-                _timePreset,
-                OnTimePresetChanged);
-            BindDropdown(
-                matchSettingsOverlay,
-                "ExtraTimeDropdown",
-                new[]
-                {
-                    Loc.Get("settings.inc.none"),
-                    Loc.Get("settings.inc.1"),
-                    Loc.Get("settings.inc.2"),
-                    Loc.Get("settings.inc.5"),
-                    Loc.Get("settings.inc.10"),
-                    Loc.Get("settings.inc.15"),
-                    Loc.Get("settings.inc.30"),
-                    Loc.Get("settings.inc.60")
-                },
-                _incrementPreset,
-                v => _incrementPreset = v);
-            RefreshExtraTimeVisible();
-            BindDropdown(
-                matchSettingsOverlay,
-                "HostColorDropdown",
-                new[]
-                {
-                    Loc.Get("settings.color.white"),
-                    Loc.Get("settings.color.black"),
-                    Loc.Get("settings.color.random")
-                },
-                (int)_hostColor,
-                v => _hostColor = (HostColor)v);
-
-            Transform aiGroup = FindChild(matchSettingsOverlay.transform, "AiGroup");
-            if (aiGroup != null)
-                aiGroup.gameObject.SetActive(_activity == Activity.VersusAi);
-            if (_activity == Activity.VersusAi)
-                BindDropdown(
-                    matchSettingsOverlay,
-                    "AiDropdown",
-                    new[] { Loc.Get("settings.ai.easy"), Loc.Get("settings.ai.medium"), Loc.Get("settings.ai.hard") },
-                    (int)_aiStrength,
-                    v => _aiStrength = (AiStrength)v);
-
-            Button confirm = FindButton(matchSettingsOverlay, "ConfirmButton");
-            if (confirm != null)
-            {
-                TMP_Text label = confirm.GetComponentInChildren<TMP_Text>();
-                if (label != null)
-                    label.text = _activity == Activity.VersusAi
-                        ? Loc.Get("settings.start")
-                        : Loc.Get("settings.createLobby");
-            }
-
-            FillModeToggles();
-        }
-
-        void FillModeToggles()
-        {
-            ScrollRect scroll = FindModesScroll();
-            if (scroll == null || scroll.content == null)
-                return;
-
-            if (matchSettingsOverlay != null)
-                _modeSettingsPopup = ModeSettingsPopup.Ensure(matchSettingsOverlay.transform);
-
-            Transform content = scroll.content;
-            VerticalLayoutGroup contentLayout = content.GetComponent<VerticalLayoutGroup>();
-            if (contentLayout != null)
-            {
-                contentLayout.childForceExpandWidth = true;
-                contentLayout.childControlWidth = true;
-                contentLayout.childControlHeight = false;
-            }
-
-            for (int i = 0; i < _spawnedModeToggles.Count; i++)
-            {
-                if (_spawnedModeToggles[i] != null)
-                    Destroy(_spawnedModeToggles[i]);
-            }
-
-            _spawnedModeToggles.Clear();
-            for (int i = content.childCount - 1; i >= 0; i--)
-                Destroy(content.GetChild(i).gameObject);
-
-            GameObject rowPrefab = RuntimePrefabs.SelectionRow;
-            ModeDefinition[] modes = ModeCatalog.All;
-            for (int i = 0; i < modes.Length; i++)
-            {
-                ModeDefinition def = modes[i];
-                if (!def.Allows(_activity))
-                    continue;
-
-                bool owned = ModeDlc.IsOwned(def.Id);
-                GameObject row;
-                if (rowPrefab != null)
-                {
-                    row = Object.Instantiate(rowPrefab, content);
-                }
-                else
-                {
-                    row = new GameObject(def.Id.ToString(), typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
-                    row.transform.SetParent(content, false);
-                }
-
-                row.name = def.Id.ToString();
-                row.SetActive(true);
-                FitModeRow(row);
-
-                Toggle toggle = row.GetComponentInChildren<Toggle>(true);
-                if (toggle == null)
-                {
-                    Destroy(row);
-                    continue;
-                }
-
-                GameObject toggleGo = toggle.gameObject;
-                var toggleElement = toggleGo.GetComponent<LayoutElement>();
-                if (toggleElement == null)
-                    toggleElement = toggleGo.AddComponent<LayoutElement>();
-                toggleElement.minWidth = 160;
-                toggleElement.flexibleWidth = 1;
-                toggleElement.minHeight = 32;
-                toggleElement.preferredHeight = 32;
-                toggleElement.flexibleHeight = 0;
-
-                TMP_Text text = toggleGo.GetComponentInChildren<TMP_Text>();
-                if (text != null)
-                {
-                    text.text = owned
-                        ? Loc.ModeName(def.Id)
-                        : Loc.Format("mode.unlocks.suffix", Loc.ModeName(def.Id));
-                    text.color = Color.black;
-                    text.fontSize = 16;
-                    text.textWrappingMode = TextWrappingModes.NoWrap;
-                    text.overflowMode = TextOverflowModes.Ellipsis;
-                }
-
-                ModeId captured = def.Id;
-                toggle.interactable = owned;
-                toggle.isOn = owned && _selectedModes.Contains(captured);
-                toggle.onValueChanged.RemoveAllListeners();
-
-                var group = row.GetComponent<CanvasGroup>();
-                if (group == null)
-                    group = row.AddComponent<CanvasGroup>();
-                group.alpha = owned ? 1f : 0.45f;
-                group.interactable = owned;
-                group.blocksRaycasts = true;
-
-                Transform settingsTransform = row.transform.Find("SettingsButton");
-                Button settings = settingsTransform != null
-                    ? settingsTransform.GetComponent<Button>()
-                    : row.GetComponentInChildren<Button>(true);
-                if (settings == null)
-                    settings = UiFactory.Button(row.transform, "...", null, new Vector2(32f, 32f));
-                settings.name = "SettingsButton";
-                GameAudio.Bind(settings, () => OpenModeSettings(captured, scroll));
-
-                void RefreshSettingsAccess()
-                {
-                    settings.interactable = owned && toggle.isOn;
-                }
-
-                if (owned)
-                {
-                    toggle.onValueChanged.AddListener(value =>
-                    {
-                        GameAudio.PlayUi();
-                        if (value && !_selectedModes.Contains(captured))
-                            _selectedModes.Add(captured);
-                        if (!value)
-                            _selectedModes.Remove(captured);
-                        RefreshSettingsAccess();
-                    });
-                }
-
-                RefreshSettingsAccess();
-                TMP_Text settingsLabel = settings.GetComponentInChildren<TMP_Text>();
-                if (settingsLabel != null)
-                {
-                    settingsLabel.fontSize = 16;
-                    settingsLabel.textWrappingMode = TextWrappingModes.NoWrap;
-                    settingsLabel.overflowMode = TextOverflowModes.Overflow;
-                }
-
-                settings.GetComponent<RectTransform>().sizeDelta = new Vector2(32f, 32f);
-                var settingsElement = settings.gameObject.GetComponent<LayoutElement>();
-                if (settingsElement == null)
-                    settingsElement = settings.gameObject.AddComponent<LayoutElement>();
-                settingsElement.minWidth = 32;
-                settingsElement.preferredWidth = 32;
-                settingsElement.flexibleWidth = 0;
-                settingsElement.minHeight = 32;
-                settingsElement.preferredHeight = 32;
-                settingsElement.flexibleHeight = 0;
-
-                _spawnedModeToggles.Add(row);
-            }
-        }
-
-        static void FitModeRow(GameObject row)
-        {
-            var rowLayout = row.GetComponent<HorizontalLayoutGroup>();
-            if (rowLayout != null)
-            {
-                rowLayout.spacing = 4;
-                rowLayout.childAlignment = TextAnchor.MiddleLeft;
-                rowLayout.childControlWidth = true;
-                rowLayout.childControlHeight = true;
-                rowLayout.childForceExpandWidth = false;
-                rowLayout.childForceExpandHeight = false;
-            }
-
-            var rowElement = row.GetComponent<LayoutElement>();
-            if (rowElement == null)
-                rowElement = row.AddComponent<LayoutElement>();
-            rowElement.minHeight = 32;
-            rowElement.preferredHeight = 32;
-            rowElement.flexibleHeight = 0;
-            rowElement.minWidth = 200;
-            rowElement.flexibleWidth = 1;
-
-            RectTransform rect = row.GetComponent<RectTransform>();
-            if (rect != null)
-                rect.sizeDelta = new Vector2(rect.sizeDelta.x, 32f);
-        }
-
-        void OpenModeSettings(ModeId id, ScrollRect scroll)
-        {
-            if (!ModeDlc.IsOwned(id) || !_selectedModes.Contains(id))
-                return;
-            if (matchSettingsOverlay != null)
-                _modeSettingsPopup = ModeSettingsPopup.Ensure(matchSettingsOverlay.transform);
-            if (_modeSettingsPopup == null)
-                return;
-            RectTransform slideFrom = scroll != null ? scroll.transform as RectTransform : null;
-            _modeSettingsPopup.Open(id, _modeSettings, slideFrom);
-        }
-
-        ScrollRect FindModesScroll()
-        {
-            Transform named = FindChild(matchSettingsOverlay.transform, "ModesScroll");
-            if (named == null)
-                named = FindChild(matchSettingsOverlay.transform, "Scroll View");
-            if (named != null)
-            {
-                ScrollRect namedScroll = named.GetComponent<ScrollRect>();
-                if (namedScroll == null)
-                    namedScroll = named.GetComponentInChildren<ScrollRect>(true);
-                if (namedScroll != null)
-                    return namedScroll;
-            }
-
-            ScrollRect[] rects = matchSettingsOverlay.GetComponentsInChildren<ScrollRect>(true);
-            for (int i = 0; i < rects.Length; i++)
-            {
-                if (rects[i].GetComponentInParent<TMP_Dropdown>(true) == null)
-                    return rects[i];
-            }
-
-            return null;
+            CacheOverlayViews();
+            _matchSettings?.Present(
+                _activity,
+                _selectedModes,
+                _modeSettings,
+                0,
+                0,
+                HostColor.White,
+                AiStrength.Medium);
         }
 
         void ConfirmPrep()
         {
             if (!_prepConfirmArmed)
                 return;
-            if (_modeSettingsPopup != null && _modeSettingsPopup.IsOpen)
+            CacheOverlayViews();
+            if (_matchSettings != null && _matchSettings.ModeSettingsOpen)
                 return;
-
+            int timePreset = _matchSettings != null ? _matchSettings.TimePreset : 0;
+            int incrementPreset = _matchSettings != null ? _matchSettings.IncrementPreset : 0;
+            HostColor hostColor = _matchSettings != null ? _matchSettings.HostColor : HostColor.White;
+            AiStrength aiStrength = _matchSettings != null ? _matchSettings.AiStrength : AiStrength.Medium;
             MatchSettings settings = new MatchSettings(
-                TimeFromPreset(),
-                _hostColor,
-                _aiStrength,
+                TimeFromPreset(timePreset, incrementPreset),
+                hostColor,
+                aiStrength,
                 false,
                 _modeSettings.EmpoweredCount,
                 _modeSettings.MartyrThreshold,
@@ -719,23 +465,10 @@ namespace ModularChess.Match
         void ShowLobby()
         {
             ShowOverlay(lobbyOverlay);
-            if (lobbyOverlay == null || _lobby == null)
+            CacheOverlayViews();
+            if (_lobby == null)
                 return;
-
-            TMP_Text code = FindLabel(lobbyOverlay, "JoinCodeLabel");
-            if (code != null)
-                code.text = Loc.Format("lobby.code", _lobby.Code);
-            TMP_Text status = FindLabel(lobbyOverlay, "StatusLabel");
-            if (status != null)
-                status.text = _lobby.FriendSeated ? Loc.Get("lobby.seated") : Loc.Get("lobby.waiting");
-            Button start = FindButton(lobbyOverlay, "StartButton");
-            if (start != null)
-            {
-                start.interactable = _lobby.FriendSeated;
-                TMP_Text label = start.GetComponentInChildren<TMP_Text>();
-                if (label != null)
-                    label.text = _lobby.FriendSeated ? Loc.Get("lobby.start") : Loc.Get("lobby.waitingHost");
-            }
+            _lobbyView?.Present(_lobby.Code, _lobby.FriendSeated);
         }
 
         void SitAsFriend()
@@ -774,8 +507,8 @@ namespace ModularChess.Match
 
         void EnterJoinCode()
         {
-            TMP_InputField field = joinOverlay != null ? joinOverlay.GetComponentInChildren<TMP_InputField>(true) : null;
-            if (_openLobby == null || field == null || field.text.Trim().ToUpperInvariant() != _openLobby.Code)
+            CacheOverlayViews();
+            if (_openLobby == null || _join == null || _join.Code != _openLobby.Code)
                 return;
             _openLobby.FriendSeated = true;
             _lobby = _openLobby;
@@ -800,14 +533,12 @@ namespace ModularChess.Match
                 ShowQuitConfirm();
                 return;
             }
-            if (_modeSettingsPopup != null && _modeSettingsPopup.IsOpen)
+            if (_matchSettings != null && _matchSettings.ModeSettingsOpen)
             {
-                _modeSettingsPopup.Close();
+                _matchSettings.CloseModeSettings();
                 return;
             }
-
-            UnlocksView unlocks = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
-            if (unlocks != null && unlocks.CloseDetailIfOpen())
+            if (_unlocks != null && _unlocks.CloseDetailIfOpen())
                 return;
 
             if (OptionsOverlay.IsOpen)
@@ -858,41 +589,13 @@ namespace ModularChess.Match
             return go != null && go.activeSelf;
         }
 
-        void OnTimePresetChanged(int value)
-        {
-            _timePreset = value;
-            if (value == 0)
-                _incrementPreset = 0;
-            RefreshExtraTimeVisible();
-        }
-
-        void RefreshExtraTimeVisible()
-        {
-            Transform child = matchSettingsOverlay != null
-                ? FindChild(matchSettingsOverlay.transform, "ExtraTimeDropdown")
-                : null;
-            if (child == null)
-                return;
-            bool on = _timePreset != 0;
-            TMP_Dropdown dropdown = child.GetComponent<TMP_Dropdown>();
-            if (dropdown == null)
-                dropdown = child.GetComponentInChildren<TMP_Dropdown>(true);
-            if (!on)
-            {
-                _incrementPreset = 0;
-                if (dropdown != null)
-                    dropdown.SetValueWithoutNotify(0);
-            }
-            child.gameObject.SetActive(on);
-        }
-
         void DebugUnlockAll()
         {
             ModeDlc.UnlockAll();
-            UnlocksView view = unlocksOverlay != null ? unlocksOverlay.GetComponent<UnlocksView>() : null;
-            view?.Refresh();
+            CacheOverlayViews();
+            _unlocks?.Refresh();
             if (matchSettingsOverlay != null && matchSettingsOverlay.activeSelf)
-                FillModeToggles();
+                ShowPrep();
         }
 
         void DebugWin()
@@ -945,10 +648,10 @@ namespace ModularChess.Match
             GameAudio.PlayMatchMusic();
         }
 
-        TimeControl TimeFromPreset()
+        TimeControl TimeFromPreset(int timePreset, int incrementPreset)
         {
             int minutes;
-            switch (_timePreset)
+            switch (timePreset)
             {
                 case 1:
                     minutes = 1;
@@ -968,9 +671,8 @@ namespace ModularChess.Match
                 default:
                     return TimeControl.None;
             }
-
             int increment;
-            switch (_incrementPreset)
+            switch (incrementPreset)
             {
                 case 1:
                     increment = 1;
@@ -997,7 +699,6 @@ namespace ModularChess.Match
                     increment = 0;
                     break;
             }
-
             return new TimeControl(minutes, increment);
         }
 
@@ -1028,7 +729,6 @@ namespace ModularChess.Match
         {
             BindMenuLoc();
             OptionsOverlay.Ensure()?.Refresh();
-            EnsureLanguageDropdown();
             BindAccountCreation();
             if (IsActive(matchSettingsOverlay))
                 ShowPrep();
@@ -1036,7 +736,7 @@ namespace ModularChess.Match
                 ShowLobby();
             if (IsActive(unlocksOverlay))
                 ShowUnlocks();
-            ApplyWebGlPlayLimits();
+            _play?.ApplyWebGlLimits();
         }
 
         void BindMenuLoc()
@@ -1049,30 +749,15 @@ namespace ModularChess.Match
             LocalizedText.Bind(FindButton(mainMenu, "ExitButton"), "menu.exit");
             LocalizedText.Bind(FindButton(mainMenu, "CustomizeButton"), "menu.customize");
             BindTitle(mainMenu, "menu.title");
-            LocalizedText.Bind(FindButton(playOverlay, "VersusAiButton"), "play.versusAi");
-            LocalizedText.Bind(FindButton(playOverlay, "VersusFriendButton"), "play.versusFriend");
-            LocalizedText.Bind(FindButton(playOverlay, "JoinButton"), "play.join");
-            LocalizedText.Bind(FindButton(playOverlay, "BackButton"), "play.back");
-            BindTitle(playOverlay, "menu.title");
-            LocalizedText.Bind(FindButton(matchSettingsOverlay, "BackButton"), "settings.back");
-            BindTitle(matchSettingsOverlay, "menu.title");
-            LocalizedText.Bind(FindButton(lobbyOverlay, "SitButton"), "lobby.sit");
-            LocalizedText.Bind(FindButton(lobbyOverlay, "LeaveButton"), "lobby.leave");
-            BindTitle(lobbyOverlay, "menu.title");
-            LocalizedText.Bind(FindButton(joinOverlay, "EnterButton"), "join.enter");
-            LocalizedText.Bind(FindButton(joinOverlay, "BackButton"), "play.back");
-            BindTitle(joinOverlay, "menu.title");
+            CacheOverlayViews();
+            _play?.RefreshLoc();
+            _matchSettings?.RefreshLoc();
+            _lobbyView?.RefreshLoc();
+            _join?.RefreshLoc();
+            _credits?.RefreshLoc();
+            _account?.RefreshLoc();
             LocalizedText.Bind(FindButton(unlocksOverlay, "BackButton"), "play.back");
             BindTitle(unlocksOverlay, "menu.unlocks");
-            LocalizedText.Bind(FindButton(creditsOverlay, "BackButton"), "credits.back");
-            BindTitle(creditsOverlay, "menu.credits");
-            BindTitle(accountCreationOverlay, "account.title");
-            Transform languageText = accountCreationOverlay != null
-                ? FindChild(accountCreationOverlay.transform, "LanguageText")
-                : null;
-            if (languageText != null)
-                LocalizedText.Bind(languageText, "options.language");
-            LocalizedText.Bind(FindButton(accountCreationOverlay, "ConfirmButton"), "account.confirm");
         }
 
         void BindTitle(GameObject root, string key)
@@ -1087,29 +772,8 @@ namespace ModularChess.Match
         void BindAccountCreation()
         {
             EnsureAccountOverlay();
-            if (accountCreationOverlay == null)
-                return;
-
-            BindLanguageDropdown(accountCreationOverlay, false);
-            TMP_InputField field = FindInput(accountCreationOverlay, "NameInput");
-            if (field != null)
-            {
-                field.characterLimit = PlayerIdentity.StemMax;
-                field.contentType = TMP_InputField.ContentType.Alphanumeric;
-                field.onSubmit.RemoveAllListeners();
-                field.onSubmit.AddListener(_ =>
-                {
-                    GameAudio.PlayUi();
-                    ConfirmAccount();
-                });
-                field.onValueChanged.RemoveAllListeners();
-                field.onValueChanged.AddListener(RefreshAccountConfirm);
-            }
-
-            Button confirm = FindButton(accountCreationOverlay, "ConfirmButton");
-            BindButton(accountCreationOverlay, "ConfirmButton", ConfirmAccount);
-            LocalizedText.Bind(confirm, "account.confirm");
-            RefreshAccountConfirm(field != null ? field.text : string.Empty);
+            CacheOverlayViews();
+            _account?.Bind(ConfirmAccount);
         }
 
         void EnsureAccountOverlay()
@@ -1123,6 +787,8 @@ namespace ModularChess.Match
             accountCreationOverlay.name = "AccountCreation";
             accountCreationOverlay.SetActive(false);
             OverlayMotion.Ensure(accountCreationOverlay);
+            _account = accountCreationOverlay.GetComponent<AccountCreationOverlay>()
+                ?? accountCreationOverlay.AddComponent<AccountCreationOverlay>();
         }
 
         void EnsureFeedbackOverlay()
@@ -1145,119 +811,14 @@ namespace ModularChess.Match
                 ShowMainMenu();
                 return;
             }
-
-            TMP_InputField field = FindInput(accountCreationOverlay, "NameInput");
-            string stem = field != null ? field.text : string.Empty;
-            if (!PlayerIdentity.TryCommit(stem))
+            if (!PlayerIdentity.TryCommit(_account != null ? _account.Stem : string.Empty))
                 return;
             ShowMainMenu();
-        }
-
-        void RefreshAccountConfirm(string stem)
-        {
-            Button confirm = FindButton(accountCreationOverlay, "ConfirmButton");
-            if (confirm != null)
-                confirm.interactable = PlayerIdentity.Sanitize(stem).Length > 0;
-        }
-
-        void EnsureLanguageDropdown()
-        {
-            BindLanguageDropdown(accountCreationOverlay, false);
-        }
-
-        void BindLanguageDropdown(GameObject root, bool createIfMissing)
-        {
-            if (root == null)
-                return;
-
-            Transform row = FindChild(root.transform, "LanguageDropdown");
-            if (row == null)
-            {
-                if (!createIfMissing)
-                    return;
-                Transform parent = FindChild(root.transform, "ButtonGroup");
-                if (parent == null)
-                    return;
-
-                TMP_Dropdown created = UiFactory.Dropdown(parent, LanguageOptionLabels(), Loc.LanguageIndex(), null);
-                created.name = "LanguageDropdown";
-                created.gameObject.name = "LanguageDropdown";
-                row = created.transform;
-                var element = created.gameObject.GetComponent<LayoutElement>();
-                if (element == null)
-                    element = created.gameObject.AddComponent<LayoutElement>();
-                element.minWidth = 200f;
-                element.preferredWidth = 200f;
-                element.minHeight = 32f;
-                element.preferredHeight = 32f;
-            }
-
-            TMP_Dropdown dropdown = row.GetComponent<TMP_Dropdown>();
-            if (dropdown == null)
-                dropdown = row.GetComponentInChildren<TMP_Dropdown>(true);
-            if (dropdown == null)
-                return;
-            dropdown.ClearOptions();
-            dropdown.AddOptions(new List<string>(LanguageOptionLabels()));
-            dropdown.SetValueWithoutNotify(Loc.LanguageIndex());
-            dropdown.onValueChanged.RemoveAllListeners();
-            dropdown.onValueChanged.AddListener(index =>
-            {
-                GameAudio.PlayUi();
-                if (index >= 0 && index < Loc.Codes.Length)
-                    Loc.SetLanguage(Loc.Codes[index]);
-            });
-        }
-
-        static string[] LanguageOptionLabels()
-        {
-            return new[] { Loc.Get("lang.en"), Loc.Get("lang.es"), Loc.Get("lang.tl") };
-        }
-
-        void ApplyWebGlPlayLimits()
-        {
-            if (Application.platform != RuntimePlatform.WebGLPlayer)
-                return;
-            Button friend = FindButton(playOverlay, "VersusFriendButton");
-            if (friend != null)
-                friend.interactable = false;
-            Button join = FindButton(playOverlay, "JoinButton");
-            if (join != null)
-                join.interactable = false;
         }
 
         static void BindButton(GameObject root, string name, UnityEngine.Events.UnityAction action)
         {
             GameAudio.Bind(FindButton(root, name), action);
-        }
-
-        static void BindDropdown(GameObject root, string name, string[] options, int selected, UnityEngine.Events.UnityAction<int> changed)
-        {
-            Transform child = FindChild(root.transform, name);
-            if (child == null)
-                return;
-            TMP_Dropdown dropdown = child.GetComponent<TMP_Dropdown>();
-            if (dropdown == null)
-                dropdown = child.GetComponentInChildren<TMP_Dropdown>(true);
-            if (dropdown == null)
-                return;
-            dropdown.ClearOptions();
-            dropdown.AddOptions(new List<string>(options));
-            dropdown.SetValueWithoutNotify(selected);
-            dropdown.onValueChanged.RemoveAllListeners();
-            dropdown.onValueChanged.AddListener(v =>
-            {
-                GameAudio.PlayUi();
-                changed?.Invoke(v);
-            });
-        }
-
-        static TMP_InputField FindInput(GameObject root, string name)
-        {
-            if (root == null)
-                return null;
-            Transform child = FindChild(root.transform, name);
-            return child != null ? child.GetComponentInChildren<TMP_InputField>(true) : null;
         }
 
         static Button FindButton(GameObject root, string name)
@@ -1266,14 +827,6 @@ namespace ModularChess.Match
                 return null;
             Transform child = FindChild(root.transform, name);
             return child != null ? child.GetComponent<Button>() : null;
-        }
-
-        static TMP_Text FindLabel(GameObject root, string name)
-        {
-            if (root == null)
-                return null;
-            Transform child = FindChild(root.transform, name);
-            return child != null ? child.GetComponent<TMP_Text>() : null;
         }
 
         static Transform FindChild(Transform root, string name)

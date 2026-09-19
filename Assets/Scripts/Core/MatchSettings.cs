@@ -29,7 +29,18 @@ namespace ModularChess.Core
             AllowEndTurnWithZeroMoves = allowEndTurnWithZeroMoves;
             EmpoweredCount = empoweredCount < 1 ? 2 : empoweredCount;
             MartyrThreshold = martyrThreshold < 1 ? 6 : martyrThreshold;
-            MartyrDraftOptions = martyrDraftOptions < 1 ? 3 : martyrDraftOptions;
+            if (martyrDraftOptions < 1)
+            {
+                MartyrDraftOptions = 3;
+            }
+            else if (martyrDraftOptions > 5)
+            {
+                MartyrDraftOptions = 5;
+            }
+            else
+            {
+                MartyrDraftOptions = martyrDraftOptions;
+            }
         }
         #endregion
     }

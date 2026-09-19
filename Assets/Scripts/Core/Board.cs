@@ -139,6 +139,11 @@ namespace ModularChess.Core
 
             int index = square.ToIndex();
             Piece occupant = _squares[index];
+            if (occupant != null && piece != null && occupant.Id != piece.Id)
+            {
+                return this;
+            }
+
             if (occupant != null
                 && occupant.Type == PieceType.King
                 && (piece == null || piece.Type != PieceType.King))

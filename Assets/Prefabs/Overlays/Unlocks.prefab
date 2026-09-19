@@ -120,6 +120,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   content: {fileID: 7208997885380768293}
   rowPrefab: {fileID: 9101000005, guid: eeea926d66cbb3046841cbc74c5765d1, type: 3}
+  detail: {fileID: 8707281550710102955}
+  slideFrom: {fileID: 7892538061401312228}
+  backButton: {fileID: 0}
 --- !u!1 &8260001001
 GameObject:
   m_ObjectHideFlags: 0
@@ -623,6 +626,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3846238141398828022, guid: 305d93a014edc044689cb34505a8aa99, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3846238141398828022, guid: 305d93a014edc044689cb34505a8aa99, type: 3}
       propertyPath: m_Name
       value: UnlocksDetailPopup
       objectReference: {fileID: 0}
@@ -776,3 +783,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 9007625862063743100, guid: 305d93a014edc044689cb34505a8aa99, type: 3}
   m_PrefabInstance: {fileID: 8707281550710102954}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8707281550710102955 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8076788471565796565, guid: 305d93a014edc044689cb34505a8aa99, type: 3}
+  m_PrefabInstance: {fileID: 8707281550710102954}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1e7c04a8b5f46e2a9c3d6e0f2a5b817, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UnlocksDetailPopup

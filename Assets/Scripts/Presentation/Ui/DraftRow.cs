@@ -109,6 +109,7 @@ namespace ModularChess.Presentation
                     if (child.name.StartsWith("Power", StringComparison.Ordinal))
                         _options.Add(child as RectTransform);
                 }
+                _options.Sort((a, b) => string.CompareOrdinal(a != null ? a.name : null, b != null ? b.name : null));
             }
             if (hideShowButton == null)
             {
