@@ -341,7 +341,7 @@ namespace ModularChess.Match
         }
         static string[] LanguageLabels()
         {
-            return new[] { Loc.Get("lang.en"), Loc.Get("lang.es"), Loc.Get("lang.tl") };
+            return Loc.LanguageLabels();
         }
         static Transform FindChild(Transform root, string name)
         {

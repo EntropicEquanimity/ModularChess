@@ -17,11 +17,11 @@ namespace ModularChess.Match
             switch ((MatchHistoryEventKind)e.kind)
             {
                 case MatchHistoryEventKind.Move:
-                    return ApplyMove(ref state, e);
+                    return ApplyMove(ref state, e) ? true : TryApply(ref state, e);
                 case MatchHistoryEventKind.Empowered:
-                    return ApplyEmpowered(ref state, e);
+                    return ApplyEmpowered(ref state, e) ? true : TryApply(ref state, e);
                 case MatchHistoryEventKind.Draft:
-                    return ApplyDraft(ref state, e);
+                    return ApplyDraft(ref state, e) ? true : TryApply(ref state, e);
                 default:
                     return false;
             }
@@ -34,8 +34,7 @@ namespace ModularChess.Match
             for (int i = 0; i < n; i++)
             {
                 MatchHistoryEvent e = record.events[i];
-                if (!TryApply(ref state, e))
-                    break;
+                if (!TryApply(ref state, e)) { return state; }
             }
             return state;
         }
@@ -89,8 +88,7 @@ namespace ModularChess.Match
             {
                 if (!Square.TryParse(e.squares[i], out Square square)) continue;
                 Piece piece = state.Board.GetPiece(square);
-                if (piece != null)
-                    ids.Add(piece.Id);
+                if (piece != null) { ids.Add(piece.Id); }   
             }
             state = state.ConfirmEmpowered(ids);
             return true;
@@ -102,8 +100,7 @@ namespace ModularChess.Match
             if (!string.IsNullOrEmpty(e.target) && Square.TryParse(e.target, out Square target))
             {
                 Piece piece = state.Board.GetPiece(target);
-                if (piece != null)
-                    targetId = piece.Id;
+                if (piece != null) { targetId = piece.Id; }
             }
             Square[] reinforcements = null;
             if (e.reinforcements != null && e.reinforcements.Length > 0)
@@ -111,11 +108,10 @@ namespace ModularChess.Match
                 var list = new List<Square>(e.reinforcements.Length);
                 for (int i = 0; i < e.reinforcements.Length; i++)
                 {
-                    if (Square.TryParse(e.reinforcements[i], out Square square))
-                        list.Add(square);
+                    if (Square.TryParse(e.reinforcements[i], out Square square)) { list.Add(square); }
                 }
                 reinforcements = list.ToArray();
-            }
+            }   
             state = state.ApplyDraft(power, targetId, reinforcements);
             return true;
         }

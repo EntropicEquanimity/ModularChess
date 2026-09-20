@@ -11,11 +11,22 @@ Apply when creating a script or editing an existing one. Do not rewrite untouche
 
 Keep a statement, call, or signature on one line if it is about 100 characters or less. Collection initializers stay on that line when they fit: `new[] { queen.Id, knight.Id }`. Wrap only past that threshold. When wrapping, keep `(` on the same line as the name.
 
+One-line bodies stay on one line when they fit under ~100 characters — including braced `if` / `else` and short `try` / `catch`:
+
+```
+if (button == null) { button = gameObject.AddComponent<Button>(); }
+if (background == null) { background = GetComponent<Image>(); }
+try { return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("g"); }
+catch (ArgumentOutOfRangeException) { return "—"; }
+```
+
+Do not expand those into multi-line blocks unless the line would exceed ~100 characters.
+
 ## Spacing
 
 No blank line between members in the same region. One blank line between regions. No blank line after `#region` or before `#endregion`.
 No blank lines inside a method.
-If the body is a single `return`, keep it on one line: `if (_material == null) return;`
+If the body is a single `return` or assignment, keep it on one line: `if (_material == null) return;`
 
 ## Regions
 

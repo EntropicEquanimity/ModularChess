@@ -32,23 +32,17 @@ namespace ModularChess.Presentation
             if (backButton == null)
             {
                 Transform child = FindChild(transform, "BackButton");
-                if (child != null)
-                    backButton = child.GetComponent<Button>();
+                if (child != null) { backButton = child.GetComponent<Button>(); }
             }
-            if (title == null)
-                title = FindChild(transform, "Title");
+            if (title == null) { title = FindChild(transform, "Title"); }
         }
         static Transform FindChild(Transform root, string name)
         {
-            if (root == null)
-                return null;
-            if (root.name == name)
-                return root;
-            for (int i = 0; i < root.childCount; i++)
-            {
+            if (root == null) { return null; }
+            if (root.name == name) { return root; }
+            for (int i = 0; i < root.childCount; i++) {
                 Transform found = FindChild(root.GetChild(i), name);
-                if (found != null)
-                    return found;
+                if (found != null) { return found; }
             }
             return null;
         }

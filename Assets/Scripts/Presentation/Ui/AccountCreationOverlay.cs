@@ -92,12 +92,7 @@ namespace ModularChess.Presentation
             if (languageDropdown == null)
                 return;
             languageDropdown.ClearOptions();
-            languageDropdown.AddOptions(new List<string>
-            {
-                Loc.Get("lang.en"),
-                Loc.Get("lang.es"),
-                Loc.Get("lang.tl")
-            });
+            languageDropdown.AddOptions(new List<string>(Loc.LanguageLabels()));
             languageDropdown.SetValueWithoutNotify(Loc.LanguageIndex());
             languageDropdown.onValueChanged.RemoveAllListeners();
             languageDropdown.onValueChanged.AddListener(index =>

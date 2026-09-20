@@ -11,7 +11,7 @@ namespace ModularChess.Presentation
         #region Fields
         public const string PrefsKey = "Language";
         public const string English = "en";
-        public static readonly string[] Codes = { "en", "es", "tl" };
+        public static readonly string[] Codes = { "en", "es", "tl", "zh-Hans", "zh-Hant" };
         public static event Action Changed;
         static readonly Dictionary<string, Dictionary<string, string>> Tables =
             new Dictionary<string, Dictionary<string, string>>();
@@ -97,6 +97,15 @@ namespace ModularChess.Presentation
             }
 
             return 0;
+        }
+
+        public static string[] LanguageLabels()
+        {
+            EnsureLoaded();
+            var labels = new string[Codes.Length];
+            for (int i = 0; i < Codes.Length; i++)
+                labels[i] = Get("lang." + Codes[i]);
+            return labels;
         }
 
         public static string ModeName(ModeId id)
@@ -204,11 +213,13 @@ namespace ModularChess.Presentation
 
         static string Normalize(string code)
         {
-            if (code == "es" || code == "tl")
+            if (string.IsNullOrEmpty(code))
+                return English;
+            for (int i = 0; i < Codes.Length; i++)
             {
-                return code;
+                if (Codes[i] == code)
+                    return code;
             }
-
             return English;
         }
 
