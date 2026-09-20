@@ -1,19 +1,23 @@
 # Modular Chess
 
-A chess platform: standard chess as the always-on rules authority, with optional Modes selected per Match. An Activity is what you came to do; a Mode is a rule pack on a Match.
+A chess platform: Core occupancy, Pattern, and Turn always on; FIDE Law by default for Versus Activities; optional Modes selected per Match. An Activity is what you came to do; a Mode is a rule pack on a Match. An Activity may supply a different Law.
 
 ## Language
 
 **Core**:
-The rules authority for standard FIDE chess. Always present in every Match. Not a Mode.
-_Avoid_: module, engine, always-on Mode
+Always-on occupancy, Piece identity, Pattern geometry, and Turn structure. Present in every Match and every Stage. Not FIDE. Not Law. Not a Mode.
+_Avoid_: module, engine, always-on Mode, FIDE, rules authority
+
+**Law**:
+The chess-law pack for a Match or a Stage: King mobility, promotion, slider range, Check obligations, and what ends that Match or Stage. Versus AI and Versus Friend use FIDE Law. An Activity may supply a different Law. Not Core. Not a Mode.
+_Avoid_: Ruleset, FIDE as a Mode, Core as FIDE, rules authority
 
 **Activity**:
-What you came to do. MVP Activities are Versus AI and Versus Friend. Later Activities include Puzzle, Survivor, and Auto Battler. Join is not an Activity.
+What you came to do. MVP Activities are Versus AI and Versus Friend. Later Activities include Puzzle, Survivor, Auto Battler, and a chess-roguelike Activity that uses Run and Stage instead of Match. Versus AI and Versus Friend use FIDE Law; an Activity may supply a different Law. Join is not an Activity.
 _Avoid_: Opponent, Mode, game mode, match type
 
 **Mode**:
-An optional rule pack that hooks Core for one Match. Never replaces Core. A Mode declares which Activities may use it. After the player picks an Activity, only those Modes are offered. Join is never on that list. A Mode may disallow hotseat (same-device Sit in Lobby); Fog of War does. The first three Modes (Fog of War, Powerful Pieces, Martyr) allow Versus AI and Versus Friend only and are compatible with each other. Later Modes include Health and Chance Combat. A Match may stack several compatible Modes; both players play that same set.
+An optional rule pack that hooks Core for one Match. Never replaces Core. Never replaces Law. A Mode declares which Activities may use it. After the player picks an Activity, only those Modes are offered. Join is never on that list. A Mode may disallow hotseat (same-device Sit in Lobby); Fog of War does. The first three Modes (Fog of War, Powerful Pieces, Martyr) allow Versus AI and Versus Friend only and are compatible with each other. Later Modes include Health and Chance Combat. A Match may stack several compatible Modes; both players play that same set.
 _Avoid_: Add-on, DLC, mod, game mode, Activity
 
 **Survivor**:
@@ -57,8 +61,16 @@ A shareable code that admits a player to a Versus Friend Lobby. Not a spectator 
 _Avoid_: room ID, matchmaking, watcher, WebGL
 
 **Match**:
-One playthrough of Versus AI or Versus Friend: Core, Match Settings, and one shared Mode set, from setup until a terminal result. Versus AI has no Lobby; the Match starts after Modes and Match Settings are confirmed. On game over, Fog lifts: true Board, true PGN, Empowered marks, and Status.
-_Avoid_: game, game mode, Activity
+One playthrough of Versus AI or Versus Friend: Core, FIDE Law, Match Settings, and one shared Mode set, from setup until a terminal result. Versus AI has no Lobby; the Match starts after Modes and Match Settings are confirmed. On game over, Fog lifts: true Board, true PGN, Empowered marks, and Status.
+_Avoid_: game, game mode, Activity, Run, Stage
+
+**Run**:
+A 13-Stage playthrough of a later Activity. Ends if the player's King is captured; won by beating the Stage 13 boss. Not a Match. No meta-progression between Runs.
+_Avoid_: Match, Season, campaign, New Game+
+
+**Stage**:
+One Board in a Run. This Activity's Law applies when the Stage starts. Ends when that Stage's target Piece is captured. Not a Match.
+_Avoid_: Match, level, round, Turn
 
 **Match history**:
 A stored record of a finished Match, written only for a complete Match: Checkmate, Draw (including Stalemate and FIDE draws), Timeout, Resign, and Disconnect (that Side loses). Not Setup Leave. Not the Game. Not live notation. Payload is a compact event log for re-simulation: history actions (Square from–to, Move kind, promotion PieceType), Setup Empowered picks, Draft picks and targets, and Mode settings — enough to rebuild Piece identity, PieceType, Empowered, Status, and summons. Also stores clock seconds actually ticking (both Sides; not Setup, Draft, Disconnect, or Pause; increment does not add; none stores 0), the Mode set and those Modes’ settings, Match Settings (main time, increment, resolved Host Side, Versus AI strength), result (0 White, 1 Black, 2 Draw), and when the Match ended. Bombard is one live Move and two history actions: from→target, then target→from. An Empowered King’s extra Move is two history actions. Replay re-sims this log; it does not write a second store. Records that lack the event-log payload stay listed in History but cannot open Replay. Versus Friend: each device writes its own local record when the Match completes.
@@ -217,20 +229,20 @@ One Side's opportunity to make one or more Moves. FIDE default is one Move. A Mo
 _Avoid_: action, sub-move, round
 
 **Check**:
-The Side to move's King is attacked on the Board. Fog does not change this. Show Check when Core says Check, even if the attacker is Hidden. Invulnerable: the owner may still Move that King; no other Piece may target it, so it cannot be in Check. That King still occupies its Square. Sliding is blocked unless a Mode already allows passing through that occupant.
-_Avoid_: threat, attack (as the noun), hide Check banner
+A Core fact: the Side to move's King is attacked on the Board. Fog does not change this. Show Check when the King is attacked, even if the attacker is Hidden. Whether Check forces a reply or can end the Match is Law. Invulnerable: the owner may still Move that King; no other Piece may target it, so it cannot be in Check. That King still occupies its Square. Sliding is blocked unless a Mode already allows passing through that occupant.
+_Avoid_: threat, attack (as the noun), hide Check banner, Check as FIDE obligation
 
 **Checkmate**:
-The Side to move is in Check and has no legal Move. Ends the Match. An Invulnerable King cannot be in Check, so cannot be Checkmated; Stalemate still can.
-_Avoid_: Check, checkmate-shield as a second pipeline
+FIDE Law: the Side to move is in Check and has no legal Move. Ends the Match. An Invulnerable King cannot be in Check, so cannot be Checkmated; Stalemate still can. Not Core. Other Law may omit Checkmate.
+_Avoid_: Check, checkmate-shield as a second pipeline, Checkmate as Core
 
 **Stalemate**:
-The Side to move is not in Check and has no legal Move. Ends the Match as a draw. Invulnerable and Stasis do not prevent Stalemate.
-_Avoid_: Checkmate, skip Turn
+FIDE Law: the Side to move is not in Check and has no legal Move. Ends the Match as a Draw. Invulnerable and Stasis do not prevent Stalemate. Not Core. Other Law may omit Stalemate.
+_Avoid_: Checkmate, skip Turn, Stalemate as Core
 
 **Draw**:
-Threefold, 50-move, and insufficient material use the true Board and are automatic. Fog does not change them. Summoned Pawns still prevent insufficient material.
-_Avoid_: per-Side draw, disable FIDE draws in Fog
+FIDE Law: threefold, 50-move, and insufficient material use the true Board and are automatic. Fog does not change them. Summoned Pawns still prevent insufficient material. Not Core. Other Law may omit these.
+_Avoid_: per-Side draw, disable FIDE draws in Fog, Draw as Core
 
 **Timeout**:
 That Side loses immediately when their clock hits zero, even mid-Move, unless a Mode says otherwise.

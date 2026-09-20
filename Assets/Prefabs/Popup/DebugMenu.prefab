@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 505963640624428386}
   - component: {fileID: 823430645112892170}
   - component: {fileID: 623094492400764541}
-  - component: {fileID: 851332169294172053}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -66,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: dialog.resetTimer
+  m_text: Reset Timer
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -138,20 +137,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &851332169294172053
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 115705004273172810}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
-  key: dialog.resetTimer
-  label: {fileID: 623094492400764541}
 --- !u!1 &159340332922748739
 GameObject:
   m_ObjectHideFlags: 0
@@ -163,7 +148,6 @@ GameObject:
   - component: {fileID: 8596177649868329124}
   - component: {fileID: 2067378534536037280}
   - component: {fileID: 8555565732043394871}
-  - component: {fileID: 3186026697777649795}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -218,7 +202,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: autoplay start
+  m_text: 'Autoplay : Start'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -290,20 +274,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &3186026697777649795
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 159340332922748739}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
-  key: dialog.resetTimer
-  label: {fileID: 8555565732043394871}
 --- !u!1 &192922954778343517
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,8 +380,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
-    m_PressedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_HighlightedSprite: {fileID: -303667802, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_PressedSprite: {fileID: -465902496, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_SelectedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_DisabledSprite: {fileID: -1497511358, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
   m_AnimationTriggers:
@@ -436,7 +406,6 @@ GameObject:
   - component: {fileID: 153795013428426022}
   - component: {fileID: 291962507719494768}
   - component: {fileID: 200666623091997913}
-  - component: {fileID: 572381624551793190}
   - component: {fileID: 600444836244943615}
   m_Layer: 0
   m_Name: Label
@@ -564,20 +533,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &572381624551793190
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 212444654822677845}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
-  key: dialog.debug
-  label: {fileID: 200666623091997913}
 --- !u!114 &600444836244943615
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -758,7 +713,6 @@ GameObject:
   - component: {fileID: 197409037695203459}
   - component: {fileID: 691380436493238711}
   - component: {fileID: 419949842520071463}
-  - component: {fileID: 213379183727405652}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -813,7 +767,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: dialog.close
+  m_text: Close
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -885,20 +839,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &213379183727405652
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 223835594151899557}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
-  key: dialog.close
-  label: {fileID: 419949842520071463}
 --- !u!1 &243194805384319584
 GameObject:
   m_ObjectHideFlags: 0
@@ -1005,8 +945,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
-    m_PressedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_HighlightedSprite: {fileID: -303667802, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_PressedSprite: {fileID: -465902496, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_SelectedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_DisabledSprite: {fileID: -1497511358, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
   m_AnimationTriggers:
@@ -1031,7 +971,6 @@ GameObject:
   - component: {fileID: 939511716382595888}
   - component: {fileID: 216739648339391930}
   - component: {fileID: 180562783574693935}
-  - component: {fileID: 945384876158088966}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -1086,7 +1025,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: dialog.lose
+  m_text: Lose
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -1158,20 +1097,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &945384876158088966
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 303665356147200000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
-  key: dialog.lose
-  label: {fileID: 180562783574693935}
 --- !u!1 &397295527305159721
 GameObject:
   m_ObjectHideFlags: 0
@@ -1309,7 +1234,6 @@ GameObject:
   - component: {fileID: 162014601866818857}
   - component: {fileID: 141397014570362248}
   - component: {fileID: 879735940249247499}
-  - component: {fileID: 865050755677915668}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -1364,7 +1288,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: dialog.win
+  m_text: Win
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -1436,20 +1360,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &865050755677915668
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 616602892930273211}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
-  key: dialog.win
-  label: {fileID: 879735940249247499}
 --- !u!1 &656601490817749489
 GameObject:
   m_ObjectHideFlags: 0
@@ -1461,7 +1371,6 @@ GameObject:
   - component: {fileID: 168537717853317592}
   - component: {fileID: 202436181829979937}
   - component: {fileID: 221941204873339413}
-  - component: {fileID: 675949938245892226}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -1516,7 +1425,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: dialog.unlockAll
+  m_text: Unlock all Modes
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -1588,20 +1497,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &675949938245892226
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 656601490817749489}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
-  key: dialog.unlockAll
-  label: {fileID: 221941204873339413}
 --- !u!1 &681513380417892185
 GameObject:
   m_ObjectHideFlags: 0
@@ -1708,8 +1603,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
-    m_PressedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_HighlightedSprite: {fileID: -303667802, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_PressedSprite: {fileID: -465902496, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_SelectedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_DisabledSprite: {fileID: -1497511358, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
   m_AnimationTriggers:
@@ -1734,7 +1629,6 @@ GameObject:
   - component: {fileID: 727854313696660281}
   - component: {fileID: 211427069853607287}
   - component: {fileID: 166048561594658970}
-  - component: {fileID: 917775832196110773}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -1789,7 +1683,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: dialog.resetSave
+  m_text: Reset Save Data
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -1861,20 +1755,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &917775832196110773
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 853164554414843405}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
-  key: dialog.resetSave
-  label: {fileID: 166048561594658970}
 --- !u!1 &930613121610150936
 GameObject:
   m_ObjectHideFlags: 0
@@ -1981,8 +1861,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
-    m_PressedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_HighlightedSprite: {fileID: -303667802, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_PressedSprite: {fileID: -465902496, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_SelectedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_DisabledSprite: {fileID: -1497511358, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
   m_AnimationTriggers:
@@ -2102,8 +1982,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
-    m_PressedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_HighlightedSprite: {fileID: -303667802, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_PressedSprite: {fileID: -465902496, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_SelectedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_DisabledSprite: {fileID: -1497511358, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
   m_AnimationTriggers:
@@ -2223,8 +2103,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
-    m_PressedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_HighlightedSprite: {fileID: -303667802, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_PressedSprite: {fileID: -465902496, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_SelectedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_DisabledSprite: {fileID: -1497511358, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
   m_AnimationTriggers:
@@ -2344,8 +2224,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
-    m_PressedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_HighlightedSprite: {fileID: -303667802, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_PressedSprite: {fileID: -465902496, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_SelectedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_DisabledSprite: {fileID: -1497511358, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
   m_AnimationTriggers:
@@ -2716,8 +2596,8 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
-    m_PressedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_HighlightedSprite: {fileID: -303667802, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
+    m_PressedSprite: {fileID: -465902496, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_SelectedSprite: {fileID: -894702682, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
     m_DisabledSprite: {fileID: -1497511358, guid: 6ab642400bcf0794593af2a691336a96, type: 3}
   m_AnimationTriggers:
@@ -2943,7 +2823,6 @@ GameObject:
   - component: {fileID: 77922499356851575}
   - component: {fileID: 1050356510811401773}
   - component: {fileID: 6768095946701247208}
-  - component: {fileID: 436588815975434781}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -2998,7 +2877,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: autoplayer stop
+  m_text: 'Autoplay : Stop'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -3070,20 +2949,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &436588815975434781
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5101692681530567658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2b3c4d5e6f708192a3b4c5d6e7f809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.LocalizedText
-  key: dialog.resetTimer
-  label: {fileID: 6768095946701247208}
 --- !u!1 &5783935247722547750
 GameObject:
   m_ObjectHideFlags: 0

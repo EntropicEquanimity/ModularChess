@@ -37,58 +37,51 @@ namespace ModularChess.Match
             Bind(loseButton, lose);
             Bind(resetTimerButton, resetTimer);
             Bind(closeButton, close);
-            Bind(autoplayStartButton, () =>
-            {
-                Autoplay.Start();
-                RefreshAutoplay();
-            });
-            Bind(autoplayStopButton, () =>
-            {
-                Autoplay.Stop();
-                RefreshAutoplay();
-            });
-            if (autoplayDifficulty != null)
-            {
-                autoplayDifficulty.onValueChanged.RemoveAllListeners();
-                autoplayDifficulty.SetValueWithoutNotify((int)Autoplay.Strength);
-                autoplayDifficulty.onValueChanged.AddListener(index =>
-                {
-                    if (index >= 0 && index <= (int)AiStrength.Hard)
-                        Autoplay.SetStrength((AiStrength)index);
-                });
-            }
+            Bind(autoplayStartButton, OnAutoplayStart);
+            Bind(autoplayStopButton, OnAutoplayStop);
+            WireDifficulty();
             RefreshAutoplay();
         }
         #endregion
 
         #region Private Methods
+        void OnAutoplayStart()
+        {
+            Autoplay.Start();
+            RefreshAutoplay();
+        }
+        void OnAutoplayStop()
+        {
+            Autoplay.Stop();
+            RefreshAutoplay();
+        }
+        void WireDifficulty()
+        {
+            if (autoplayDifficulty == null) return;
+            autoplayDifficulty.onValueChanged.RemoveAllListeners();
+            autoplayDifficulty.SetValueWithoutNotify((int)Autoplay.Strength);
+            autoplayDifficulty.onValueChanged.AddListener(OnDifficultyChanged);
+        }
+        void OnDifficultyChanged(int index)
+        {
+            if (index >= 0 && index <= (int)AiStrength.Hard) Autoplay.SetStrength((AiStrength)index);
+        }
         void Resolve()
         {
-            if (resetSaveButton == null) { resetSaveButton = ButtonNamed("dialog.resetSave"); }
-            if (unlockAllButton == null) { unlockAllButton = ButtonNamed("dialog.unlockAll"); }
-            if (winButton == null) { winButton = ButtonNamed("dialog.win"); }
-            if (loseButton == null) { loseButton = ButtonNamed("dialog.lose"); }
-            if (resetTimerButton == null) { resetTimerButton = ButtonNamed("dialog.resetTimer"); }
-            if (closeButton == null) { closeButton = ButtonNamed("dialog.close"); }
-            if (autoplayStartButton == null) { autoplayStartButton = ButtonNamed("dialog.autoplayStart"); }
-            if (autoplayStopButton == null) { autoplayStopButton = ButtonNamed("dialog.autoplayStop"); }
-            if (autoplayDifficulty == null)
-            {
-                Transform row = FindChild(transform, "dialog.autoplayDifficulty");
-                if (row != null)
-                {
-                    autoplayDifficulty = row.GetComponent<TMP_Dropdown>();
-                    if (autoplayDifficulty == null)
-                        autoplayDifficulty = row.GetComponentInChildren<TMP_Dropdown>(true);
-                }
-            }
+            resetSaveButton = ButtonNamed("dialog.resetSave") ?? resetSaveButton;
+            unlockAllButton = ButtonNamed("dialog.unlockAll") ?? unlockAllButton;
+            winButton = ButtonNamed("dialog.win") ?? winButton;
+            loseButton = ButtonNamed("dialog.lose") ?? loseButton;
+            resetTimerButton = ButtonNamed("dialog.resetTimer") ?? resetTimerButton;
+            closeButton = ButtonNamed("dialog.close") ?? closeButton;
+            autoplayStartButton = ButtonNamed("dialog.autoplayStart") ?? autoplayStartButton;
+            autoplayStopButton = ButtonNamed("dialog.autoplayStop") ?? autoplayStopButton;
+            if (autoplayDifficulty == null) autoplayDifficulty = DropdownNamed("dialog.autoplayDifficulty");
         }
         void RefreshAutoplay()
         {
-            if (autoplayStartButton != null)
-                autoplayStartButton.gameObject.SetActive(!Autoplay.Active);
-            if (autoplayStopButton != null)
-                autoplayStopButton.gameObject.SetActive(Autoplay.Active);
+            if (autoplayStartButton != null) autoplayStartButton.gameObject.SetActive(!Autoplay.Active);
+            if (autoplayStopButton != null) autoplayStopButton.gameObject.SetActive(Autoplay.Active);
         }
         static void Bind(Button button, UnityAction action)
         {
@@ -99,7 +92,16 @@ namespace ModularChess.Match
         Button ButtonNamed(string name)
         {
             Transform child = FindChild(transform, name);
-            return child != null ? child.GetComponent<Button>() : null;
+            if (child == null)  return null;
+            Button button = child.GetComponent<Button>();
+            return button != null ? button : child.GetComponentInChildren<Button>(true);
+        }
+        TMP_Dropdown DropdownNamed(string name)
+        {
+            Transform child = FindChild(transform, name);
+            if (child == null) return null;
+            TMP_Dropdown dropdown = child.GetComponent<TMP_Dropdown>();
+            return dropdown != null ? dropdown : child.GetComponentInChildren<TMP_Dropdown>(true);
         }
         static Transform FindChild(Transform root, string name)
         {
@@ -108,7 +110,7 @@ namespace ModularChess.Match
             for (int i = 0; i < root.childCount; i++)
             {
                 Transform found = FindChild(root.GetChild(i), name);
-                if (found != null) return found;
+                if (found != null)  return found;
             }
             return null;
         }

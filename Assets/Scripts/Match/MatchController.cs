@@ -33,6 +33,7 @@ namespace ModularChess.Match
         float _draftRemaining;
         float _aiWait = -1f;
         float _autoplayRematchWait = -1f;
+        bool _autoplayRematchSent;
         const float AiThinkSeconds = 1f;
         const float AutoplayRematchSeconds = 10f;
         MartyrPower? _draftTargeting;
@@ -201,6 +202,7 @@ namespace ModularChess.Match
             _reinforcementPicks.Clear();
             _aiWait = -1f;
             _autoplayRematchWait = -1f;
+            _autoplayRematchSent = false;
             boardView?.CompleteMotion();
             boardView?.SetMotionPaused(false);
             if (boardView != null)
@@ -253,6 +255,7 @@ namespace ModularChess.Match
             _clock?.Stop();
             _aiWait = -1f;
             _autoplayRematchWait = -1f;
+            _autoplayRematchSent = false;
             Autoplay.ClearOnLeave();
             _hovered = null;
             _pinnedPieceId = null;
@@ -964,19 +967,21 @@ namespace ModularChess.Match
         {
             if (_state.DraftPending)
                 return;
-            if (_state.TurnOpen)
+            if (_state.LegalMoves.Count > 0)
             {
-                Side ended = _state.SideToMove;
-                _state = _state.EndTurn();
-                _clock?.AddIncrement(ended);
-                ClearSelection();
-                RefreshPresentation();
+                Move? move = SimpleAi.Choose(_state, strength, _state.SideToMove);
+                if (move == null)
+                    return;
+                Commit(move.Value);
                 return;
             }
-            Move? move = SimpleAi.Choose(_state, strength, _state.SideToMove);
-            if (move == null)
+            if (!_state.CanEndTurn())
                 return;
-            Commit(move.Value);
+            Side ended = _state.SideToMove;
+            _state = _state.EndTurn();
+            _clock?.AddIncrement(ended);
+            ClearSelection();
+            RefreshPresentation();
         }
         bool ShouldRunSideAi(out AiStrength strength)
         {
@@ -1004,22 +1009,26 @@ namespace ModularChess.Match
             if (!Autoplay.Active || _state.Status == GameStatus.InProgress)
             {
                 _autoplayRematchWait = -1f;
+                _autoplayRematchSent = false;
                 return false;
             }
+            if (_autoplayRematchSent)
+                return true;
+            if (_session.Activity == Activity.VersusFriend && !CanAutoplayFriendRematch())
+                return false;
             if (_autoplayRematchWait < 0f)
                 _autoplayRematchWait = AutoplayRematchSeconds;
             _autoplayRematchWait -= Time.deltaTime;
             if (_autoplayRematchWait > 0f)
                 return true;
             _autoplayRematchWait = -1f;
-            if (_session.Activity == Activity.VersusFriend && !CanAutoplayFriendRematch())
-                return true;
+            _autoplayRematchSent = true;
             RequestRematch();
             return true;
         }
         static bool CanAutoplayFriendRematch()
         {
-            return true;
+            return false;
         }
         void TickAutoplaySetup()
         {
@@ -1366,7 +1375,7 @@ namespace ModularChess.Match
 
             hud.SetClock(_clock, ClockSide());
             bool localTurn = _session == null || _session.Hotseat || _state.SideToMove == _session.PlayerSide;
-            hud.SetEndTurnVisible(!_inSetup && localTurn && _state.CanEndTurn());
+            hud.SetEndTurnVisible(!_inSetup && localTurn && _state.CanEndTurn() && !Autoplay.Active);
             hud.SetPauseVisible(!_inSetup && _session != null && _session.IsAi && _state.Status == GameStatus.InProgress);
             hud.SetResignVisible(!_inSetup && _state.Status == GameStatus.InProgress);
             int n = _session != null ? _session.Rules.Settings.EmpoweredCount : 0;
