@@ -27,8 +27,7 @@ namespace ModularChess.Presentation
             _onChosen = onChosen;
             for (int i = 0; i < Options.Length; i++)
             {
-                if (buttons == null || i >= buttons.Length || buttons[i] == null)
-                    continue;
+                if (buttons == null || i >= buttons.Length || buttons[i] == null) { continue; }
                 PieceType type = Options[i];
                 GameAudio.Bind(buttons[i], () => _onChosen?.Invoke(type));
             }
@@ -36,12 +35,10 @@ namespace ModularChess.Presentation
         public void SetSide(Side side)
         {
             Resolve();
-            if (icons == null)
-                return;
+            if (icons == null) { return; }  
             for (int i = 0; i < Options.Length && i < icons.Length; i++)
             {
-                if (icons[i] != null)
-                    icons[i].sprite = ChessGlyphs.GetSprite(Options[i], side);
+                if (icons[i] != null) { icons[i].sprite = ChessGlyphs.GetSprite(Options[i], side); }
             }
         }
         public Button FirstButton
@@ -57,17 +54,14 @@ namespace ModularChess.Presentation
         #region Private Methods
         void Resolve()
         {
-            if (buttons == null || buttons.Length == 0)
-                buttons = GetComponentsInChildren<Button>(true);
+            if (buttons == null || buttons.Length == 0) { buttons = GetComponentsInChildren<Button>(true); }
             if (icons == null || icons.Length == 0)
             {
-                if (buttons == null)
-                    return;
+                if (buttons == null) { return; }
                 icons = new Image[buttons.Length];
                 for (int i = 0; i < buttons.Length; i++)
                 {
-                    if (buttons[i] == null)
-                        continue;
+                    if (buttons[i] == null) { continue; }
                     icons[i] = buttons[i].GetComponentInChildren<Image>(true);
                 }
             }
