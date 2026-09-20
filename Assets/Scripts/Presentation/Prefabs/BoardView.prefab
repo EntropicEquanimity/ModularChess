@@ -45,8 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf62e1f96654c8989cc31a7a546289f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  squareSize: 2
-  captureSpacing: 1
+  squareSize: 1.5
+  captureSpacing: 0.75
   theme:
     LightSquare: {r: 0, g: 0, b: 0, a: 0}
     DarkSquare: {r: 0, g: 0, b: 0, a: 0}
@@ -62,6 +62,7 @@ MonoBehaviour:
   allowSelectionWhenFinished: 0
   buildOnAwake: 1
   piecePrefab: {fileID: 6844280791312596072, guid: f5dc4f970cf564049995caf2cdf4f57c, type: 3}
+  squarePrefab: {fileID: 0}
 --- !u!114 &1900003
 MonoBehaviour:
   m_ObjectHideFlags: 0

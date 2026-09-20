@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ModularChess.Core;
 using UnityEngine;
 
@@ -8,6 +9,8 @@ namespace ModularChess.Match
     public static class SimpleAi
     {
         #region Fields
+        const double SearchBudgetSeconds = 0.08;
+        const int QuiesceMaxPly = 4;
         static readonly int[] PawnTable =
         {
             0, 0, 0, 0, 0, 0, 0, 0,
@@ -74,6 +77,7 @@ namespace ModularChess.Match
             20, 20, 0, 0, 0, 0, 20, 20,
             20, 30, 10, 0, 0, 10, 30, 20
         };
+        static long _deadline;
         #endregion
 
         #region Public Methods
@@ -83,20 +87,41 @@ namespace ModularChess.Match
                 return null;
             if (strength == AiStrength.Easy)
                 return state.LegalMoves[UnityEngine.Random.Range(0, state.LegalMoves.Count)];
-            int depth = strength == AiStrength.Hard ? 3 : 2;
+            int maxDepth = strength == AiStrength.Hard ? 3 : 2;
             List<Move> ordered = OrderMoves(state, state.LegalMoves);
             Move best = ordered[0];
-            int bestScore = int.MinValue;
-            for (int i = 0; i < ordered.Count; i++)
+            _deadline = Stopwatch.GetTimestamp() + (long)(SearchBudgetSeconds * Stopwatch.Frequency);
+            for (int depth = 1; depth <= maxDepth; depth++)
             {
-                Move move = ordered[i];
-                GameState next = state.Apply(move);
-                int score = -Negamax(next, aiSide, depth - 1, -99999, 99999);
-                if (score > bestScore)
+                if (TimedOut())
+                    break;
+                Move depthBest = best;
+                int bestScore = int.MinValue;
+                bool complete = true;
+                for (int i = 0; i < ordered.Count; i++)
                 {
-                    bestScore = score;
-                    best = move;
+                    if (TimedOut())
+                    {
+                        complete = false;
+                        break;
+                    }
+                    Move move = ordered[i];
+                    GameState next = state.Apply(move);
+                    int score = -Negamax(next, aiSide, depth - 1, -99999, 99999);
+                    if (TimedOut())
+                    {
+                        complete = false;
+                        break;
+                    }
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        depthBest = move;
+                    }
                 }
+                if (!complete)
+                    break;
+                best = depthBest;
             }
             return best;
         }
@@ -119,18 +144,26 @@ namespace ModularChess.Match
         #endregion
 
         #region Private Methods
+        static bool TimedOut()
+        {
+            return Stopwatch.GetTimestamp() >= _deadline;
+        }
         static int Negamax(GameState state, Side aiSide, int depth, int alpha, int beta)
         {
+            if (TimedOut())
+                return Score(state, aiSide);
             if (state.Status != GameStatus.InProgress || state.DraftPending)
                 return Score(state, aiSide);
             if (depth <= 0)
-                return Quiesce(state, aiSide, alpha, beta);
+                return Quiesce(state, aiSide, alpha, beta, QuiesceMaxPly);
             List<Move> ordered = OrderMoves(state, state.LegalMoves);
             if (ordered.Count == 0)
                 return Score(state, aiSide);
             int best = int.MinValue;
             for (int i = 0; i < ordered.Count; i++)
             {
+                if (TimedOut())
+                    break;
                 GameState next = state.Apply(ordered[i]);
                 int score = -Negamax(next, aiSide, depth - 1, -beta, -alpha);
                 if (score > best)
@@ -140,22 +173,26 @@ namespace ModularChess.Match
                 if (alpha >= beta)
                     break;
             }
-            return best;
+            return best == int.MinValue ? Score(state, aiSide) : best;
         }
-        static int Quiesce(GameState state, Side aiSide, int alpha, int beta)
+        static int Quiesce(GameState state, Side aiSide, int alpha, int beta, int plyLeft)
         {
+            if (TimedOut())
+                return Score(state, aiSide);
             int stand = Score(state, aiSide);
             if (stand >= beta)
                 return beta;
             if (stand > alpha)
                 alpha = stand;
-            if (state.Status != GameStatus.InProgress || state.DraftPending)
+            if (plyLeft <= 0 || state.Status != GameStatus.InProgress || state.DraftPending)
                 return stand;
             List<Move> captures = CaptureMoves(state.LegalMoves);
             for (int i = 0; i < captures.Count; i++)
             {
+                if (TimedOut())
+                    break;
                 GameState next = state.Apply(captures[i]);
-                int score = -Quiesce(next, aiSide, -beta, -alpha);
+                int score = -Quiesce(next, aiSide, -beta, -alpha, plyLeft - 1);
                 if (score >= beta)
                     return beta;
                 if (score > alpha)
