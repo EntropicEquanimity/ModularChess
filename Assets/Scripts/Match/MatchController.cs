@@ -32,7 +32,9 @@ namespace ModularChess.Match
         bool _draftTiming;
         float _draftRemaining;
         float _aiWait = -1f;
+        float _autoplayRematchWait = -1f;
         const float AiThinkSeconds = 1f;
+        const float AutoplayRematchSeconds = 10f;
         MartyrPower? _draftTargeting;
         readonly List<Square> _draftTargets = new List<Square>();
         readonly List<Square> _reinforcementPicks = new List<Square>();
@@ -100,36 +102,34 @@ namespace ModularChess.Match
         {
             if (_session == null || _state == null)
                 return;
-
             if (_replaying)
             {
                 TickReplay();
                 return;
             }
-
+            if (TickAutoplayRematch())
+                return;
             if (_paused)
             {
                 hud?.SetClock(_clock, ClockSide());
                 return;
             }
-
             if (_inSetup)
             {
+                if (Autoplay.Active)
+                    TickAutoplaySetup();
                 _setupRemaining -= Time.deltaTime;
                 hud?.SetStatusLine(SetupStatusLine());
                 if (_setupRemaining <= 0f)
                     FinishSetup(timeout: true);
                 return;
             }
-
             if (_state.DraftPending)
             {
                 TickDraft();
                 return;
             }
-
             _draftTiming = false;
-
             if (_clock != null && _state.Status == GameStatus.InProgress && !_state.DraftPending)
             {
                 if (boardView == null || !boardView.HidingMatchChrome)
@@ -148,12 +148,12 @@ namespace ModularChess.Match
             {
                 hud?.SetClock(_clock, ClockSide());
             }
-
-            if (_session.IsAi
-                && _state.Status == GameStatus.InProgress
-                && !_state.DraftPending
-                && _state.SideToMove != _session.PlayerSide
-                && _pendingPromotions == null)
+            if (_pendingPromotions != null && Autoplay.Active && IsPlayerSideToMove())
+            {
+                OnPromotionChosen(PieceType.Queen);
+                return;
+            }
+            if (ShouldRunSideAi(out AiStrength strength))
             {
                 if (boardView != null && boardView.PiecesBusy)
                     return;
@@ -163,7 +163,7 @@ namespace ModularChess.Match
                 if (_aiWait > 0f)
                     return;
                 _aiWait = -1f;
-                PlayAi();
+                PlaySideAi(strength);
             }
             else
             {
@@ -200,6 +200,7 @@ namespace ModularChess.Match
             _draftTargets.Clear();
             _reinforcementPicks.Clear();
             _aiWait = -1f;
+            _autoplayRematchWait = -1f;
             boardView?.CompleteMotion();
             boardView?.SetMotionPaused(false);
             if (boardView != null)
@@ -251,6 +252,8 @@ namespace ModularChess.Match
             _inSetup = false;
             _clock?.Stop();
             _aiWait = -1f;
+            _autoplayRematchWait = -1f;
+            Autoplay.ClearOnLeave();
             _hovered = null;
             _pinnedPieceId = null;
             boardView?.ClearTargeting();
@@ -696,7 +699,7 @@ namespace ModularChess.Match
 
         void HandleSetupClick(Square square)
         {
-            if (_state == null)
+            if (_state == null || Autoplay.Active)
                 return;
             Piece piece = _state.Board.GetPiece(square);
             Side picker = SetupPicker();
@@ -797,6 +800,8 @@ namespace ModularChess.Match
             if (OptionsOverlay.IsOpen || (hud != null && hud.BlocksBoardInput))
                 return false;
             if (_session != null && _session.IsAi && _state.SideToMove != _session.PlayerSide)
+                return false;
+            if (Autoplay.Active && IsPlayerSideToMove())
                 return false;
             if (boardView != null && boardView.PiecesBusy)
                 return false;
@@ -953,6 +958,10 @@ namespace ModularChess.Match
 
         void PlayAi()
         {
+            PlaySideAi(_session.Rules.Settings.AiStrength);
+        }
+        void PlaySideAi(AiStrength strength)
+        {
             if (_state.DraftPending)
                 return;
             if (_state.TurnOpen)
@@ -964,16 +973,71 @@ namespace ModularChess.Match
                 RefreshPresentation();
                 return;
             }
-
-            Move? move = SimpleAi.Choose(_state, _session.Rules.Settings.AiStrength, _state.SideToMove);
+            Move? move = SimpleAi.Choose(_state, strength, _state.SideToMove);
             if (move == null)
                 return;
             Commit(move.Value);
         }
+        bool ShouldRunSideAi(out AiStrength strength)
+        {
+            strength = AiStrength.Easy;
+            if (_state.Status != GameStatus.InProgress || _state.DraftPending || _pendingPromotions != null)
+                return false;
+            if (Autoplay.Active && IsPlayerSideToMove())
+            {
+                strength = Autoplay.Strength;
+                return true;
+            }
+            if (_session.IsAi && _state.SideToMove != _session.PlayerSide)
+            {
+                strength = _session.Rules.Settings.AiStrength;
+                return true;
+            }
+            return false;
+        }
+        bool IsPlayerSideToMove()
+        {
+            return _session != null && _state != null && _state.SideToMove == _session.PlayerSide;
+        }
+        bool TickAutoplayRematch()
+        {
+            if (!Autoplay.Active || _state.Status == GameStatus.InProgress)
+            {
+                _autoplayRematchWait = -1f;
+                return false;
+            }
+            if (_autoplayRematchWait < 0f)
+                _autoplayRematchWait = AutoplayRematchSeconds;
+            _autoplayRematchWait -= Time.deltaTime;
+            if (_autoplayRematchWait > 0f)
+                return true;
+            _autoplayRematchWait = -1f;
+            if (_session.Activity == Activity.VersusFriend && !CanAutoplayFriendRematch())
+                return true;
+            RequestRematch();
+            return true;
+        }
+        static bool CanAutoplayFriendRematch()
+        {
+            return true;
+        }
+        void TickAutoplaySetup()
+        {
+            if (_session == null || _state == null)
+                return;
+            int n = _session.Rules.Settings.EmpoweredCount;
+            List<Guid> picks = _session.PlayerSide == Side.White ? _whitePicks : _blackPicks;
+            if (picks.Count < n)
+                SimpleAi.AutopickEmpowered(_state, _session.PlayerSide, n, picks);
+            if (_whitePicks.Count >= n && _blackPicks.Count >= n)
+                ConfirmSetup();
+        }
 
         void TickDraft()
         {
-            if (_session != null && _session.IsAi && _state.SideToMove != _session.PlayerSide)
+            bool aiDraft = _session != null && _session.IsAi && _state.SideToMove != _session.PlayerSide;
+            bool autoplayDraft = Autoplay.Active && IsPlayerSideToMove();
+            if (aiDraft || autoplayDraft)
             {
                 if (!_draftTiming)
                 {

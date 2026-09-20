@@ -1,0 +1,32 @@
+---
+description: One asset copy — no Resources mirrors of Prefabs/Audio/Sprites. Prefer serialized refs.
+alwaysApply: true
+---
+
+# One asset location
+
+## No duplicate Resources mirrors
+
+Do not keep a second copy of a prefab, audio clip, mixer, or sprite under `Assets/Resources/` “just in case” `Resources.Load` can find it. That doubles build size and drifts out of sync (as with DebugMenu).
+
+Canonical homes:
+
+- Prefabs → `Assets/Prefabs/`
+- Audio → `Assets/Audio/`
+- Sprites → `Assets/Sprites/`
+- Authored localization tables → `Assets/Resources/Localization/` only (runtime `Resources.Load`). Do not keep an `Assets/Localization/` twin.
+
+## How loading should work
+
+Prefer `[SerializeField]` refs on scene objects and prefabs. `RuntimePrefabs` / editor `AssetDatabase.LoadAssetAtPath` may load the **canonical** path as a missing-ref fallback in the Editor only. Do not add or maintain a Resources twin for that fallback.
+
+## What may stay under Resources
+
+Only assets that **must** live there for a framework or that have **no** other copy:
+
+- TextMesh Pro / DOTween (or similar plugin) Resources
+- Sole runtime data that is intentionally loaded via `Resources.Load` (e.g. localization tables, `ChessArt` set) — still one copy, not a mirror of another folder
+
+## When editing
+
+If you change a prefab or clip under `Assets/Prefabs` or `Assets/Audio`, do not also copy it into `Assets/Resources`. If a Resources duplicate exists, delete the Resources copy and fix loaders to use the canonical asset or a serialized ref.

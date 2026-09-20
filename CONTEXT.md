@@ -249,8 +249,12 @@ Versus Friend, from Turn 1, on your Turn only. Not Setup, not during Draft or Di
 _Avoid_: offer on their Turn, Setup draw spam
 
 **Pause**:
-Versus AI only. Stops the Match clock if any, and the AI. Resume continues the same Match. Not during Setup or Draft. Versus Friend has no Pause. Escape Pauses Versus AI when no popup is open and it is not Setup or Draft. No takebacks, hints, or engine bar in MVP.
+Versus AI only. Stops the Match clock if any, and the AI (including Autoplay). Resume continues the same Match. Not during Setup or Draft. Versus Friend has no Pause. Escape Pauses Versus AI when no popup is open and it is not Setup or Draft. No takebacks, hints, or engine bar in MVP.
 _Avoid_: Friend Pause, Pause as Resign, takeback, hint, Escape as Exit during a Match
+
+**Autoplay**:
+A Debug-only toggle that drives the local PlayerSide with the same Move AI as Versus AI (Setup/Draft autopick as that AI). Difficulty is chosen on the Debug menu and applies only to Autoplay’s Side — not the Versus AI opponent — so the two strengths can differ. Default Easy. Arms from the main menu and engages in a Match; mid-Match Start takes over on the next PlayerSide action. Pause freezes it; Leave clears it; game over and Rematch do not. After game over, if still on, Rematch fires after about 10 seconds when Rematch is available (Versus AI always; Versus Friend only if that path is available). Does nothing in Replay. Not Auto Battler.
+_Avoid_: Auto Battler, autobattler, idle chess, controlling both Sides
 
 **Setup**:
 After Start, before Turn 1. Powerful Pieces: each Side must select exactly N Empowered Pieces (default 2), then Confirm. Confirm stays visible and not interactable until N are selected. Duplicate types allowed. Shared 30s clock. Versus AI already selected; your Confirm starts Turn 1 immediately. Versus Friend: Confirm becomes interactable when both Sides have selected N. The first Confirm does not start the Match; the other Side’s button reads Confirm (opponent ready). The second Confirm starts Turn 1. Timeout → autopick remaining slots uniformly at random from unselected own Pieces (duplicate types allowed), then reveal. Unconfirm of picks is allowed until both have Confirmed or time runs out; dropping below N clears Confirm. The clock does not reset. Picks stay hidden until both have Confirmed or time runs out; then marks apply and Fog still hides enemy marks on Shadow or Hidden Squares. Your own picks are visible to you. Resign is not allowed. Menu Leave during Setup aborts: no winner, both return to Activity selection. Versus AI Setup Leave returns to the menu.

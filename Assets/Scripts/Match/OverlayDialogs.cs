@@ -12,6 +12,7 @@ namespace ModularChess.Match
         [SerializeField] GameObject quitConfirm;
         [SerializeField] GameObject debugMenu;
         [SerializeField] GameObject debugMenuPrefab;
+        DebugMenuView _debugView;
         bool _woken;
         #endregion
 
@@ -68,9 +69,11 @@ namespace ModularChess.Match
             EnsureDebugMenu();
             if (debugMenu == null)
                 return;
-            BindButtons(
-                debugMenu,
-                new[] { resetSave, unlockAll, win, lose, resetTimer, HideDebugImmediate });
+            if (_debugView == null)
+                _debugView = debugMenu.GetComponent<DebugMenuView>();
+            if (_debugView == null)
+                return;
+            _debugView.Present(resetSave, unlockAll, win, lose, resetTimer, HideDebugImmediate);
             Present(debugMenu);
         }
         public void HideDebugImmediate()

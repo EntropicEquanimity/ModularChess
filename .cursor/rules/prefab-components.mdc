@@ -20,5 +20,5 @@ Instantiate the prefab as a child and leave RectTransform / LayoutGroup values a
 ## Exceptions
 
 - Plain Core C# (rules, board, state) stays prefab-free.
-- `RuntimePrefabs.Load` is only an editor/missing-ref fallback, not the design path.
+- `RuntimePrefabs` may load the canonical `Assets/Prefabs/...` path in the Editor when a serialized ref is missing — not a design path, and never via a Resources twin. See `one-asset-location.mdc`.
 - Do not mass-convert old bootstrap HUD outside Overlays; apply this on new work and files we edit. Overlays under `Assets/Prefabs/Overlays` should own a MonoBehaviour.

@@ -5,7 +5,6 @@ namespace ModularChess.Presentation
     internal static class RuntimeSprites
     {
         const string OutlineBodyEditorPath = "Assets/Sprites/Effects/OutlineBody.png";
-        const string OutlineBodyResourcesName = "Effects/OutlineBody";
         const string PointSpriteName = "point";
         static Sprite _pixel;
         static Sprite _circle;
@@ -18,10 +17,8 @@ namespace ModularChess.Presentation
                 if (_lock != null)
                     return _lock;
 #if UNITY_EDITOR
-                _lock = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Lock.png");
+                _lock = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Lock.png");
 #endif
-                if (_lock == null)
-                    _lock = Resources.Load<Sprite>("Lock");
                 return _lock;
             }
         }
@@ -41,13 +38,13 @@ namespace ModularChess.Presentation
             get
             {
                 if (_circle == null)
-                    _circle = LoadNamedSprite(OutlineBodyEditorPath, OutlineBodyResourcesName, PointSpriteName)
+                    _circle = LoadNamedSprite(OutlineBodyEditorPath, PointSpriteName)
                         ?? CreateCircle(64, 64f);
                 return _circle;
             }
         }
 
-        static Sprite LoadNamedSprite(string editorPath, string resourcesName, string spriteName)
+        static Sprite LoadNamedSprite(string editorPath, string spriteName)
         {
 #if UNITY_EDITOR
             Object[] editorAssets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(editorPath);
@@ -60,14 +57,6 @@ namespace ModularChess.Presentation
                 }
             }
 #endif
-            Sprite[] loaded = Resources.LoadAll<Sprite>(resourcesName);
-            if (loaded == null)
-                return null;
-            for (int i = 0; i < loaded.Length; i++)
-            {
-                if (loaded[i] != null && loaded[i].name == spriteName)
-                    return loaded[i];
-            }
             return null;
         }
 

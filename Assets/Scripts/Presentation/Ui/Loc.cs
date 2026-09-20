@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using ModularChess.Core;
 using UnityEngine;
 
@@ -248,13 +247,6 @@ namespace ModularChess.Presentation
 
         static string ReadFile(string language)
         {
-#if UNITY_EDITOR
-            string path = Path.Combine(Application.dataPath, "Localization", language + ".txt");
-            if (File.Exists(path))
-            {
-                return File.ReadAllText(path);
-            }
-#endif
             TextAsset resource = Resources.Load<TextAsset>($"Localization/{language}");
             return resource != null ? resource.text : string.Empty;
         }

@@ -107,10 +107,28 @@ namespace ModularChess.Presentation
 
             if (experienceStars == null || experienceStars.Length == 0)
                 experienceStars = Stars("Experience");
-            if (emptyStar == null)
-                emptyStar = Resources.Load<Sprite>("Feedback/star-empty");
-            if (filledStar == null)
-                filledStar = Resources.Load<Sprite>("Feedback/star-filled");
+            EnsureStarSprites();
+        }
+
+        void EnsureStarSprites()
+        {
+            if (emptyStar != null && filledStar != null)
+                return;
+#if UNITY_EDITOR
+            UnityEngine.Object[] assets =
+                UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/stars.png");
+            if (assets == null)
+                return;
+            for (int i = 0; i < assets.Length; i++)
+            {
+                if (assets[i] is not Sprite sprite)
+                    continue;
+                if (sprite.name.EndsWith("_0", StringComparison.Ordinal) && emptyStar == null)
+                    emptyStar = sprite;
+                else if (sprite.name.EndsWith("_1", StringComparison.Ordinal) && filledStar == null)
+                    filledStar = sprite;
+            }
+#endif
         }
 
         void BindStars(Button[] stars, Action<int> set)

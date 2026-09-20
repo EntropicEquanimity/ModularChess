@@ -31,34 +31,34 @@ namespace ModularChess.Presentation
         const string DebugMenuPath = "Assets/Prefabs/Popup/DebugMenu.prefab";
         const string HistoryPath = "Assets/Prefabs/Overlays/History.prefab";
 
-        public static GameObject Canvas => Load(CanvasPath, "UI/Canvas");
-        public static GameObject TextButton => Load(ButtonPath, "UI/TextButton");
-        public static GameObject Toggle => Load(TogglePath, "UI/Toggle");
-        public static GameObject Dropdown => Load(DropdownPath, "UI/Dropdown");
-        public static GameObject InputField => Load(InputPath, "UI/InputField");
-        public static GameObject DescriptionBox => Load(DescriptionPath, "UI/DescriptionBox");
-        public static GameObject ImageButton => Load(ImageButtonPath, "UI/ImageButton");
-        public static GameObject Panel => Load(PanelPath, "UI/Panel");
-        public static GameObject SelectionRow => Load(SelectionRowPath, "UI/SelectionRow");
-        public static GameObject ChessPiece => Load(ChessPiecePath, "Game/ChessPiece");
-        public static GameObject ChessboardTile => Load(ChessboardTilePath, "Game/ChessboardTile");
-        public static GameObject PieceDetails => Load(PieceDetailsPath, "UI/UnitDetails");
-        public static GameObject EffectDescription => Load(EffectDescriptionPath, "UI/EffectDescription");
-        public static GameObject DraftRow => Load(DraftRowPath, "Popup/DraftRow");
-        public static GameObject ModeSettingsPopup => Load(ModeSettingsPopupPath, "Overlays/ModeSettingsPopup");
-        public static GameObject UnlocksDetailPopup => Load(UnlocksDetailPopupPath, "Popup/UnlocksDetailPopup");
-        public static GameObject SettingsControl => Load(SettingsControlPath, "UI/SettingsControl");
-        public static GameObject OptionSlider => Load(OptionSliderPath, "UI/OptionSlider");
-        public static GameObject PromotionPopup => Load(PromotionPopupPath, "Overlays/PromotionPopup");
-        public static GameObject MatchHud => Load(MatchHudPath, "Overlays/MatchHud");
-        public static GameObject ScrollView => Load(ScrollViewPath, "UI/Scroll View");
-        public static GameObject AccountCreation => Load(AccountCreationPath, "Overlays/AccountCreation");
-        public static GameObject FeedbackSurvey => Load(FeedbackSurveyPath, "Overlays/FeedbackSurvey");
-        public static GameObject OverlayDialogs => Load(OverlayDialogsPath, "Overlays/OverlayDialogs");
-        public static GameObject DebugMenu => Load(DebugMenuPath, "Popup/DebugMenu");
-        public static GameObject History => Load(HistoryPath, "Overlays/History");
+        public static GameObject Canvas => Load(CanvasPath);
+        public static GameObject TextButton => Load(ButtonPath);
+        public static GameObject Toggle => Load(TogglePath);
+        public static GameObject Dropdown => Load(DropdownPath);
+        public static GameObject InputField => Load(InputPath);
+        public static GameObject DescriptionBox => Load(DescriptionPath);
+        public static GameObject ImageButton => Load(ImageButtonPath);
+        public static GameObject Panel => Load(PanelPath);
+        public static GameObject SelectionRow => Load(SelectionRowPath);
+        public static GameObject ChessPiece => Load(ChessPiecePath);
+        public static GameObject ChessboardTile => Load(ChessboardTilePath);
+        public static GameObject PieceDetails => Load(PieceDetailsPath);
+        public static GameObject EffectDescription => Load(EffectDescriptionPath);
+        public static GameObject DraftRow => Load(DraftRowPath);
+        public static GameObject ModeSettingsPopup => Load(ModeSettingsPopupPath);
+        public static GameObject UnlocksDetailPopup => Load(UnlocksDetailPopupPath);
+        public static GameObject SettingsControl => Load(SettingsControlPath);
+        public static GameObject OptionSlider => Load(OptionSliderPath);
+        public static GameObject PromotionPopup => Load(PromotionPopupPath);
+        public static GameObject MatchHud => Load(MatchHudPath);
+        public static GameObject ScrollView => Load(ScrollViewPath);
+        public static GameObject AccountCreation => Load(AccountCreationPath);
+        public static GameObject FeedbackSurvey => Load(FeedbackSurveyPath);
+        public static GameObject OverlayDialogs => Load(OverlayDialogsPath);
+        public static GameObject DebugMenu => Load(DebugMenuPath);
+        public static GameObject History => Load(HistoryPath);
 
-        static GameObject Load(string assetPath, string resourcesName)
+        static GameObject Load(string assetPath)
         {
 #if UNITY_EDITOR
             GameObject editor = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
@@ -72,7 +72,7 @@ namespace ModularChess.Presentation
                     return editor;
             }
 #endif
-            return Resources.Load<GameObject>(resourcesName);
+            return null;
         }
     }
 }

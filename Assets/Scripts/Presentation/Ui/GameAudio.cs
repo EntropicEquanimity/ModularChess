@@ -278,72 +278,66 @@ namespace ModularChess.Presentation
 
             if (uiClick == null)
             {
-                uiClick = LoadClip(ClickPath, "Audio/button-click");
+                uiClick = LoadClip(ClickPath);
             }
 
             if (uiTap == null)
             {
-                uiTap = LoadClip(TapPath, "Audio/tap");
+                uiTap = LoadClip(TapPath);
             }
 
             if (pieceMove == null)
             {
-                pieceMove = LoadClip(MovePath, "Audio/piece-move");
+                pieceMove = LoadClip(MovePath);
             }
 
             if (pieceCapture == null)
             {
-                pieceCapture = LoadClip(CapturePath, "Audio/piece-capture");
+                pieceCapture = LoadClip(CapturePath);
             }
 
             if (pieceSelect == null)
             {
-                pieceSelect = LoadClip(SelectPath, "Audio/piece-select");
+                pieceSelect = LoadClip(SelectPath);
             }
 
             if (invalidClick == null)
             {
-                invalidClick = LoadClip(IllegalPath, "Audio/invalid-click");
+                invalidClick = LoadClip(IllegalPath);
             }
 
             if (matchCheck == null)
             {
-                matchCheck = LoadClip(CheckPath, "Audio/match-check");
+                matchCheck = LoadClip(CheckPath);
             }
 
             if (menuMusic == null)
             {
-                menuMusic = LoadClip(MenuMusicPath, "Audio/bgm-menu");
+                menuMusic = LoadClip(MenuMusicPath);
             }
 
             if (matchMusic == null)
             {
-                matchMusic = LoadClip(MatchMusicPath, "Audio/bgm-match");
+                matchMusic = LoadClip(MatchMusicPath);
             }
         }
 
         static AudioMixer LoadMixer()
         {
 #if UNITY_EDITOR
-            AudioMixer editor = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioMixer>(MixerPath);
-            if (editor != null)
-            {
-                return editor;
-            }
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<AudioMixer>(MixerPath);
+#else
+            return null;
 #endif
-            return Resources.Load<AudioMixer>("Audio/GameAudio");
         }
 
-        static AudioClip LoadClip(string assetPath, string resourcesName)
+        static AudioClip LoadClip(string assetPath)
         {
 #if UNITY_EDITOR
-            AudioClip editor = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
-            if (editor != null)
-            {
-                return editor;
-            }
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
+#else
+            return null;
 #endif
-            return Resources.Load<AudioClip>(resourcesName);
         }
         #endregion
     }
