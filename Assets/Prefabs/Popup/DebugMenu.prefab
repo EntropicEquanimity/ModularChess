@@ -738,15 +738,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1b2c3d4e5f60718293a4b5c6d7e8f90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resetSaveButton: {fileID: 0}
-  unlockAllButton: {fileID: 0}
-  winButton: {fileID: 0}
-  loseButton: {fileID: 0}
-  resetTimerButton: {fileID: 0}
-  closeButton: {fileID: 0}
-  autoplayStartButton: {fileID: 0}
-  autoplayStopButton: {fileID: 0}
-  autoplayDifficulty: {fileID: 0}
+  resetSaveButton: {fileID: 865303532004632850}
+  unlockAllButton: {fileID: 613942944854534432}
+  winButton: {fileID: 931878310538547109}
+  loseButton: {fileID: 624382470094782390}
+  resetTimerButton: {fileID: 264661930520820856}
+  closeButton: {fileID: 587595779687083067}
+  autoplayStartButton: {fileID: 4909232941894121317}
+  autoplayStopButton: {fileID: 422545190350538606}
+  autoplayDifficulty: {fileID: 6031703026333909119}
 --- !u!1 &223835594151899557
 GameObject:
   m_ObjectHideFlags: 0

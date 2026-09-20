@@ -127,7 +127,7 @@ MonoBehaviour:
   backButton: {fileID: 6268693234197795968}
   title: {fileID: 7686386933815908649}
   selectionRowPrefab: {fileID: 722486986211035405, guid: 3c9e6da6c3c53b849b0a552b821092ca, type: 3}
-  modeSettingsPopup: {fileID: 0}
+  modeSettingsPopup: {fileID: 3948462206877627232, guid: abc6b862a9a42ce429d35f8514a136a8, type: 3}
 --- !u!1 &8270000200
 GameObject:
   m_ObjectHideFlags: 0

@@ -38,7 +38,9 @@ namespace ModularChess.Presentation
             if (icons == null) { return; }  
             for (int i = 0; i < Options.Length && i < icons.Length; i++)
             {
-                if (icons[i] != null) { icons[i].sprite = ChessGlyphs.GetSprite(Options[i], side); }
+                if (icons[i] == null) { continue; }
+                icons[i].sprite = ChessGlyphs.GetSprite(Options[i], side);
+                if (icons[i].sprite != null) { icons[i].SetNativeSize(); }
             }
         }
         public Button FirstButton
