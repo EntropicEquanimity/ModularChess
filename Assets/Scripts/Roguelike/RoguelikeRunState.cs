@@ -6,7 +6,7 @@ namespace ModularChess.Core
     public sealed class RoguelikeRunState
     {
         #region Fields
-        public const int StageCount = 13;
+        public const int StageCount = RoguelikeBalance.StageCount;
         public const int DefaultArmySize = 3;
         readonly Dictionary<BoonId, int> _stacks = new Dictionary<BoonId, int>();
         readonly List<BoonDefinition> _owned = new List<BoonDefinition>();
@@ -28,6 +28,19 @@ namespace ModularChess.Core
             StageNumber = 1;
             Gold = 0;
             ArmySizeCap = DefaultArmySize;
+        }
+        public void AddGold(int amount)
+        {
+            if (amount <= 0)
+                return;
+            Gold += amount;
+        }
+        public bool TrySpendGold(int amount)
+        {
+            if (amount <= 0 || Gold < amount)
+                return false;
+            Gold -= amount;
+            return true;
         }
         public void AddBoon(BoonDefinition def)
         {
@@ -55,17 +68,15 @@ namespace ModularChess.Core
         }
         public PieceType StageTarget()
         {
-            if (StageNumber == 6 || StageNumber == 12 || StageNumber == 13)
-                return PieceType.Queen;
-            return PieceType.King;
+            return RoguelikeBalance.StageTarget(StageNumber);
         }
         public bool IsBossStage()
         {
-            return StageNumber == 13;
+            return RoguelikeBalance.IsBossStage(StageNumber);
         }
         public bool IsMiniBossStage()
         {
-            return StageNumber == 6 || StageNumber == 12;
+            return RoguelikeBalance.IsMiniBossStage(StageNumber);
         }
         #endregion
     }

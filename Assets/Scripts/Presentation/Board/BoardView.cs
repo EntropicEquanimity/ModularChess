@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using ModularChess.Core;
 using UnityEngine;
 
@@ -8,6 +9,8 @@ namespace ModularChess.Presentation
     public sealed class BoardView : MonoBehaviour, IBoardView
     {
         public event Action<Square> SquareClicked;
+        public event Action<Square> SquarePressed;
+        public event Action<Square?> SquareReleased;
         public event Action<Square?> SquareHovered;
         public event Action<bool> MatchChromeHidden;
 
@@ -27,6 +30,15 @@ namespace ModularChess.Presentation
         readonly HashSet<Guid> _pendingEmpowered = new HashSet<Guid>();
         readonly HashSet<Square> _validTargets = new HashSet<Square>();
         readonly HashSet<Guid> _banished = new HashSet<Guid>();
+        readonly HashSet<Guid> _stageSnapIds = new HashSet<Guid>();
+        readonly List<(Guid id, Vector3 dest, bool fromTop)> _stageEntries = new List<(Guid, Vector3, bool)>(32);
+        Vector3 _restLocal;
+        bool _restLocalCached;
+        Tween _boardMotion;
+        bool _stageReveal;
+        Action _stageRevealDone;
+        float _stagePieceDuration = 1f;
+        float _stageStagger = 0.25f;
 
         Transform _squaresRoot;
         Transform _piecesRoot;
@@ -47,7 +59,8 @@ namespace ModularChess.Presentation
         Action _idleOnce;
 
         public GameState BoundState => _state;
-        public bool PiecesBusy => _movingCount > 0;
+        public bool PiecesBusy => _movingCount > 0 || (_boardMotion != null && _boardMotion.IsActive());
+        public bool StageRevealBusy => _stageReveal;
         public bool HidingMatchChrome { get; private set; }
         public Side ViewerSide
         {
@@ -120,6 +133,10 @@ namespace ModularChess.Presentation
 
         public void CompleteMotion()
         {
+            _boardMotion?.Kill();
+            _boardMotion = null;
+            if (_restLocalCached)
+                transform.localPosition = _restLocal;
             foreach (KeyValuePair<Guid, PieceView> pair in _pieces)
             {
                 if (pair.Value != null)
@@ -130,8 +147,109 @@ namespace ModularChess.Presentation
             _movingCount = 0;
             _idleOnce = null;
             _chromeUntilIdle = false;
+            _stageReveal = false;
+            _stageRevealDone = null;
+            _stageEntries.Clear();
             SetMatchChromeHidden(false);
             FlushDeferred();
+        }
+
+        public void ClearPieceViews()
+        {
+            CompleteMotion();
+            foreach (KeyValuePair<Guid, PieceView> pair in _pieces)
+            {
+                if (pair.Value != null)
+                    Destroy(pair.Value.gameObject);
+            }
+            _pieces.Clear();
+            _banished.Clear();
+        }
+
+        public void PlayBoardSlideIn(float duration, Action onComplete)
+        {
+            EnsureBuilt();
+            CacheRestLocal();
+            _boardMotion?.Kill();
+            float drop = _layout.BoardSizeLocal.y + _layout.SquareSize * 3f;
+            transform.localPosition = _restLocal + new Vector3(0f, -drop, 0f);
+            float time = AnimationPrefs.MoveDuration(duration);
+            if (time <= 0.001f || AnimationPrefs.Instant)
+            {
+                transform.localPosition = _restLocal;
+                onComplete?.Invoke();
+                return;
+            }
+            _boardMotion = DOTween.To(
+                    () => transform.localPosition,
+                    v => transform.localPosition = v,
+                    _restLocal,
+                    time)
+                .SetEase(Ease.OutCubic)
+                .SetTarget(this)
+                .OnComplete(() =>
+                {
+                    _boardMotion = null;
+                    onComplete?.Invoke();
+                });
+        }
+
+        public void BindStageReveal(
+            GameState state,
+            Side viewer,
+            IReadOnlyCollection<Guid> snapIds,
+            IReadOnlyCollection<Guid> fromTopIds,
+            IReadOnlyCollection<Guid> fromBottomIds,
+            float pieceDuration,
+            float stagger,
+            bool startStagger,
+            Action onComplete)
+        {
+            if (state == null)
+                throw new ArgumentNullException(nameof(state));
+            EnsureBuilt();
+            ClearPieceViews();
+            _stageSnapIds.Clear();
+            if (snapIds != null)
+            {
+                foreach (Guid id in snapIds)
+                    _stageSnapIds.Add(id);
+            }
+            var fromTop = new HashSet<Guid>();
+            if (fromTopIds != null)
+            {
+                foreach (Guid id in fromTopIds)
+                    fromTop.Add(id);
+            }
+            var fromBottom = new HashSet<Guid>();
+            if (fromBottomIds != null)
+            {
+                foreach (Guid id in fromBottomIds)
+                    fromBottom.Add(id);
+            }
+            _stagePieceDuration = pieceDuration;
+            _stageStagger = stagger;
+            _stageRevealDone = onComplete;
+            _stageReveal = true;
+            _stageEntries.Clear();
+            _state = state;
+            _vision = VisionMap.AllIdentified;
+            _viewer = viewer;
+            Relayout();
+            SyncPiecesForStage(fromTop, fromBottom);
+            PruneSelectionAfterBind();
+            RefreshHighlights();
+            if (startStagger)
+                StartStageStagger();
+            else if (_stageEntries.Count == 0)
+                FinishStageReveal();
+        }
+
+        public void PlayQueuedStageEntries(Action onComplete)
+        {
+            _stageRevealDone = onComplete;
+            _stageReveal = true;
+            StartStageStagger();
         }
 
         public void SetSelection(Square? square)
@@ -227,12 +345,46 @@ namespace ModularChess.Presentation
         }
         public void PlayMateClear(Side defeated, Action onCleared)
         {
+            PlayKnockOffSide(defeated, onCleared);
+        }
+        public void PlayKnockOffSide(Side side, Action onCleared)
+        {
             EnsureBuilt();
             HoldMatchChrome();
             if (_movingCount > 0)
-                _idleOnce += () => KnockOffDefeated(defeated, onCleared);
+                _idleOnce += () => KnockOffDefeated(side, onCleared);
             else
-                KnockOffDefeated(defeated, onCleared);
+                KnockOffDefeated(side, onCleared);
+        }
+        public void AnimatePiecesToSquares(IReadOnlyDictionary<Guid, Square> destinations, Action onComplete)
+        {
+            EnsureBuilt();
+            if (destinations == null || destinations.Count == 0 || AnimationPrefs.Instant)
+            {
+                onComplete?.Invoke();
+                return;
+            }
+            float duration = AnimationPrefs.MoveDuration(0.45f);
+            int started = 0;
+            foreach (KeyValuePair<Guid, Square> pair in destinations)
+            {
+                if (!_pieces.TryGetValue(pair.Key, out PieceView view) || view == null)
+                    continue;
+                Vector3 dest = _layout.SquareCenterLocal(pair.Value, _viewer);
+                if (view.PlayMove(dest, duration, OnPieceMotionEnded))
+                {
+                    _movingCount++;
+                    started++;
+                }
+                else
+                    view.SnapTo(dest);
+            }
+            if (started == 0)
+            {
+                onComplete?.Invoke();
+                return;
+            }
+            _idleOnce += () => onComplete?.Invoke();
         }
         public void PlayPowerFeel(MartyrPower power, Guid? targetId)
         {
@@ -310,6 +462,17 @@ namespace ModularChess.Presentation
             return bounds;
         }
 
+        public void NotifySquarePressed(Square square)
+        {
+            EnsureBuilt();
+            if (!square.IsOnBoard || IsCovered(square))
+                return;
+            SquarePressed?.Invoke(square);
+        }
+        public void NotifySquareReleased(Square? square)
+        {
+            SquareReleased?.Invoke(square);
+        }
         public void NotifySquareClicked(Square square)
         {
             if (_state == null || !square.IsOnBoard || IsCovered(square))
@@ -479,6 +642,7 @@ namespace ModularChess.Presentation
                     else
                     {
                         view.Bind(piece, _layout.SquareSize, theme);
+                        view.SetPopupState(_state);
                         bool empowered = identified
                             && (_state.Runtime.IsEmpowered(piece.Id) || _pendingEmpowered.Contains(piece.Id));
                         view.SetEmpoweredAura(empowered, piece.Side == _viewer);
@@ -661,6 +825,105 @@ namespace ModularChess.Presentation
             float pad = _layout.SquareSize * 3f;
             float x = mine ? _layout.BoardSizeLocal.x + pad : -pad;
             return new Vector3(x, dest.y, dest.z);
+        }
+        Vector3 EntryStartVertical(Vector3 dest, bool fromTop)
+        {
+            float pad = _layout.SquareSize * 4f;
+            float y = fromTop ? _layout.BoardSizeLocal.y + pad : -pad;
+            return new Vector3(dest.x, y, dest.z);
+        }
+        void CacheRestLocal()
+        {
+            if (_restLocalCached)
+                return;
+            _restLocal = transform.localPosition;
+            _restLocalCached = true;
+        }
+        void SyncPiecesForStage(HashSet<Guid> fromTop, HashSet<Guid> fromBottom)
+        {
+            EnsureTheme();
+            _seenIds.Clear();
+            for (int file = 0; file < BoardLayout.FileCount; file++)
+            {
+                for (int rank = 0; rank < BoardLayout.RankCount; rank++)
+                {
+                    Square square = new Square(file, rank);
+                    Piece piece = _state.Board.GetPiece(square);
+                    if (piece == null)
+                        continue;
+                    _seenIds.Add(piece.Id);
+                    PieceView view = CreatePieceView();
+                    _pieces[piece.Id] = view;
+                    view.Bind(piece, _layout.SquareSize, theme);
+                    view.SetEmpoweredAura(false, false);
+                    view.SetGhosted(false);
+                    Vector3 dest = _layout.SquareCenterLocal(square, _viewer);
+                    view.gameObject.SetActive(true);
+                    if (_stageSnapIds.Contains(piece.Id) || AnimationPrefs.Instant)
+                    {
+                        view.SnapTo(dest);
+                        continue;
+                    }
+                    bool top = fromTop.Contains(piece.Id);
+                    bool bottom = fromBottom.Contains(piece.Id);
+                    if (!top && !bottom)
+                    {
+                        view.SnapTo(dest);
+                        continue;
+                    }
+                    view.SnapTo(EntryStartVertical(dest, top));
+                    _stageEntries.Add((piece.Id, dest, top));
+                }
+            }
+            int started = 0;
+            LayoutCaptures(true, ref started);
+        }
+        void StartStageStagger()
+        {
+            if (_stageEntries.Count == 0 || AnimationPrefs.Instant)
+            {
+                FinishStageReveal();
+                return;
+            }
+            var ordered = new List<(Guid id, Vector3 dest, bool fromTop)>(_stageEntries.Count);
+            for (int i = 0; i < _stageEntries.Count; i++)
+            {
+                if (_stageEntries[i].fromTop)
+                    ordered.Add(_stageEntries[i]);
+            }
+            for (int i = 0; i < _stageEntries.Count; i++)
+            {
+                if (!_stageEntries[i].fromTop)
+                    ordered.Add(_stageEntries[i]);
+            }
+            _stageEntries.Clear();
+            float duration = AnimationPrefs.MoveDuration(_stagePieceDuration);
+            float stagger = AnimationPrefs.MoveDuration(_stageStagger);
+            int started = 0;
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                if (!_pieces.TryGetValue(ordered[i].id, out PieceView view) || view == null)
+                    continue;
+                float delay = stagger * started;
+                if (view.PlayMove(ordered[i].dest, duration, delay, OnPieceMotionEnded))
+                {
+                    _movingCount++;
+                    started++;
+                }
+            }
+            if (started == 0)
+            {
+                FinishStageReveal();
+                return;
+            }
+            _idleOnce += FinishStageReveal;
+        }
+        void FinishStageReveal()
+        {
+            _stageReveal = false;
+            Action done = _stageRevealDone;
+            _stageRevealDone = null;
+            done?.Invoke();
         }
         void PopSide(Side side, PieceType type, float duration)
         {

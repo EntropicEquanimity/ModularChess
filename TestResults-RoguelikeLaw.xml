@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.0665503">
+  <test-suite type="TestSuite" id="1000" name="ModularChess" fullname="ModularChess" runstate="Runnable" testcasecount="84" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.066550" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1100" name="ModularChess.Core.Tests.dll" fullname="C:/Users/joshu/Desktop/GameDev/Unity/ModularChess/Library/ScriptAssemblies/ModularChess.Core.Tests.dll" runstate="Runnable" testcasecount="82" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.058571" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="17752" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1101" name="ModularChess" fullname="ModularChess" runstate="Runnable" testcasecount="82" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.057152" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1102" name="Core" fullname="ModularChess.Core" runstate="Runnable" testcasecount="82" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.055973" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1103" name="Tests" fullname="ModularChess.Core.Tests" runstate="Runnable" testcasecount="82" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.054716" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1077" name="RoguelikeLawTests" fullname="ModularChess.Core.Tests.RoguelikeLawTests" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.051533" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1081" name="CapturingEnemyKing_ClearsStage" fullname="ModularChess.Core.Tests.RoguelikeLawTests.CapturingEnemyKing_ClearsStage" methodname="CapturingEnemyKing_ClearsStage" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="1673503198" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.034110" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1082" name="CapturingPlayerKing_EndsRun" fullname="ModularChess.Core.Tests.RoguelikeLawTests.CapturingPlayerKing_EndsRun" methodname="CapturingPlayerKing_EndsRun" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="1205217617" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.000414" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1080" name="Check_DoesNotForceReply" fullname="ModularChess.Core.Tests.RoguelikeLawTests.Check_DoesNotForceReply" methodname="Check_DoesNotForceReply" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="508301591" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.001123" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1084" name="EmptyLegalMoves_IsNotCheckmate" fullname="ModularChess.Core.Tests.RoguelikeLawTests.EmptyLegalMoves_IsNotCheckmate" methodname="EmptyLegalMoves_IsNotCheckmate" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="1685286397" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.001098" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1078" name="King_HasNoLegalMoves_OnceStageStarted" fullname="ModularChess.Core.Tests.RoguelikeLawTests.King_HasNoLegalMoves_OnceStageStarted" methodname="King_HasNoLegalMoves_OnceStageStarted" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="213690962" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.000465" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1083" name="NoPromotion_OnLastRank" fullname="ModularChess.Core.Tests.RoguelikeLawTests.NoPromotion_OnLastRank" methodname="NoPromotion_OnLastRank" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="1385879548" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.001189" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1079" name="Slider_RangeIsCappedAtThree" fullname="ModularChess.Core.Tests.RoguelikeLawTests.Slider_RangeIsCappedAtThree" methodname="Slider_RangeIsCappedAtThree" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="576648535" result="Passed" start-time="2026-09-22 08:18:06Z" end-time="2026-09-22 08:18:06Z" duration="0.000278" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/joshu/AppData/LocalLow/EntropyMakesGame/ModularChess\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

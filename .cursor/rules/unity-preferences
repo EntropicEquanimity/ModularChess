@@ -1,0 +1,35 @@
+---
+description: Unity 16-bit pixel UI, prefab reuse, composition, and ScriptableObject asset catalogs.
+alwaysApply: true
+---
+
+# Unity prefabs and GameObjects
+
+## Pixel art
+
+- Canvas and sprites use **16 pixels per unit**.
+- **Pixel perfect**: point filtering, crisp pixels, no blur or soft scale.
+- Font size base is **16**. No bold or italics. Larger sizes only in **multiples of 16** (16, 32, 48…).
+
+## Prefabs first
+
+- Before creating UI, check `Assets/Prefabs/UI/Components` for an existing prefab.
+- If nothing fits, **ask the human** to author it — do not invent a new component prefab in code.
+- Temporary Editor factory menus are OK to generate assets; **delete the factory** after the assets exist.
+
+## Composition
+
+- Prefer small components with clear jobs and abstractions over god classes.
+- Before writing new behaviour on a GameObject, search for an existing component that already does it.
+- No duplicate assets or duplicate code paths for the same concern.
+
+## Overlay transitions
+
+- Overlays should all animate the same (`OverlayMotion` enter/exit) to maintain seamless transitions between overlays.
+- Do not show or hide an overlay with bare `SetActive` when other overlays use motion — wire Present/Dismiss (or AppRoot `ShowOverlay` / `DismissScreens`) through `OverlayMotion`.
+
+## Asset access
+
+- Prefer **ScriptableObject catalogs** (icons, prefabs, art sets) referenced by serialized fields.
+- Do not hardcode asset paths for content that will change.
+- Exceptions: localization tables, debug menus, environment/settings/config files, and Editor-only missing-ref fallbacks.

@@ -1,0 +1,617 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="86" result="Passed" total="86" passed="86" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:14Z" duration="1.30277">
+  <test-suite type="TestSuite" id="1000" name="ModularChess" fullname="ModularChess" runstate="Runnable" testcasecount="86" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:14Z" duration="1.302770" total="86" passed="86" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1103" name="ModularChess.Core.Tests.dll" fullname="C:/Users/joshu/Desktop/GameDev/Unity/ModularChess/Library/ScriptAssemblies/ModularChess.Core.Tests.dll" runstate="Runnable" testcasecount="84" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:14Z" duration="1.130015" total="84" passed="84" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="22792" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1104" name="ModularChess" fullname="ModularChess" runstate="Runnable" testcasecount="84" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:14Z" duration="1.129342" total="84" passed="84" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1105" name="Core" fullname="ModularChess.Core" runstate="Runnable" testcasecount="84" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:14Z" duration="1.129134" total="84" passed="84" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1106" name="Tests" fullname="ModularChess.Core.Tests" runstate="Runnable" testcasecount="84" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:14Z" duration="1.128835" total="84" passed="84" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1001" name="BoonOfferTests" fullname="ModularChess.Core.Tests.BoonOfferTests" classname="ModularChess.Core.Tests.BoonOfferTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.044999" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1002" name="Offer_WithOneBoon_ShowsOneCard" fullname="ModularChess.Core.Tests.BoonOfferTests.Offer_WithOneBoon_ShowsOneCard" methodname="Offer_WithOneBoon_ShowsOneCard" classname="ModularChess.Core.Tests.BoonOfferTests" runstate="Runnable" seed="659717163" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.022036" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1003" name="Reinforcements_SkipsBackRank" fullname="ModularChess.Core.Tests.BoonOfferTests.Reinforcements_SkipsBackRank" methodname="Reinforcements_SkipsBackRank" classname="ModularChess.Core.Tests.BoonOfferTests" runstate="Runnable" seed="1626723811" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.007330" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1004" name="CastlingTests" fullname="ModularChess.Core.Tests.CastlingTests" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.024067" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1013" name="BothSides_CanCastleFromOpenBackRanks" fullname="ModularChess.Core.Tests.CastlingTests.BothSides_CanCastleFromOpenBackRanks" methodname="BothSides_CanCastleFromOpenBackRanks" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" seed="1624788584" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.016942" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1008" name="Illegal_WhenKingInCheck" fullname="ModularChess.Core.Tests.CastlingTests.Illegal_WhenKingInCheck" methodname="Illegal_WhenKingInCheck" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" seed="1027501260" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000327" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1010" name="Illegal_WhenKingLandsInCheck" fullname="ModularChess.Core.Tests.CastlingTests.Illegal_WhenKingLandsInCheck" methodname="Illegal_WhenKingLandsInCheck" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" seed="921255556" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000198" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1009" name="Illegal_WhenKingPassesThroughCheck" fullname="ModularChess.Core.Tests.CastlingTests.Illegal_WhenKingPassesThroughCheck" methodname="Illegal_WhenKingPassesThroughCheck" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" seed="1866938178" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000273" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1007" name="Illegal_WhenPathBlocked" fullname="ModularChess.Core.Tests.CastlingTests.Illegal_WhenPathBlocked" methodname="Illegal_WhenPathBlocked" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" seed="1936219095" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000396" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1011" name="Illegal_WhenRightsLost" fullname="ModularChess.Core.Tests.CastlingTests.Illegal_WhenRightsLost" methodname="Illegal_WhenRightsLost" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" seed="1465025496" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000283" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1005" name="KingSide_IsLegal_WhenPathClearAndUnmoved" fullname="ModularChess.Core.Tests.CastlingTests.KingSide_IsLegal_WhenPathClearAndUnmoved" methodname="KingSide_IsLegal_WhenPathClearAndUnmoved" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" seed="385454798" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.001060" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1012" name="QueenSide_AllowsAttackedBFile" fullname="ModularChess.Core.Tests.CastlingTests.QueenSide_AllowsAttackedBFile" methodname="QueenSide_AllowsAttackedBFile" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" seed="303982308" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000224" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1006" name="QueenSide_IsLegal_WhenPathClearAndUnmoved" fullname="ModularChess.Core.Tests.CastlingTests.QueenSide_IsLegal_WhenPathClearAndUnmoved" methodname="QueenSide_IsLegal_WhenPathClearAndUnmoved" classname="ModularChess.Core.Tests.CastlingTests" runstate="Runnable" seed="941123604" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000617" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1019" name="CheckmateTests" fullname="ModularChess.Core.Tests.CheckmateTests" classname="ModularChess.Core.Tests.CheckmateTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.004690" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1020" name="FoolsMate_IsCheckmate" fullname="ModularChess.Core.Tests.CheckmateTests.FoolsMate_IsCheckmate" methodname="FoolsMate_IsCheckmate" classname="ModularChess.Core.Tests.CheckmateTests" runstate="Runnable" seed="416008042" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.001883" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1021" name="ScholarsMate_IsCheckmate" fullname="ModularChess.Core.Tests.CheckmateTests.ScholarsMate_IsCheckmate" methodname="ScholarsMate_IsCheckmate" classname="ModularChess.Core.Tests.CheckmateTests" runstate="Runnable" seed="511825179" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.002093" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1014" name="CheckSafetyTests" fullname="ModularChess.Core.Tests.CheckSafetyTests" classname="ModularChess.Core.Tests.CheckSafetyTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.002457" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1018" name="CapturingOwnKingAttacker_IsLegalWhenSafe" fullname="ModularChess.Core.Tests.CheckSafetyTests.CapturingOwnKingAttacker_IsLegalWhenSafe" methodname="CapturingOwnKingAttacker_IsLegalWhenSafe" classname="ModularChess.Core.Tests.CheckSafetyTests" runstate="Runnable" seed="622990994" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000428" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1015" name="King_CannotMoveAdjacentToEnemyKing" fullname="ModularChess.Core.Tests.CheckSafetyTests.King_CannotMoveAdjacentToEnemyKing" methodname="King_CannotMoveAdjacentToEnemyKing" classname="ModularChess.Core.Tests.CheckSafetyTests" runstate="Runnable" seed="1493512293" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000277" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1017" name="MustEscapeCheck_CannotIgnoreAttacker" fullname="ModularChess.Core.Tests.CheckSafetyTests.MustEscapeCheck_CannotIgnoreAttacker" methodname="MustEscapeCheck_CannotIgnoreAttacker" classname="ModularChess.Core.Tests.CheckSafetyTests" runstate="Runnable" seed="1084476379" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000277" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1016" name="PinnedPiece_CannotExposeKing" fullname="ModularChess.Core.Tests.CheckSafetyTests.PinnedPiece_CannotExposeKing" methodname="PinnedPiece_CannotExposeKing" classname="ModularChess.Core.Tests.CheckSafetyTests" runstate="Runnable" seed="860273698" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000387" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1022" name="DrawTests" fullname="ModularChess.Core.Tests.DrawTests" classname="ModularChess.Core.Tests.DrawTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.002660" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1024" name="FiftyMoveRule_DrawsOnHundredthHalfmove" fullname="ModularChess.Core.Tests.DrawTests.FiftyMoveRule_DrawsOnHundredthHalfmove" methodname="FiftyMoveRule_DrawsOnHundredthHalfmove" classname="ModularChess.Core.Tests.DrawTests" runstate="Runnable" seed="1419937227" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000393" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1023" name="KingVersusKing_IsDraw" fullname="ModularChess.Core.Tests.DrawTests.KingVersusKing_IsDraw" methodname="KingVersusKing_IsDraw" classname="ModularChess.Core.Tests.DrawTests" runstate="Runnable" seed="1328423310" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000150" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1025" name="PieceValues_MatchStandardPoints" fullname="ModularChess.Core.Tests.DrawTests.PieceValues_MatchStandardPoints" methodname="PieceValues_MatchStandardPoints" classname="ModularChess.Core.Tests.DrawTests" runstate="Runnable" seed="1386369568" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000348" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1026" name="ThreefoldRepetition_IsDraw" fullname="ModularChess.Core.Tests.DrawTests.ThreefoldRepetition_IsDraw" methodname="ThreefoldRepetition_IsDraw" classname="ModularChess.Core.Tests.DrawTests" runstate="Runnable" seed="1837668929" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.001042" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1027" name="EnPassantTests" fullname="ModularChess.Core.Tests.EnPassantTests" classname="ModularChess.Core.Tests.EnPassantTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.003076" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1029" name="Available_OnlyOnTheImmediateReply" fullname="ModularChess.Core.Tests.EnPassantTests.Available_OnlyOnTheImmediateReply" methodname="Available_OnlyOnTheImmediateReply" classname="ModularChess.Core.Tests.EnPassantTests" runstate="Runnable" seed="965508039" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000897" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1028" name="Capture_RemovesThePassedPawn" fullname="ModularChess.Core.Tests.EnPassantTests.Capture_RemovesThePassedPawn" methodname="Capture_RemovesThePassedPawn" classname="ModularChess.Core.Tests.EnPassantTests" runstate="Runnable" seed="2001802447" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000736" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1030" name="FromStartingSequence_e4_d5_e5_f5_exf6" fullname="ModularChess.Core.Tests.EnPassantTests.FromStartingSequence_e4_d5_e5_f5_exf6" methodname="FromStartingSequence_e4_d5_e5_f5_exf6" classname="ModularChess.Core.Tests.EnPassantTests" runstate="Runnable" seed="375653873" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000737" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1031" name="FogVisionTests" fullname="ModularChess.Core.Tests.FogVisionTests" classname="ModularChess.Core.Tests.FogVisionTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.005266" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1032" name="StartingPosition_HomeRanksAreIdentified" fullname="ModularChess.Core.Tests.FogVisionTests.StartingPosition_HomeRanksAreIdentified" methodname="StartingPosition_HomeRanksAreIdentified" classname="ModularChess.Core.Tests.FogVisionTests" runstate="Runnable" seed="78282127" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.004579" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1033" name="GameplayLoopTests" fullname="ModularChess.Core.Tests.GameplayLoopTests" classname="ModularChess.Core.Tests.GameplayLoopTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.003387" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1034" name="FogOfWar_HidesEnemyHomeWhileInProgress" fullname="ModularChess.Core.Tests.GameplayLoopTests.FogOfWar_HidesEnemyHomeWhileInProgress" methodname="FogOfWar_HidesEnemyHomeWhileInProgress" classname="ModularChess.Core.Tests.GameplayLoopTests" runstate="Runnable" seed="1686668989" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000772" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1035" name="FogOfWar_LiftsOnCheckmate" fullname="ModularChess.Core.Tests.GameplayLoopTests.FogOfWar_LiftsOnCheckmate" methodname="FogOfWar_LiftsOnCheckmate" classname="ModularChess.Core.Tests.GameplayLoopTests" runstate="Runnable" seed="1219758472" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.001486" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1036" name="MartyrTests" fullname="ModularChess.Core.Tests.MartyrTests" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" testcasecount="19" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.032409" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1055" name="BattlefieldPromotionPieceHasLegalMoves" fullname="ModularChess.Core.Tests.MartyrTests.BattlefieldPromotionPieceHasLegalMoves" methodname="BattlefieldPromotionPieceHasLegalMoves" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="138588343" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.008956" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1045" name="BattlefieldPromotionPromotesTheChosenPawn" fullname="ModularChess.Core.Tests.MartyrTests.BattlefieldPromotionPromotesTheChosenPawn" methodname="BattlefieldPromotionPromotesTheChosenPawn" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1474491697" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000793" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1046" name="CapturesAreRecordedInOrderAndSkipExtraLifeBounce" fullname="ModularChess.Core.Tests.MartyrTests.CapturesAreRecordedInOrderAndSkipExtraLifeBounce" methodname="CapturesAreRecordedInOrderAndSkipExtraLifeBounce" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="906891744" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.003513" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1037" name="CapturesQueueDraftAtThreshold" fullname="ModularChess.Core.Tests.MartyrTests.CapturesQueueDraftAtThreshold" methodname="CapturesQueueDraftAtThreshold" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1235876807" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000299" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1047" name="DraftOfferNeverDuplicatesACard" fullname="ModularChess.Core.Tests.MartyrTests.DraftOfferNeverDuplicatesACard" methodname="DraftOfferNeverDuplicatesACard" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="145318246" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000505" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1052" name="DraftOfferUsesMartyrDraftOptionsCount" fullname="ModularChess.Core.Tests.MartyrTests.DraftOfferUsesMartyrDraftOptionsCount" methodname="DraftOfferUsesMartyrDraftOptionsCount" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1043887437" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000344" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1054" name="ExileCannotTargetAbsolutelyPinnedPieces" fullname="ModularChess.Core.Tests.MartyrTests.ExileCannotTargetAbsolutelyPinnedPieces" methodname="ExileCannotTargetAbsolutelyPinnedPieces" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1323987882" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000999" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1049" name="ExileRemovesAnEnemyThenReturnsItAfterTwoOfTheirTurns" fullname="ModularChess.Core.Tests.MartyrTests.ExileRemovesAnEnemyThenReturnsItAfterTwoOfTheirTurns" methodname="ExileRemovesAnEnemyThenReturnsItAfterTwoOfTheirTurns" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="2012154411" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.001065" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1044" name="FleetPawnsCannotBeOfferedAfterObtainLimit" fullname="ModularChess.Core.Tests.MartyrTests.FleetPawnsCannotBeOfferedAfterObtainLimit" methodname="FleetPawnsCannotBeOfferedAfterObtainLimit" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1201157949" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000576" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1048" name="RallyKeepsTheTurnOpenForOneExtraMove" fullname="ModularChess.Core.Tests.MartyrTests.RallyKeepsTheTurnOpenForOneExtraMove" methodname="RallyKeepsTheTurnOpenForOneExtraMove" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="991341433" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000681" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1041" name="ReinforcementsNeverReplaceKingOnFileA" fullname="ModularChess.Core.Tests.MartyrTests.ReinforcementsNeverReplaceKingOnFileA" methodname="ReinforcementsNeverReplaceKingOnFileA" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="553690705" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000810" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1042" name="ReinforcementsNeverReplaceRookOnBackRank" fullname="ModularChess.Core.Tests.MartyrTests.ReinforcementsNeverReplaceRookOnBackRank" methodname="ReinforcementsNeverReplaceRookOnBackRank" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="470926043" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000723" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1053" name="ReinforcementsNotOfferedWhenBackRankIsFull" fullname="ModularChess.Core.Tests.MartyrTests.ReinforcementsNotOfferedWhenBackRankIsFull" methodname="ReinforcementsNotOfferedWhenBackRankIsFull" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1096233141" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000393" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1040" name="ReinforcementsPlaceTwoPawnsAndSkipOccupiedSquares" fullname="ModularChess.Core.Tests.MartyrTests.ReinforcementsPlaceTwoPawnsAndSkipOccupiedSquares" methodname="ReinforcementsPlaceTwoPawnsAndSkipOccupiedSquares" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1389574906" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000593" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1051" name="RevivalPicksAmongEmptySquaresOnTheOpenRank" fullname="ModularChess.Core.Tests.MartyrTests.RevivalPicksAmongEmptySquaresOnTheOpenRank" methodname="RevivalPicksAmongEmptySquaresOnTheOpenRank" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="186719568" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.006455" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1050" name="RevivalReturnsTheLastCapturedFriendlyAsSummoned" fullname="ModularChess.Core.Tests.MartyrTests.RevivalReturnsTheLastCapturedFriendlyAsSummoned" methodname="RevivalReturnsTheLastCapturedFriendlyAsSummoned" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1425161150" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000565" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1043" name="StasisFieldIsNotOfferedWhenOpponentHasNoQueen" fullname="ModularChess.Core.Tests.MartyrTests.StasisFieldIsNotOfferedWhenOpponentHasNoQueen" methodname="StasisFieldIsNotOfferedWhenOpponentHasNoQueen" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1964939890" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000307" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1039" name="TickStatusesRemovesExpiredStatus" fullname="ModularChess.Core.Tests.MartyrTests.TickStatusesRemovesExpiredStatus" methodname="TickStatusesRemovesExpiredStatus" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1676256531" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.001594" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1038" name="TickStatusesUpdatesRemainingTurnsWithoutThrowing" fullname="ModularChess.Core.Tests.MartyrTests.TickStatusesUpdatesRemainingTurnsWithoutThrowing" methodname="TickStatusesUpdatesRemainingTurnsWithoutThrowing" classname="ModularChess.Core.Tests.MartyrTests" runstate="Runnable" seed="1033052161" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000187" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1056" name="OccupancyTests" fullname="ModularChess.Core.Tests.OccupancyTests" classname="ModularChess.Core.Tests.OccupancyTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.001827" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1057" name="CanPlace_IsOnlyTrueOnEmptySquares" fullname="ModularChess.Core.Tests.OccupancyTests.CanPlace_IsOnlyTrueOnEmptySquares" methodname="CanPlace_IsOnlyTrueOnEmptySquares" classname="ModularChess.Core.Tests.OccupancyTests" runstate="Runnable" seed="281572646" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000293" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1059" name="WithPiece_DoesNotReplaceADifferentPiece" fullname="ModularChess.Core.Tests.OccupancyTests.WithPiece_DoesNotReplaceADifferentPiece" methodname="WithPiece_DoesNotReplaceADifferentPiece" classname="ModularChess.Core.Tests.OccupancyTests" runstate="Runnable" seed="1076064068" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000351" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1058" name="WithPiece_DoesNotReplaceAKing" fullname="ModularChess.Core.Tests.OccupancyTests.WithPiece_DoesNotReplaceAKing" methodname="WithPiece_DoesNotReplaceAKing" classname="ModularChess.Core.Tests.OccupancyTests" runstate="Runnable" seed="2097434312" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000276" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1060" name="PatternTests" fullname="ModularChess.Core.Tests.PatternTests" classname="ModularChess.Core.Tests.PatternTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.001432" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1063" name="Ray_StopsAtBoardEdgeAndIncludesOccupants" fullname="ModularChess.Core.Tests.PatternTests.Ray_StopsAtBoardEdgeAndIncludesOccupants" methodname="Ray_StopsAtBoardEdgeAndIncludesOccupants" classname="ModularChess.Core.Tests.PatternTests" runstate="Runnable" seed="487324923" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000419" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1062" name="SuperPawn_BlackFrontIsOppositeWhite" fullname="ModularChess.Core.Tests.PatternTests.SuperPawn_BlackFrontIsOppositeWhite" methodname="SuperPawn_BlackFrontIsOppositeWhite" classname="ModularChess.Core.Tests.PatternTests" runstate="Runnable" seed="1269374142" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000230" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1061" name="SuperPawn_BlocksFrontCorridorAndDiagonals" fullname="ModularChess.Core.Tests.PatternTests.SuperPawn_BlocksFrontCorridorAndDiagonals" methodname="SuperPawn_BlocksFrontCorridorAndDiagonals" classname="ModularChess.Core.Tests.PatternTests" runstate="Runnable" seed="60393454" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:13Z" duration="0.000219" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1064" name="PerftTests" fullname="ModularChess.Core.Tests.PerftTests" classname="ModularChess.Core.Tests.PerftTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:14Z" duration="0.981487" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1065" name="StartingPosition_Perft_MatchesKnownCounts" fullname="ModularChess.Core.Tests.PerftTests.StartingPosition_Perft_MatchesKnownCounts" methodname="StartingPosition_Perft_MatchesKnownCounts" classname="ModularChess.Core.Tests.PerftTests" runstate="Runnable" seed="1958082222" result="Passed" start-time="2026-09-22 08:34:13Z" end-time="2026-09-22 08:34:14Z" duration="0.981115" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1066" name="PowerfulPiecesTests" fullname="ModularChess.Core.Tests.PowerfulPiecesTests" classname="ModularChess.Core.Tests.PowerfulPiecesTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.006059" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1073" name="EmpoweredBishop_CannotCaptureEnemySuperPawnFromTheFront" fullname="ModularChess.Core.Tests.PowerfulPiecesTests.EmpoweredBishop_CannotCaptureEnemySuperPawnFromTheFront" methodname="EmpoweredBishop_CannotCaptureEnemySuperPawnFromTheFront" classname="ModularChess.Core.Tests.PowerfulPiecesTests" runstate="Runnable" seed="1218528832" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000887" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1069" name="EmpoweredBishop_SwapsWithAdjacentPawnsInEightDirections" fullname="ModularChess.Core.Tests.PowerfulPiecesTests.EmpoweredBishop_SwapsWithAdjacentPawnsInEightDirections" methodname="EmpoweredBishop_SwapsWithAdjacentPawnsInEightDirections" classname="ModularChess.Core.Tests.PowerfulPiecesTests" runstate="Runnable" seed="1921389595" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000554" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1068" name="EmpoweredKing_KeepsTurnOpen" fullname="ModularChess.Core.Tests.PowerfulPiecesTests.EmpoweredKing_KeepsTurnOpen" methodname="EmpoweredKing_KeepsTurnOpen" classname="ModularChess.Core.Tests.PowerfulPiecesTests" runstate="Runnable" seed="2055874555" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000870" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1072" name="EmpoweredPawn_BlackFrontIsOppositeWhite" fullname="ModularChess.Core.Tests.PowerfulPiecesTests.EmpoweredPawn_BlackFrontIsOppositeWhite" methodname="EmpoweredPawn_BlackFrontIsOppositeWhite" classname="ModularChess.Core.Tests.PowerfulPiecesTests" runstate="Runnable" seed="2053035095" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000782" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1071" name="EmpoweredPawn_IsProtectedOnlyFromTheThreeFrontSquares" fullname="ModularChess.Core.Tests.PowerfulPiecesTests.EmpoweredPawn_IsProtectedOnlyFromTheThreeFrontSquares" methodname="EmpoweredPawn_IsProtectedOnlyFromTheThreeFrontSquares" classname="ModularChess.Core.Tests.PowerfulPiecesTests" runstate="Runnable" seed="1679183722" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000788" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1070" name="EmpoweredPawn_MovesForwardAndCannotCapture" fullname="ModularChess.Core.Tests.PowerfulPiecesTests.EmpoweredPawn_MovesForwardAndCannotCapture" methodname="EmpoweredPawn_MovesForwardAndCannotCapture" classname="ModularChess.Core.Tests.PowerfulPiecesTests" runstate="Runnable" seed="2013635516" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000267" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1074" name="EmpoweredPowers_DescribeEveryCorePieceType" fullname="ModularChess.Core.Tests.PowerfulPiecesTests.EmpoweredPowers_DescribeEveryCorePieceType" methodname="EmpoweredPowers_DescribeEveryCorePieceType" classname="ModularChess.Core.Tests.PowerfulPiecesTests" runstate="Runnable" seed="2070899906" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000207" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1067" name="EmpoweredQueen_HasKnightLeap" fullname="ModularChess.Core.Tests.PowerfulPiecesTests.EmpoweredQueen_HasKnightLeap" methodname="EmpoweredQueen_HasKnightLeap" classname="ModularChess.Core.Tests.PowerfulPiecesTests" runstate="Runnable" seed="360864219" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000369" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1075" name="PromotionTests" fullname="ModularChess.Core.Tests.PromotionTests" classname="ModularChess.Core.Tests.PromotionTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.003119" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1079" name="Apply_RejectsQuietMoveOntoPromotionRank" fullname="ModularChess.Core.Tests.PromotionTests.Apply_RejectsQuietMoveOntoPromotionRank" methodname="Apply_RejectsQuietMoveOntoPromotionRank" classname="ModularChess.Core.Tests.PromotionTests" runstate="Runnable" seed="1508370373" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.001122" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1077" name="Apply_RequiresPromotionType_AndKeepsPieceId" fullname="ModularChess.Core.Tests.PromotionTests.Apply_RequiresPromotionType_AndKeepsPieceId" methodname="Apply_RequiresPromotionType_AndKeepsPieceId" classname="ModularChess.Core.Tests.PromotionTests" runstate="Runnable" seed="2112616478" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000488" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1078" name="CapturePromotion_SetsCapturedType" fullname="ModularChess.Core.Tests.PromotionTests.CapturePromotion_SetsCapturedType" methodname="CapturePromotion_SetsCapturedType" classname="ModularChess.Core.Tests.PromotionTests" runstate="Runnable" seed="87193667" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000366" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1076" name="GeneratesFourPromotionChoices_AndDoesNotAutoPick" fullname="ModularChess.Core.Tests.PromotionTests.GeneratesFourPromotionChoices_AndDoesNotAutoPick" methodname="GeneratesFourPromotionChoices_AndDoesNotAutoPick" classname="ModularChess.Core.Tests.PromotionTests" runstate="Runnable" seed="1211147817" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000402" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1080" name="RoguelikeLawTests" fullname="ModularChess.Core.Tests.RoguelikeLawTests" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.003488" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1084" name="CapturingEnemyKing_ClearsStage" fullname="ModularChess.Core.Tests.RoguelikeLawTests.CapturingEnemyKing_ClearsStage" methodname="CapturingEnemyKing_ClearsStage" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="1505567095" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000773" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1085" name="CapturingPlayerKing_EndsRun" fullname="ModularChess.Core.Tests.RoguelikeLawTests.CapturingPlayerKing_EndsRun" methodname="CapturingPlayerKing_EndsRun" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="2031174466" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000270" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1083" name="Check_DoesNotForceReply" fullname="ModularChess.Core.Tests.RoguelikeLawTests.Check_DoesNotForceReply" methodname="Check_DoesNotForceReply" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="1750622263" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000276" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1087" name="EmptyLegalMoves_IsNotCheckmate" fullname="ModularChess.Core.Tests.RoguelikeLawTests.EmptyLegalMoves_IsNotCheckmate" methodname="EmptyLegalMoves_IsNotCheckmate" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="1111592246" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000288" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1081" name="King_HasNoLegalMoves_OnceStageStarted" fullname="ModularChess.Core.Tests.RoguelikeLawTests.King_HasNoLegalMoves_OnceStageStarted" methodname="King_HasNoLegalMoves_OnceStageStarted" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="1196986529" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000257" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1086" name="NoPromotion_OnLastRank" fullname="ModularChess.Core.Tests.RoguelikeLawTests.NoPromotion_OnLastRank" methodname="NoPromotion_OnLastRank" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="104999578" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000371" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1082" name="Slider_RangeIsCappedAtThree" fullname="ModularChess.Core.Tests.RoguelikeLawTests.Slider_RangeIsCappedAtThree" methodname="Slider_RangeIsCappedAtThree" classname="ModularChess.Core.Tests.RoguelikeLawTests" runstate="Runnable" seed="263860172" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000258" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1088" name="SquareTests" fullname="ModularChess.Core.Tests.SquareTests" classname="ModularChess.Core.Tests.SquareTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.001412" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1093" name="OffBoard_IsNotOnBoard" fullname="ModularChess.Core.Tests.SquareTests.OffBoard_IsNotOnBoard" methodname="OffBoard_IsNotOnBoard" classname="ModularChess.Core.Tests.SquareTests" runstate="Runnable" seed="225631065" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000148" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1090" name="TryParse_a1_IsOrigin" fullname="ModularChess.Core.Tests.SquareTests.TryParse_a1_IsOrigin" methodname="TryParse_a1_IsOrigin" classname="ModularChess.Core.Tests.SquareTests" runstate="Runnable" seed="1090116561" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000140" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1089" name="TryParse_e4_IsFile4Rank3" fullname="ModularChess.Core.Tests.SquareTests.TryParse_e4_IsFile4Rank3" methodname="TryParse_e4_IsFile4Rank3" classname="ModularChess.Core.Tests.SquareTests" runstate="Runnable" seed="936113435" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000149" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1091" name="TryParse_h8_IsFarCorner" fullname="ModularChess.Core.Tests.SquareTests.TryParse_h8_IsFarCorner" methodname="TryParse_h8_IsFarCorner" classname="ModularChess.Core.Tests.SquareTests" runstate="Runnable" seed="1885513121" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000122" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1092" name="TryParse_RejectsInvalid" fullname="ModularChess.Core.Tests.SquareTests.TryParse_RejectsInvalid" methodname="TryParse_RejectsInvalid" classname="ModularChess.Core.Tests.SquareTests" runstate="Runnable" seed="239704898" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000115" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1094" name="StalemateTests" fullname="ModularChess.Core.Tests.StalemateTests" classname="ModularChess.Core.Tests.StalemateTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.001036" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1096" name="Apply_Throws_WhenGameIsOver" fullname="ModularChess.Core.Tests.StalemateTests.Apply_Throws_WhenGameIsOver" methodname="Apply_Throws_WhenGameIsOver" classname="ModularChess.Core.Tests.StalemateTests" runstate="Runnable" seed="1977198515" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000349" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1095" name="KingAndQueen_StalemateFixture" fullname="ModularChess.Core.Tests.StalemateTests.KingAndQueen_StalemateFixture" methodname="KingAndQueen_StalemateFixture" classname="ModularChess.Core.Tests.StalemateTests" runstate="Runnable" seed="1500532135" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000238" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1097" name="StartingPositionTests" fullname="ModularChess.Core.Tests.StartingPositionTests" classname="ModularChess.Core.Tests.StartingPositionTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.002701" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1100" name="Apply_DoesNotMutateOriginal" fullname="ModularChess.Core.Tests.StartingPositionTests.Apply_DoesNotMutateOriginal" methodname="Apply_DoesNotMutateOriginal" classname="ModularChess.Core.Tests.StartingPositionTests" runstate="Runnable" seed="1968530878" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000747" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1101" name="Apply_Throws_WhenMoveIsIllegal" fullname="ModularChess.Core.Tests.StartingPositionTests.Apply_Throws_WhenMoveIsIllegal" methodname="Apply_Throws_WhenMoveIsIllegal" classname="ModularChess.Core.Tests.StartingPositionTests" runstate="Runnable" seed="1811314557" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000350" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1099" name="Black_Has_20_LegalMoves_After_e4" fullname="ModularChess.Core.Tests.StartingPositionTests.Black_Has_20_LegalMoves_After_e4" methodname="Black_Has_20_LegalMoves_After_e4" classname="ModularChess.Core.Tests.StartingPositionTests" runstate="Runnable" seed="962318787" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000342" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1102" name="StandardFen_RoundTrips" fullname="ModularChess.Core.Tests.StartingPositionTests.StandardFen_RoundTrips" methodname="StandardFen_RoundTrips" classname="ModularChess.Core.Tests.StartingPositionTests" runstate="Runnable" seed="2084395735" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000178" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1098" name="White_Has_20_LegalMoves" fullname="ModularChess.Core.Tests.StartingPositionTests.White_Has_20_LegalMoves" methodname="White_Has_20_LegalMoves" classname="ModularChess.Core.Tests.StartingPositionTests" runstate="Runnable" seed="163813520" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.000250" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1110" name="ModularChess.Match.Tests.dll" fullname="C:/Users/joshu/Desktop/GameDev/Unity/ModularChess/Library/ScriptAssemblies/ModularChess.Match.Tests.dll" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.164485" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="22792" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1111" name="ModularChess" fullname="ModularChess" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.164321" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1112" name="Match" fullname="ModularChess.Match" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.164219" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1113" name="Tests" fullname="ModularChess.Match.Tests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.164100" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1107" name="SimpleAiBudgetTests" fullname="ModularChess.Match.Tests.SimpleAiBudgetTests" classname="ModularChess.Match.Tests.SimpleAiBudgetTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.163947" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1109" name="HardChoose_BusyMidgameFog_FinishesUnderBudget" fullname="ModularChess.Match.Tests.SimpleAiBudgetTests.HardChoose_BusyMidgameFog_FinishesUnderBudget" methodname="HardChoose_BusyMidgameFog_FinishesUnderBudget" classname="ModularChess.Match.Tests.SimpleAiBudgetTests" runstate="Runnable" seed="1908146054" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.082983" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1108" name="HardChoose_StartingFog_FinishesUnderBudget" fullname="ModularChess.Match.Tests.SimpleAiBudgetTests.HardChoose_StartingFog_FinishesUnderBudget" methodname="HardChoose_StartingFog_FinishesUnderBudget" classname="ModularChess.Match.Tests.SimpleAiBudgetTests" runstate="Runnable" seed="2135173634" result="Passed" start-time="2026-09-22 08:34:14Z" end-time="2026-09-22 08:34:14Z" duration="0.080347" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/joshu/AppData/LocalLow/EntropyMakesGame/ModularChess\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

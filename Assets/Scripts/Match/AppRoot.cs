@@ -32,6 +32,8 @@ namespace ModularChess.Match
         MatchHud _hud;
         RoguelikeController _roguelike;
         RoguelikeHud _roguelikeHud;
+        RoguelikeLobbyView _roguelikeLobby;
+        RoguelikeShopView _roguelikeShop;
         MainMenuView _mainMenu;
         readonly List<ModeId> _selectedModes = new List<ModeId>();
         readonly HostModeSettings _modeSettings = new HostModeSettings();
@@ -58,6 +60,7 @@ namespace ModularChess.Match
         public void Initialize()
         {
             GameAudio.Ensure();
+            PopupDirector.Ensure();
             ResolveReferences();
             BindMainMenu();
             BindOverlays();
@@ -77,6 +80,7 @@ namespace ModularChess.Match
             BindMainMenu();
             BindOverlays();
             GameAudio.Ensure();
+            PopupDirector.Ensure();
             EnterApp();
         }
 
@@ -167,7 +171,8 @@ namespace ModularChess.Match
                 creditsOverlay,
                 historyOverlay,
                 accountCreationOverlay,
-                feedbackOverlay
+                feedbackOverlay,
+                _roguelikeShop != null ? _roguelikeShop.gameObject : null
             };
         }
 
@@ -195,8 +200,9 @@ namespace ModularChess.Match
                 () => OpenPrep(Activity.VersusAi),
                 () => OpenPrep(Activity.VersusFriend),
                 ShowJoin,
-                StartRoguelike,
+                ShowRoguelikeLobby,
                 ShowMainMenu);
+            _play?.RefreshLocks();
             _matchSettings?.Bind(ConfirmPrep, ShowPlay);
             _lobbyView?.Bind(SitAsFriend, StartLobbyMatch, LeaveLobby);
             _join?.Bind(EnterJoinCode, ShowPlay);
@@ -210,6 +216,7 @@ namespace ModularChess.Match
             _play?.ApplyWebGlLimits();
             HookLanguage();
             WarmOverlayMotions();
+            _play?.RefreshLocks();
         }
         void CacheOverlayViews()
         {
@@ -256,6 +263,12 @@ namespace ModularChess.Match
             GameObject[] overlays = OverlayList();
             for (int i = 0; i < overlays.Length; i++)
                 DismissScreen(overlays[i], keep);
+            if (_roguelikeLobby != null)
+                DismissScreen(_roguelikeLobby.gameObject, keep);
+            if (_roguelikeHud != null)
+                DismissScreen(_roguelikeHud.gameObject, keep);
+            if (_roguelikeShop != null)
+                DismissScreen(_roguelikeShop.gameObject, keep);
         }
 
         static void DismissScreen(GameObject go, GameObject keep)
@@ -279,8 +292,6 @@ namespace ModularChess.Match
                 _board.gameObject.SetActive(false);
             if (_hud != null)
                 _hud.gameObject.SetActive(false);
-            if (_roguelikeHud != null)
-                _roguelikeHud.gameObject.SetActive(false);
         }
 
         void ShowBoard()
@@ -334,6 +345,7 @@ namespace ModularChess.Match
             ShowOverlay(playOverlay);
             CacheOverlayViews();
             _play?.ApplyWebGlLimits();
+            _play?.RefreshLocks();
         }
 
         void ShowUnlocks()
@@ -685,8 +697,11 @@ namespace ModularChess.Match
         void DebugUnlockAll()
         {
             ModeDlc.UnlockAll();
+            ActivityDlc.UnlockAll();
             CacheOverlayViews();
             _unlocks?.Refresh();
+            _play?.RefreshLocks();
+            _roguelikeLobby?.Refresh();
             if (matchSettingsOverlay != null && matchSettingsOverlay.activeSelf)
                 ShowPrep();
         }
@@ -716,6 +731,7 @@ namespace ModularChess.Match
                 _match.Resign();
 
             ModeDlc.ClearAll();
+            ActivityDlc.ClearAll();
             MatchHistoryStore.Delete();
             PlayerPrefs.DeleteAll();
             PlayerPrefs.Save();
@@ -742,45 +758,148 @@ namespace ModularChess.Match
             GameAudio.PlayMatchMusic();
         }
 
-        void StartRoguelike()
+        void ShowRoguelikeLobby()
         {
-            HideOverlays();
-            if (mainMenu != null)
-                mainMenu.SetActive(false);
+            EnsureRoguelikeLobby();
+            if (_roguelikeLobby == null)
+                return;
+            if (_board != null)
+                _board.gameObject.SetActive(false);
+            if (_hud != null)
+                _hud.gameObject.SetActive(false);
+            _roguelikeLobby.Bind(StartRoguelikeFromLobby, ShowPlay);
+            ShowOverlay(_roguelikeLobby.gameObject);
+            _roguelikeLobby.Refresh();
+        }
+
+        void StartRoguelikeFromLobby()
+        {
+            if (!ActivityDlc.IsOwned(Activity.Roguelike))
+                return;
+            RoguelikeRunSettings settings = _roguelikeLobby != null
+                ? _roguelikeLobby.Settings
+                : new RoguelikeRunSettings();
+            StartRoguelike(settings);
+        }
+
+        void StartRoguelike(RoguelikeRunSettings settings)
+        {
             EnsureRoguelikeHud();
+            EnsureRoguelikeShop();
+            if (_roguelikeHud == null)
+                return;
+            if (mainMenu != null)
+                DismissScreen(mainMenu, _roguelikeHud.gameObject);
+            HideOverlays();
+            _roguelikeLobby?.Dismiss();
             if (_board != null)
                 _board.gameObject.SetActive(true);
             if (_hud != null)
                 _hud.gameObject.SetActive(false);
-            if (_roguelikeHud != null)
-                _roguelikeHud.gameObject.SetActive(true);
             if (_roguelike == null)
                 ResolveReferences();
             InjectRoguelikeDeps();
-            _roguelike.Launch();
+            _roguelikeHud.Bind(_roguelike, OpenRoguelikeOptions, ConfirmRoguelikeGiveUp);
+            _roguelike.Launch(settings);
             GameAudio.PlayMatchMusic();
+        }
+
+        void OpenRoguelikeOptions()
+        {
+            OptionsOverlay.Ensure()?.OpenFromMatch();
+        }
+
+        void ConfirmRoguelikeGiveUp()
+        {
+            if (_dialogs == null)
+                _dialogs = OverlayDialogs.Ensure(transform);
+            _dialogs?.ShowQuit(
+                () =>
+                {
+                    _dialogs.HideQuit();
+                    _roguelike?.GiveUp();
+                },
+                () => _dialogs.HideQuit(),
+                Loc.Get("roguelike.giveUp.confirm"));
+        }
+
+        void EnsureRoguelikeLobby()
+        {
+            if (_roguelikeLobby != null)
+            {
+                OverlayMotion.Ensure(_roguelikeLobby.gameObject);
+                return;
+            }
+            _roguelikeLobby = FindAnyObjectByType<RoguelikeLobbyView>(FindObjectsInactive.Include);
+            if (_roguelikeLobby == null)
+            {
+                GameObject prefab = RuntimePrefabs.RoguelikeLobby;
+                if (prefab == null)
+                    return;
+                GameObject instance = Instantiate(prefab, transform);
+                instance.name = "RoguelikeLobby";
+                _roguelikeLobby = instance.GetComponent<RoguelikeLobbyView>();
+            }
+            if (_roguelikeLobby != null)
+            {
+                _roguelikeLobby.gameObject.SetActive(false);
+                OverlayMotion.Ensure(_roguelikeLobby.gameObject);
+            }
         }
 
         void EnsureRoguelikeHud()
         {
             if (_roguelikeHud != null)
+            {
+                OverlayMotion.Ensure(_roguelikeHud.gameObject);
                 return;
+            }
             _roguelikeHud = FindAnyObjectByType<RoguelikeHud>(FindObjectsInactive.Include);
+            if (_roguelikeHud == null)
+            {
+                GameObject prefab = RuntimePrefabs.RoguelikeHud;
+                if (prefab == null)
+                    return;
+                GameObject instance = Instantiate(prefab, transform);
+                instance.name = "RoguelikeHud";
+                _roguelikeHud = instance.GetComponent<RoguelikeHud>();
+            }
             if (_roguelikeHud != null)
+            {
+                _roguelikeHud.gameObject.SetActive(false);
+                OverlayMotion.Ensure(_roguelikeHud.gameObject);
+            }
+        }
+
+        void EnsureRoguelikeShop()
+        {
+            if (_roguelikeShop != null)
+            {
+                OverlayMotion.Ensure(_roguelikeShop.gameObject);
                 return;
-            GameObject prefab = RuntimePrefabs.RoguelikeHud;
-            if (prefab == null)
-                return;
-            GameObject instance = Instantiate(prefab, transform);
-            instance.name = "RoguelikeHud";
-            _roguelikeHud = instance.GetComponent<RoguelikeHud>();
+            }
+            _roguelikeShop = FindAnyObjectByType<RoguelikeShopView>(FindObjectsInactive.Include);
+            if (_roguelikeShop == null)
+            {
+                GameObject prefab = RuntimePrefabs.RoguelikeShop;
+                if (prefab == null)
+                    return;
+                GameObject instance = Instantiate(prefab, transform);
+                instance.name = "RoguelikeShop";
+                _roguelikeShop = instance.GetComponent<RoguelikeShopView>();
+            }
+            if (_roguelikeShop != null)
+            {
+                _roguelikeShop.gameObject.SetActive(false);
+                OverlayMotion.Ensure(_roguelikeShop.gameObject);
+            }
         }
 
         void InjectRoguelikeDeps()
         {
             if (_roguelike == null)
                 return;
-            _roguelike.Configure(_board, _roguelikeHud);
+            _roguelike.Configure(_board, _roguelikeHud, _roguelikeShop);
         }
 
         void EnsureHistoryOverlay()

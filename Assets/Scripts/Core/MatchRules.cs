@@ -46,7 +46,7 @@ namespace ModularChess.Core
             if (modes == null || modes.Count == 0)
             {
                 Modes = Array.Empty<ModeId>();
-                Hooks = ModeHooks.None;
+                Hooks = law is RoguelikeLaw ? ModeHooks.ExtraLife : ModeHooks.None;
                 return;
             }
 

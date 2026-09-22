@@ -21,7 +21,7 @@ namespace ModularChess.Core
         {
             return DrawEvaluator.Resolve(inCheck, legalMoveCount, halfmoveClock, positionKeys, board);
         }
-        public GameStatus? ResolveCapture(Piece captured, Side playerSide, PieceType stageTarget)
+        public GameStatus? ResolveCapture(Piece captured, Side playerSide, PieceType stageTarget, Board boardAfter)
         {
             return null;
         }

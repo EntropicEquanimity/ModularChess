@@ -37,6 +37,15 @@ namespace ModularChess.Core.Tests
                 .WithPiece(Sq("e8"), new Piece(PieceType.King, Side.Black));
             return GameState.FromPosition(board, Side.White, null, CastlingRights.None, 0, 1, rules: rules);
         }
+        public static GameState WhiteQueenAttacksEnemyPawnBesideKing(MatchRules rules)
+        {
+            Board board = Board.Empty()
+                .WithPiece(Sq("e1"), new Piece(PieceType.King, Side.White))
+                .WithPiece(Sq("d5"), new Piece(PieceType.Queen, Side.White))
+                .WithPiece(Sq("e8"), new Piece(PieceType.King, Side.Black))
+                .WithPiece(Sq("d7"), new Piece(PieceType.Pawn, Side.Black));
+            return GameState.FromPosition(board, Side.White, null, CastlingRights.None, 0, 1, rules: rules);
+        }
         public static GameState BlackQueenAttacksPlayerKing(MatchRules rules)
         {
             Board board = Board.Empty()

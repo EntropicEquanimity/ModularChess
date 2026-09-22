@@ -10,9 +10,13 @@ namespace ModularChess.Match
     public sealed class BoonCardView : MonoBehaviour
     {
         #region Fields
+        static readonly Color Grey = new Color(0.45f, 0.45f, 0.48f, 1f);
+        static readonly Color Blue = new Color(0.28f, 0.45f, 0.82f, 1f);
+        static readonly Color Gold = new Color(0.86f, 0.68f, 0.22f, 1f);
         [SerializeField] TMP_Text titleLabel;
         [SerializeField] TMP_Text descriptionLabel;
         [SerializeField] TMP_Text rarityLabel;
+        [SerializeField] Image background;
         [SerializeField] Button button;
         #endregion
 
@@ -27,7 +31,12 @@ namespace ModularChess.Match
             if (descriptionLabel != null)
                 descriptionLabel.text = Loc.Get(def.DescriptionKey);
             if (rarityLabel != null)
-                rarityLabel.text = def.Rarity.ToString();
+            {
+                rarityLabel.text = string.Empty;
+                rarityLabel.gameObject.SetActive(false);
+            }
+            if (background != null)
+                background.color = ColorFor(def.Rarity);
             if (button != null)
             {
                 button.onClick.RemoveAllListeners();
@@ -37,6 +46,18 @@ namespace ModularChess.Match
         #endregion
 
         #region Private Methods
+        static Color ColorFor(BoonRarity rarity)
+        {
+            switch (rarity)
+            {
+                case BoonRarity.Blue:
+                    return Blue;
+                case BoonRarity.Gold:
+                    return Gold;
+                default:
+                    return Grey;
+            }
+        }
         void Resolve()
         {
             if (titleLabel == null)
@@ -45,6 +66,8 @@ namespace ModularChess.Match
                 descriptionLabel = FindTmp("Description");
             if (rarityLabel == null)
                 rarityLabel = FindTmp("Rarity");
+            if (background == null)
+                background = GetComponent<Image>();
             if (button == null)
                 button = GetComponent<Button>();
         }

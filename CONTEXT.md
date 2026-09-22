@@ -77,19 +77,19 @@ A 13-Stage Roguelike playthrough. Ends if the player's King is captured; won by 
 _Avoid_: Match, Season, campaign, New Game+, Mode select
 
 **Stage**:
-One Board in a Run. Roguelike Law applies when the Stage starts. The player's King sits on this Side's e-file back rank; the enemy King or Queen sits on theirs. Enemy Pieces enter from the far side. Ends when the Target is captured. Not a Match.
+One Board in a Run. Roguelike Law applies when the Stage starts. The player's King sits on this Side's e-file back rank; the enemy King sits on theirs. Mini-boss and Boss add extra Queens beside that King. Enemy Pieces enter from the far side. Ends when the Target is captured. Not a Match.
 _Avoid_: Match, level, round, Turn
 
 **Target**:
-The enemy Piece whose Capture ends the Stage: King on a normal Stage, Queen on a Mini-boss or Boss Stage.
-_Avoid_: Checkmate, always the King
+The enemy Piece whose Capture ends the Stage: always the King. A lone remaining enemy King is knocked off and still pays King Gold. Extra Queens on Mini-boss and Boss are extra units, not the Target, and are not Summoned.
+_Avoid_: Checkmate, Queen as the win piece
 
 **Mini-boss**:
-Stages 6 and 12. No enemy King. Queen is the Target and is placed even if the Stage budget is below 9. The Boon offer is Blue-or-better.
+Stages 6 and 12. Enemy King remains the Target and has 1 Extra life. One extra Queen is placed (not Summoned, not from the Stage budget). The Boon offer is Blue-or-better.
 _Avoid_: Boss, Match, Mode
 
 **Boss**:
-Stage 13. No enemy King. Queen is the Target and is placed even if the Stage budget is below 9. Clearing it wins the Run. No Boon offer.
+Stage 13. Enemy King remains the Target and has 2 Extra lives (they stack). Two extra Queens are placed (not Summoned, not from the Stage budget). Clearing it wins the Run. No Boon offer.
 _Avoid_: Mini-boss, Checkmate, New Game+
 
 **Boon**:
@@ -105,7 +105,7 @@ Grey, Blue, or Gold on a Boon. Offer odds are a designer AnimationCurve. Stage 1
 _Avoid_: tier, quality, rank, moving weight off Grey, Claude-authored odds
 
 **Gold**:
-In-Run currency. A Capture pays that PieceType's value (Pawn 1, Knight/Bishop 3, Rook 5, Queen 9, King 0) unless a Boon changes pay. Sell pays value minus 1. Carries across Stages with no cap. Not Unlocks.
+In-Run currency. A Capture pays that PieceType's value (Pawn 1, Knight/Bishop 3, Rook 5, Queen 9, King 5) unless a Boon changes pay. Knocking off a remaining enemy King also pays King Gold. Sell pays value minus 1. Carries across Stages with no cap. Not Unlocks.
 _Avoid_: Unlocks, Buy, money, coin
 
 **Shop**:
@@ -113,7 +113,7 @@ A purchase-only overlay after the Boon offer on cleared Stages 4, 8, and 12. Fiv
 _Avoid_: Unlocks, selling Shop items, Mode catalog, Sell as item refund
 
 **Enemy Boon**:
-An automatic enemy Stage modifier, announced, rerolled each Stage. Concurrent count is floor(Stage / 3). Separate pool from player Boons. Not a Mode.
+An automatic enemy Stage modifier, announced, rerolled each Stage. None before Stage 4. Concurrent count is floor(Stage / 3) once Stage 4 is reached. Separate pool from player Boons. Not a Mode.
 _Avoid_: Fog of War as an Enemy Boon name, Draft, player Boon, Mode
 
 **Army size**:
@@ -133,7 +133,7 @@ One Run-persistent add to slider range in Roguelike. Range-boosting Boons add to
 _Avoid_: per-boon independent range stacks, a range cap
 
 **Extra life**:
-A Roguelike charge: the next Capture that would remove that Piece is negated, then the charge is gone. One Extra life per Piece unless a Boon says otherwise. Death negation is in scope for Roguelike. Not Second Chance (that Boon grants Extra life to Pawns). Not the Empowered Knight mark.
+A Roguelike charge: the next Capture that would remove that Piece is negated, then one charge is spent. Charges stack. Mini-boss King starts with 1; Boss King starts with 2. Death negation is in scope for Roguelike. Not Second Chance (that Boon grants Extra life to Pawns). Not the Empowered Knight mark.
 _Avoid_: Second Chance as the charge name, permadeath contradiction, Empowered mark
 
 **Match history**:
@@ -253,8 +253,8 @@ A Martyr power on your Rooks (replaces Wall Formation). Optional extra Move on t
 _Avoid_: Xiangqi Cannon, Wall Formation, hop a screen, replaces sliding Captures
 
 **Summoned**:
-A tag on Pieces created by Martyr or Roguelike. Not a timed Status. Not Empowered. Martyr: 0 Lost Material if they leave. Roguelike: empty Squares in this Side's back 4 ranks, closest back rank first; leftover vanish. Reinforcements skip the back rank (the 3 ranks in front of it only).
-_Avoid_: timed summon, back rank only, one Square next to the original
+A tag on Pieces created by Martyr or Roguelike. Not a timed Status. Not Empowered. Martyr: 0 Lost Material if they leave. Roguelike: empty Squares in this Side's back 4 ranks, closest back rank first; leftover vanish. Reinforcements skip the back rank (the 3 ranks in front of it only). Roguelike Summoned Pieces (including Reinforcement Pawns) are temporary: they are removed at the end of the Stage, do not rearrange, and do not carry into the next Stage.
+_Avoid_: timed summon, back rank only, one Square next to the original, carrying summons between Stages
 
 **Reinforcements**:
 A Martyr power. After the card is picked, still in the same Draft 60s, this Side clicks up to 2 empty Squares on their back rank to place Summoned Pawns. Occupied Squares are skipped. Timeout fills remaining at random among those empties. If fewer than 2 empties, leftover summons vanish. Infinite obtains.

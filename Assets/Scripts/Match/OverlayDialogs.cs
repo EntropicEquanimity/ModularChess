@@ -44,10 +44,16 @@ namespace ModularChess.Match
         }
         public void ShowQuit(UnityAction confirm, UnityAction cancel)
         {
+            ShowQuit(confirm, cancel, null);
+        }
+        public void ShowQuit(UnityAction confirm, UnityAction cancel, string message)
+        {
             Wake();
             HideDebugImmediate();
             if (quitConfirm == null)
                 return;
+            if (!string.IsNullOrEmpty(message))
+                SetQuitMessage(message);
             BindButtons(quitConfirm, new[] { confirm, cancel ?? HideQuit });
             Present(quitConfirm);
         }
@@ -164,6 +170,20 @@ namespace ModularChess.Match
             transform.SetAsLastSibling();
             if (background != null) background.SetActive(true);
             panel.SetActive(true);
+        }
+        void SetQuitMessage(string message)
+        {
+            if (quitConfirm == null)
+                return;
+            TMPro.TMP_Text[] labels = quitConfirm.GetComponentsInChildren<TMPro.TMP_Text>(true);
+            for (int i = 0; i < labels.Length; i++)
+            {
+                string t = labels[i].text;
+                if (t == "Yes" || t == "No" || t == "Close" || t == "Cancel")
+                    continue;
+                labels[i].text = message;
+                return;
+            }
         }
         void RefreshChrome()
         {

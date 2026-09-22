@@ -137,6 +137,32 @@ namespace ModularChess.Presentation
             }
         }
 
+        public static string ActivityName(Activity activity)
+        {
+            switch (activity)
+            {
+                case Activity.Roguelike:
+                    return Get("play.roguelike");
+                case Activity.VersusAi:
+                    return Get("play.versusAi");
+                case Activity.VersusFriend:
+                    return Get("play.versusFriend");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(activity), activity, null);
+            }
+        }
+
+        public static string ActivitySummary(Activity activity)
+        {
+            switch (activity)
+            {
+                case Activity.Roguelike:
+                    return Get("activity.roguelike.summary");
+                default:
+                    return string.Empty;
+            }
+        }
+
         public static string SideName(Side side)
         {
             switch (side)

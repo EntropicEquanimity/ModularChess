@@ -289,6 +289,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: QuestionMark
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04befe7ca7106f145967833b24c2b645
+      internalID: -1849531911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape:
@@ -314,6 +336,7 @@ TextureImporter:
       Confirm: -1917753657
       Hourglass: 1916080832
       Lock: 492166805
+      QuestionMark: -1849531911
       Return: 924479037
       Settings: 562326171
   mipmapLimitGroupName: 

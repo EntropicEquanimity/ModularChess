@@ -116,7 +116,8 @@ namespace ModularChess.Core
                         captureStatus = Rules.Law.ResolveCapture(
                             captured,
                             Rules.PlayerSide.Value,
-                            Rules.StageTarget);
+                            Rules.StageTarget,
+                            nextBoard);
                     }
                 }
             }
@@ -288,6 +289,106 @@ namespace ModularChess.Core
                 Runtime,
                 Status == GameStatus.InProgress ? null : Status,
                 false);
+        }
+        public GameState PrepareRearrange(Side player, IReadOnlyDictionary<Guid, Square> homes)
+        {
+            if (homes == null)
+                throw new ArgumentNullException(nameof(homes));
+            Board next = Board.Empty();
+            var pending = new List<(Piece piece, Square preferred)>(16);
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = Square.FromIndex(i);
+                Piece piece = Board.GetPiece(square);
+                if (piece == null || piece.Side != player)
+                    continue;
+                if (Runtime.IsSummoned(piece.Id))
+                    continue;
+                Square preferred = homes.TryGetValue(piece.Id, out Square home) ? home : square;
+                if (piece.Type == PieceType.King)
+                {
+                    if (!next.CanPlace(preferred))
+                        preferred = square;
+                    if (!next.CanPlace(preferred))
+                        continue;
+                    next = next.WithPiece(preferred, piece);
+                    continue;
+                }
+                pending.Add((piece, preferred));
+            }
+            for (int i = 0; i < pending.Count; i++)
+            {
+                Piece piece = pending[i].piece;
+                Square preferred = pending[i].preferred;
+                if (next.CanPlace(preferred))
+                {
+                    next = next.WithPiece(preferred, piece);
+                    continue;
+                }
+                Square? fallback = FindEmptyNear(next, preferred, player);
+                if (fallback == null)
+                    continue;
+                next = next.WithPiece(fallback.Value, piece);
+            }
+            return new GameState(
+                next,
+                player,
+                null,
+                CastlingRights.None,
+                HalfmoveClock,
+                FullmoveNumber,
+                Array.Empty<Move>(),
+                null,
+                Rules,
+                Runtime,
+                null,
+                false);
+        }
+        public GameState AddPiece(Piece piece, Square square)
+        {
+            if (piece == null)
+                throw new ArgumentNullException(nameof(piece));
+            if (!Board.CanPlace(square))
+                throw new InvalidOperationException("Destination is not empty.");
+            return new GameState(
+                Board.WithPiece(square, piece),
+                SideToMove,
+                EnPassantTarget,
+                CastlingRights,
+                HalfmoveClock,
+                FullmoveNumber,
+                History as Move[] ?? CopyHistory(),
+                _positionKeys,
+                Rules,
+                Runtime,
+                Status == GameStatus.InProgress ? null : Status,
+                false);
+        }
+        static Square? FindEmptyNear(Board board, Square preferred, Side player)
+        {
+            if (board.CanPlace(preferred))
+                return preferred;
+            int back = player == Side.White ? 0 : 7;
+            int forward = player == Side.White ? 1 : -1;
+            for (int depth = 0; depth < 4; depth++)
+            {
+                int rank = back + forward * depth;
+                if (rank < 0 || rank >= Square.BoardSize)
+                    break;
+                for (int file = 0; file < Square.BoardSize; file++)
+                {
+                    Square square = new Square(file, rank);
+                    if (board.CanPlace(square))
+                        return square;
+                }
+            }
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = Square.FromIndex(i);
+                if (board.CanPlace(square))
+                    return square;
+            }
+            return null;
         }
         public GameState WithTerminal(GameStatus status)
         {

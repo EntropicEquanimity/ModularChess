@@ -34,9 +34,13 @@ namespace ModularChess.Presentation
                 BindRow(row++, Loc.Get("piece.empowered"), Loc.EmpoweredDescription(piece.Type));
             }
 
-            if (state.Runtime.ExtraLifeAvailable(piece.Id) && piece.Type != PieceType.Knight)
+            if (state.Runtime.ExtraLifeCount(piece.Id) > 0 && piece.Type != PieceType.Knight)
             {
-                BindRow(row++, Loc.Get("piece.extraLife"), Loc.Get("piece.extraLife.body"));
+                int lives = state.Runtime.ExtraLifeCount(piece.Id);
+                string body = lives > 1
+                    ? Loc.Format("piece.extraLife.body.stacks", lives)
+                    : Loc.Get("piece.extraLife.body");
+                BindRow(row++, Loc.Get("piece.extraLife"), body);
             }
 
             if (state.Runtime.IsSummoned(piece.Id))
@@ -57,6 +61,22 @@ namespace ModularChess.Presentation
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)transform);
         }
 
+        public void ShowText(string title, string body)
+        {
+            EnsureName();
+            gameObject.SetActive(true);
+            if (pieceName != null)
+                pieceName.text = title ?? string.Empty;
+            int row = 0;
+            if (!string.IsNullOrEmpty(body))
+                BindRow(row++, string.Empty, body);
+            HideUnused(row);
+            transform.SetAsLastSibling();
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)transform);
+            for (int i = 0; i < row; i++)
+                _rows[i].RefreshLayout();
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)transform);
+        }
         public void Hide()
         {
             gameObject.SetActive(false);

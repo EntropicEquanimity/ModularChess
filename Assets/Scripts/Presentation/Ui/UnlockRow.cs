@@ -13,12 +13,14 @@ namespace ModularChess.Presentation
         [SerializeField] Sprite lockedSprite;
         [SerializeField] Sprite unlockedSprite;
 
-        ModeId _id;
+        ModeId? _modeId;
+        Activity? _activity;
         Button _rowButton;
 
         public void Bind(ModeDefinition definition, UnityAction<ModeId> opened)
         {
-            _id = definition.Id;
+            _modeId = definition.Id;
+            _activity = null;
             if (nameLabel != null)
             {
                 nameLabel.text = Loc.ModeName(definition.Id);
@@ -28,7 +30,24 @@ namespace ModularChess.Presentation
             if (statusIcon != null)
                 statusIcon.raycastTarget = false;
 
-            EnsureRowButton(opened);
+            EnsureRowButton(() => opened?.Invoke(_modeId.Value));
+            Refresh();
+        }
+
+        public void BindActivity(Activity activity, UnityAction<Activity> opened)
+        {
+            _activity = activity;
+            _modeId = null;
+            if (nameLabel != null)
+            {
+                nameLabel.text = Loc.ActivityName(activity);
+                nameLabel.raycastTarget = false;
+            }
+
+            if (statusIcon != null)
+                statusIcon.raycastTarget = false;
+
+            EnsureRowButton(() => opened?.Invoke(_activity.Value));
             Refresh();
         }
 
@@ -37,12 +56,15 @@ namespace ModularChess.Presentation
             if (statusIcon == null)
                 return;
 
-            Sprite sprite = ModeDlc.IsOwned(_id) ? unlockedSprite : lockedSprite;
+            bool owned = _activity.HasValue
+                ? ActivityDlc.IsOwned(_activity.Value)
+                : _modeId.HasValue && ModeDlc.IsOwned(_modeId.Value);
+            Sprite sprite = owned ? unlockedSprite : lockedSprite;
             if (sprite != null)
                 statusIcon.sprite = sprite;
         }
 
-        void EnsureRowButton(UnityAction<ModeId> opened)
+        void EnsureRowButton(UnityAction opened)
         {
             _rowButton = GetComponent<Button>();
             if (_rowButton == null)
@@ -58,8 +80,7 @@ namespace ModularChess.Presentation
             hit.raycastTarget = true;
             _rowButton.targetGraphic = hit;
             _rowButton.transition = Selectable.Transition.None;
-            ModeId captured = _id;
-            GameAudio.Bind(_rowButton, () => opened?.Invoke(captured));
+            GameAudio.Bind(_rowButton, opened);
         }
     }
 }

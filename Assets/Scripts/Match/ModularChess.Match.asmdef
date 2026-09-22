@@ -6,7 +6,8 @@
         "ModularChess.Presentation",
         "Unity.InputSystem",
         "UnityEngine.UI",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "ModularChess.Roguelike"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

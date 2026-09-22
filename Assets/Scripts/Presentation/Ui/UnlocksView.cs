@@ -57,6 +57,9 @@ namespace ModularChess.Presentation
                 row.gameObject.SetActive(true);
                 row.Bind(modes[i], OpenDetail);
             }
+            UnlockRow activityRow = Instantiate(rowPrefab, content);
+            activityRow.gameObject.SetActive(true);
+            activityRow.BindActivity(Activity.Roguelike, OpenActivityDetail);
         }
         public bool CloseDetailIfOpen()
         {
@@ -125,6 +128,13 @@ namespace ModularChess.Presentation
             if (detail == null)
                 return;
             detail.Open(id, RefreshLocks, slideFrom);
+        }
+        void OpenActivityDetail(Activity activity)
+        {
+            Wire();
+            if (detail == null)
+                return;
+            detail.OpenActivity(activity, RefreshLocks, slideFrom);
         }
         void RefreshLocks()
         {

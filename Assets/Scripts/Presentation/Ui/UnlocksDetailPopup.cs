@@ -21,6 +21,7 @@ namespace ModularChess.Presentation
         bool _open;
         bool _wired;
         ModeId _id;
+        Activity? _activity;
         Action _onChanged;
         public bool IsOpen => _open;
         #endregion
@@ -61,6 +62,36 @@ namespace ModularChess.Presentation
         {
             Wire();
             _id = id;
+            _activity = null;
+            _onChanged = onChanged;
+            Loc.Changed -= OnLanguageChanged;
+            Loc.Changed += OnLanguageChanged;
+            _tween?.Kill();
+            gameObject.SetActive(true);
+            transform.SetAsLastSibling();
+            PlaceClip(slideFrom);
+            Fill();
+            _open = true;
+            if (panel == null)
+                return;
+            Vector2 hidden = HiddenPos();
+            Vector2 shown = ShownPos();
+            panel.anchoredPosition = hidden;
+            float time = UiAnimPrefs.MoveDuration(Duration);
+            if (time <= 0.001f)
+            {
+                panel.anchoredPosition = shown;
+                return;
+            }
+            _tween = DOTween.To(() => panel.anchoredPosition, v => panel.anchoredPosition = v, shown, time)
+                .SetEase(Ease.OutCubic)
+                .SetUpdate(true)
+                .SetTarget(this);
+        }
+        public void OpenActivity(Activity activity, Action onChanged, RectTransform slideFrom)
+        {
+            Wire();
+            _activity = activity;
             _onChanged = onChanged;
             Loc.Changed -= OnLanguageChanged;
             Loc.Changed += OnLanguageChanged;
@@ -194,6 +225,22 @@ namespace ModularChess.Presentation
         }
         void Fill()
         {
+            if (_activity.HasValue)
+            {
+                if (title != null)
+                    title.text = Loc.ActivityName(_activity.Value);
+                if (summary != null)
+                    summary.text = Loc.ActivitySummary(_activity.Value);
+                bool ownedActivity = ActivityDlc.IsOwned(_activity.Value);
+                if (buyButton != null)
+                {
+                    buyButton.interactable = !ownedActivity;
+                    TMP_Text label = buyButton.GetComponentInChildren<TMP_Text>();
+                    if (label != null)
+                        label.text = ownedActivity ? Loc.Get("unlocks.unlocked") : Loc.Get("unlocks.buy");
+                }
+                return;
+            }
             if (title != null)
                 title.text = Loc.ModeName(_id);
             if (summary != null)
@@ -209,6 +256,15 @@ namespace ModularChess.Presentation
         }
         void Buy()
         {
+            if (_activity.HasValue)
+            {
+                if (ActivityDlc.IsOwned(_activity.Value))
+                    return;
+                ActivityDlc.Purchase(_activity.Value);
+                Fill();
+                _onChanged?.Invoke();
+                return;
+            }
             if (ModeDlc.IsOwned(_id))
                 return;
             ModeDlc.Purchase(_id);

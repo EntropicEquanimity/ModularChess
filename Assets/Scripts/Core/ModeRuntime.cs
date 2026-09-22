@@ -8,7 +8,7 @@ namespace ModularChess.Core
         #region Fields
         public static ModeRuntime Empty { get; } = new ModeRuntime();
         private readonly HashSet<Guid> _empowered;
-        private readonly HashSet<Guid> _extraLife;
+        private readonly Dictionary<Guid, int> _extraLife;
         private readonly HashSet<Guid> _extraLifeSpent;
         private readonly HashSet<Guid> _summoned;
         private readonly Dictionary<Guid, PieceStatus> _statuses;
@@ -39,7 +39,11 @@ namespace ModularChess.Core
         public bool IsEmpowered(Guid pieceId) => _empowered.Contains(pieceId);
         public bool ExtraLifeAvailable(Guid pieceId)
         {
-            return _extraLife.Contains(pieceId) && !_extraLifeSpent.Contains(pieceId);
+            return ExtraLifeCount(pieceId) > 0;
+        }
+        public int ExtraLifeCount(Guid pieceId)
+        {
+            return _extraLife.TryGetValue(pieceId, out int count) ? count : 0;
         }
         public bool ExtraLifeSpent(Guid pieceId) => _extraLifeSpent.Contains(pieceId);
         public bool IsSummoned(Guid pieceId) => _summoned.Contains(pieceId);
@@ -91,7 +95,8 @@ namespace ModularChess.Core
             {
                 foreach (Guid id in extraLifeIds)
                 {
-                    next._extraLife.Add(id);
+                    next._extraLife.TryGetValue(id, out int have);
+                    next._extraLife[id] = have + 1;
                 }
             }
 
@@ -126,8 +131,25 @@ namespace ModularChess.Core
         {
             ModeRuntime next = Clone();
             next._extraLifeSpent.Add(pieceId);
-            next._extraLife.Remove(pieceId);
-            next._empowered.Remove(pieceId);
+            next._extraLife.TryGetValue(pieceId, out int have);
+            if (have <= 1)
+            {
+                next._extraLife.Remove(pieceId);
+                next._empowered.Remove(pieceId);
+            }
+            else
+            {
+                next._extraLife[pieceId] = have - 1;
+            }
+            return next;
+        }
+        public ModeRuntime GrantExtraLives(Guid pieceId, int count)
+        {
+            if (count <= 0)
+                return this;
+            ModeRuntime next = Clone();
+            next._extraLife.TryGetValue(pieceId, out int have);
+            next._extraLife[pieceId] = have + count;
             return next;
         }
         public ModeRuntime AddSummoned(Guid pieceId)
@@ -290,7 +312,7 @@ namespace ModularChess.Core
         private ModeRuntime()
         {
             _empowered = new HashSet<Guid>();
-            _extraLife = new HashSet<Guid>();
+            _extraLife = new Dictionary<Guid, int>();
             _extraLifeSpent = new HashSet<Guid>();
             _summoned = new HashSet<Guid>();
             _statuses = new Dictionary<Guid, PieceStatus>();
@@ -303,7 +325,7 @@ namespace ModularChess.Core
         private ModeRuntime(ModeRuntime source)
         {
             _empowered = new HashSet<Guid>(source._empowered);
-            _extraLife = new HashSet<Guid>(source._extraLife);
+            _extraLife = new Dictionary<Guid, int>(source._extraLife);
             _extraLifeSpent = new HashSet<Guid>(source._extraLifeSpent);
             _summoned = new HashSet<Guid>(source._summoned);
             _statuses = new Dictionary<Guid, PieceStatus>(source._statuses);

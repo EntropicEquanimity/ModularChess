@@ -15,6 +15,7 @@ namespace ModularChess.Presentation
         static readonly List<RaycastResult> SharedHits = new List<RaycastResult>(16);
         readonly List<RaycastResult> _uiHits = new List<RaycastResult>(8);
         BoardView _board;
+        bool _pressOnBoard;
 
         public Camera PickCamera
         {
@@ -51,21 +52,31 @@ namespace ModularChess.Presentation
             else
                 _board.NotifySquareHovered(null);
 
-            if (!pointer.press.wasPressedThisFrame)
+            if (pointer.press.wasPressedThisFrame)
+            {
+                _pressOnBoard = false;
+                if (IsPromotionOpen() || uiBlocked)
+                    return;
+                if (!TryPick(screen, out Square pressed))
+                    return;
+                _pressOnBoard = true;
+                _board.NotifySquarePressed(pressed);
+                _board.NotifySquareClicked(pressed);
                 return;
-            if (IsPromotionOpen() || uiBlocked)
-                return;
+            }
 
-            Camera camera = pickCamera != null ? pickCamera : Camera.main;
-            if (camera == null || !camera.pixelRect.Contains(screen))
+            if (!pointer.press.wasReleasedThisFrame || !_pressOnBoard)
                 return;
-
-            float depth = Mathf.Abs(camera.transform.position.z - _board.transform.position.z);
-            Vector3 world = camera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
-            if (!_board.TryPickSquare(world, out Square square))
+            _pressOnBoard = false;
+            if (uiBlocked || IsPromotionOpen())
+            {
+                _board.NotifySquareReleased(null);
                 return;
-
-            _board.NotifySquareClicked(square);
+            }
+            if (TryPick(screen, out Square released))
+                _board.NotifySquareReleased(released);
+            else
+                _board.NotifySquareReleased(null);
         }
 
         public static bool IsScreenBlockedByUi()
@@ -76,18 +87,20 @@ namespace ModularChess.Presentation
             return IsBlockedByUiAt(pointer.position.ReadValue(), SharedHits);
         }
 
-        void UpdateHover(Vector2 screen)
+        bool TryPick(Vector2 screen, out Square square)
         {
+            square = default;
             Camera camera = pickCamera != null ? pickCamera : Camera.main;
             if (camera == null || !camera.pixelRect.Contains(screen))
-            {
-                _board.NotifySquareHovered(null);
-                return;
-            }
-
+                return false;
             float depth = Mathf.Abs(camera.transform.position.z - _board.transform.position.z);
             Vector3 world = camera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
-            if (_board.TryPickSquare(world, out Square square))
+            return _board.TryPickSquare(world, out square);
+        }
+
+        void UpdateHover(Vector2 screen)
+        {
+            if (TryPick(screen, out Square square))
                 _board.NotifySquareHovered(square);
             else
                 _board.NotifySquareHovered(null);

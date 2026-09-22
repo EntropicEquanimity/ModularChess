@@ -3,6 +3,7 @@ using ModularChess.Core;
 using ModularChess.Presentation;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace ModularChess.Match
@@ -18,11 +19,15 @@ namespace ModularChess.Match
         [SerializeField] Button leaveButton;
         [SerializeField] Button nextStageButton;
         [SerializeField] Button rematchButton;
+        [SerializeField] Button optionsButton;
+        [SerializeField] Button giveUpButton;
         [SerializeField] GameObject rearrangePanel;
         [SerializeField] GameObject resultsPanel;
         [SerializeField] TMP_Text resultsLabel;
         [SerializeField] BoonOfferView boonOffer;
         RoguelikeController _controller;
+        UnityAction _onOptions;
+        UnityAction _onGiveUp;
         #endregion
 
         #region Unity
@@ -33,10 +38,12 @@ namespace ModularChess.Match
         #endregion
 
         #region Public Methods
-        public void Bind(RoguelikeController controller)
+        public void Bind(RoguelikeController controller, UnityAction onOptions = null, UnityAction onGiveUp = null)
         {
             Resolve();
             _controller = controller;
+            _onOptions = onOptions;
+            _onGiveUp = onGiveUp;
             if (leaveButton != null)
             {
                 leaveButton.onClick.RemoveAllListeners();
@@ -52,23 +59,39 @@ namespace ModularChess.Match
                 rematchButton.onClick.RemoveAllListeners();
                 GameAudio.Bind(rematchButton, () => _controller?.Rematch());
             }
+            if (optionsButton != null)
+            {
+                optionsButton.onClick.RemoveAllListeners();
+                GameAudio.Bind(optionsButton, () =>
+                {
+                    if (_onOptions != null)
+                        _onOptions.Invoke();
+                    else
+                        OptionsOverlay.Ensure()?.OpenFromMatch();
+                });
+            }
+            if (giveUpButton != null)
+            {
+                giveUpButton.onClick.RemoveAllListeners();
+                GameAudio.Bind(giveUpButton, () => _onGiveUp?.Invoke());
+            }
             if (boonOffer != null)
                 boonOffer.Bind(def => _controller?.PickBoon(def));
         }
         public void Present(RoguelikeRunState run)
         {
             Resolve();
-            gameObject.SetActive(true);
             if (resultsPanel != null)
                 resultsPanel.SetActive(false);
             SetRearrange(false);
             HideBoonOffer();
             Refresh(run, null);
+            OverlayMotion.Ensure(gameObject)?.PlayEnter();
         }
         public void Dismiss()
         {
             HideBoonOffer();
-            gameObject.SetActive(false);
+            OverlayMotion.Ensure(gameObject)?.PlayExit();
         }
         public void Refresh(RoguelikeRunState run, GameState state)
         {
@@ -148,7 +171,7 @@ namespace ModularChess.Match
             int count = 0;
             foreach (Piece piece in state.Board.OccupiedPieces)
             {
-                if (piece.Side == side && piece.Type != PieceType.King)
+                if (piece.Side == side && piece.Type != PieceType.King && (state.Runtime == null || !state.Runtime.IsSummoned(piece.Id)))
                     count++;
             }
             return count;
@@ -171,6 +194,10 @@ namespace ModularChess.Match
                 nextStageButton = FindButton("NextStageButton");
             if (rematchButton == null)
                 rematchButton = FindButton("RematchButton");
+            if (optionsButton == null)
+                optionsButton = FindButton("Options");
+            if (giveUpButton == null)
+                giveUpButton = FindButton("Give Up");
             if (rearrangePanel == null)
             {
                 Transform t = FindNamed("RearrangePanel");

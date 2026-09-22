@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("ModularChess.Core.Tests")]
+[assembly: InternalsVisibleTo("ModularChess.Roguelike")]
 
 namespace ModularChess.Core
 {
@@ -61,6 +62,9 @@ namespace ModularChess.Core
         public static ModeHooks None { get; } = new ModeHooks(
             Array.Empty<IMoveHook>(),
             Array.Empty<ICaptureResolution>());
+        public static ModeHooks ExtraLife { get; } = new ModeHooks(
+            Array.Empty<IMoveHook>(),
+            new ICaptureResolution[] { new ExtraLifeResolution() });
         readonly IMoveHook[] _moves;
         readonly ICaptureResolution[] _captures;
         #endregion

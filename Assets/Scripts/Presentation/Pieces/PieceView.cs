@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ModularChess.Presentation
 {
-    public sealed class PieceView : MonoBehaviour
+    public sealed class PieceView : MonoBehaviour, IPopupContent
     {
         static readonly AnimationCurve HandEase = new AnimationCurve(
             new Keyframe(0f, 0f, 0f, 0f),
@@ -34,6 +34,8 @@ namespace ModularChess.Presentation
         int _glyphOrder;
         bool _cachedVisuals;
         bool _ghosted;
+        Piece _piece;
+        GameState _state;
 
         static readonly Color AlliedAura = new Color(0.22f, 0.82f, 0.32f, 0.55f);
         static readonly Color EnemyAura = new Color(0.9f, 0.18f, 0.18f, 0.55f);
@@ -48,14 +50,24 @@ namespace ModularChess.Presentation
                 throw new ArgumentNullException(nameof(piece));
 
             PieceId = piece.Id;
+            _piece = piece;
             IsShadow = false;
             name = $"{piece.Side} {piece.Type}";
             EnsureRenderers();
+            WirePopup(true);
             CacheVisuals();
             _ghosted = false;
             RestorePrefabVisuals();
             _glyph.sprite = ChessGlyphs.GetSprite(piece.Type, piece.Side);
             _glyph.enabled = true;
+        }
+        public void SetPopupState(GameState state)
+        {
+            _state = state;
+        }
+        public void Bind(DetailsPopup popup)
+        {
+            popup?.PresentPiece(_piece, _state);
         }
         public void BindCaptured(Guid id, PieceType type, Side side, BoardTheme theme)
         {
@@ -77,6 +89,7 @@ namespace ModularChess.Presentation
             IsShadow = true;
             _ghosted = false;
             name = "Shadow";
+            WirePopup(false);
             _outline.enabled = false;
             _body.enabled = true;
             _glyph.enabled = false;
@@ -123,6 +136,10 @@ namespace ModularChess.Presentation
 
         public bool PlayMove(Vector3 dest, float duration, Action onEnded)
         {
+            return PlayMove(dest, duration, 0f, onEnded);
+        }
+        public bool PlayMove(Vector3 dest, float duration, float delay, Action onEnded)
+        {
             KillMotion(invokeEnded: true);
             if (duration <= 0.001f || (transform.localPosition - dest).sqrMagnitude < 0.0001f)
             {
@@ -135,7 +152,9 @@ namespace ModularChess.Presentation
             _onEnded = onEnded;
             SetLifted(true);
             Sequence seq = DOTween.Sequence().SetTarget(this);
-            seq.Join(DOTween.To(
+            if (delay > 0.001f)
+                seq.AppendInterval(delay);
+            seq.Append(DOTween.To(
                     () => transform.localPosition,
                     v => transform.localPosition = v,
                     dest,
@@ -148,7 +167,7 @@ namespace ModularChess.Presentation
                     duration * 0.2f)
                 .SetEase(Ease.OutCubic));
             seq.Insert(
-                duration * 0.55f,
+                delay + duration * 0.55f,
                 DOTween.To(
                         () => transform.localScale,
                         v => transform.localScale = v,
@@ -679,6 +698,19 @@ namespace ModularChess.Presentation
             spriteRenderer.sprite = sprite;
             spriteRenderer.sortingOrder = order;
             return spriteRenderer;
+        }
+        void WirePopup(bool on)
+        {
+            PopupTrigger trigger = GetComponent<PopupTrigger>();
+            if (trigger == null)
+                trigger = gameObject.AddComponent<PopupTrigger>();
+            trigger.enabled = on;
+            BoxCollider2D box = GetComponent<BoxCollider2D>();
+            if (box == null)
+                box = gameObject.AddComponent<BoxCollider2D>();
+            box.size = Vector2.one;
+            box.isTrigger = true;
+            box.enabled = on;
         }
 
         void OnDestroy()

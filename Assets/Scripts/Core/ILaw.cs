@@ -8,6 +8,6 @@ namespace ModularChess.Core
         bool CheckFiltersMoves { get; }
         bool AllowsKingCapture { get; }
         GameStatus ResolveStatus(bool inCheck, int legalMoveCount, int halfmoveClock, string[] positionKeys, Board board);
-        GameStatus? ResolveCapture(Piece captured, Side playerSide, PieceType stageTarget);
+        GameStatus? ResolveCapture(Piece captured, Side playerSide, PieceType stageTarget, Board boardAfter);
     }
 }

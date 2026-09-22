@@ -31,8 +31,13 @@ namespace ModularChess.Presentation
         const string DebugMenuPath = "Assets/Prefabs/Popup/DebugMenu.prefab";
         const string HistoryPath = "Assets/Prefabs/Overlays/History.prefab";
         const string RoguelikeHudPath = "Assets/Prefabs/Overlays/RoguelikeHud.prefab";
+        const string RoguelikeLobbyPath = "Assets/Prefabs/Overlays/RoguelikeLobby.prefab";
+        const string RoguelikeShopPath = "Assets/Prefabs/Overlays/RoguelikeShop.prefab";
         const string BoonOfferPath = "Assets/Prefabs/Overlays/BoonOffer.prefab";
         const string BoonCardPath = "Assets/Prefabs/Overlays/BoonCard.prefab";
+        const string DetailsPopupPath = "Assets/Prefabs/Popup/DetailsPopup.prefab";
+        const string QuestionMarkPath = "Assets/Prefabs/UI/Components/QuestionMark.prefab";
+        const string PopupLayerPath = "Assets/Prefabs/Popup/PopupLayer.prefab";
 
         public static GameObject Canvas => Load(CanvasPath);
         public static GameObject TextButton => Load(ButtonPath);
@@ -61,8 +66,13 @@ namespace ModularChess.Presentation
         public static GameObject DebugMenu => Load(DebugMenuPath);
         public static GameObject History => Load(HistoryPath);
         public static GameObject RoguelikeHud => Load(RoguelikeHudPath);
+        public static GameObject RoguelikeLobby => Load(RoguelikeLobbyPath);
+        public static GameObject RoguelikeShop => Load(RoguelikeShopPath);
         public static GameObject BoonOffer => Load(BoonOfferPath);
         public static GameObject BoonCard => Load(BoonCardPath);
+        public static GameObject DetailsPopup => Load(DetailsPopupPath);
+        public static GameObject QuestionMark => Load(QuestionMarkPath);
+        public static GameObject PopupLayer => Load(PopupLayerPath);
 
         static GameObject Load(string assetPath)
         {

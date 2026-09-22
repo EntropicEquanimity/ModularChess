@@ -1,3 +1,4 @@
+using ModularChess.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -53,6 +54,12 @@ namespace ModularChess.Presentation
                 versusFriendButton.interactable = false;
             if (joinButton != null)
                 joinButton.interactable = false;
+        }
+        public void RefreshLocks()
+        {
+            Resolve();
+            if (roguelikeButton != null)
+                roguelikeButton.interactable = ActivityDlc.IsOwned(Activity.Roguelike);
         }
         #endregion
 

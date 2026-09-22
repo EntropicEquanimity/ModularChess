@@ -22,7 +22,7 @@ namespace ModularChess.Core
         {
             return GameStatus.InProgress;
         }
-        public GameStatus? ResolveCapture(Piece captured, Side playerSide, PieceType stageTarget)
+        public GameStatus? ResolveCapture(Piece captured, Side playerSide, PieceType stageTarget, Board boardAfter)
         {
             if (captured == null)
                 return null;
@@ -30,7 +30,26 @@ namespace ModularChess.Core
                 return GameStatus.RunLost;
             if (captured.Type == stageTarget && captured.Side != playerSide)
                 return GameStatus.StageCleared;
+            if (boardAfter != null && OnlyEnemyKingRemains(boardAfter, playerSide.Opponent()))
+                return GameStatus.StageCleared;
             return null;
+        }
+        #endregion
+
+        #region Private Methods
+        static bool OnlyEnemyKingRemains(Board board, Side enemy)
+        {
+            bool sawKing = false;
+            for (int i = 0; i < 64; i++)
+            {
+                Piece piece = board.GetPiece(Square.FromIndex(i));
+                if (piece == null || piece.Side != enemy)
+                    continue;
+                if (piece.Type != PieceType.King)
+                    return false;
+                sawKing = true;
+            }
+            return sawKing;
         }
         #endregion
     }

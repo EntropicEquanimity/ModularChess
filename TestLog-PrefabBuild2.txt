@@ -1,0 +1,513 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.4/staging' branch; Version is '6000.4.4f1 (360f97ecca93) revision 3542935'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'en' Physical Memory: 16298 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+[Licensing::IpcConnector] Channel LicenseClient-joshu doesn't exist
+System  architecture: x64
+Process architecture: x64
+Date: 2026-09-22T08:28:40Z
+[Licensing::Module] Successfully launched the LicensingClient (PId: 6148)
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.4.4f1\Editor\Unity.exe
+-batchmode
+-nographics
+-projectPath
+C:\Users\joshu\Desktop\GameDev\Unity\ModularChess
+-executeMethod
+ModularChess.EditorTools.RoguelikePrefabBuilder.BuildFromBatch
+-logFile
+C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\TestLog-PrefabBuild2.txt
+Successfully changed project path to: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess
+C:/Users/joshu/Desktop/GameDev/Unity/ModularChess
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+Player connection [24772]  Target information:
+
+Player connection [24772]  * "[IP] 26.70.111.179 [Port] 55504 [Flags] 2 [Guid] 3915177645 [EditorId] 3915177645 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-R2215BI) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [24772]  * "[IP] 192.168.31.142 [Port] 55504 [Flags] 2 [Guid] 3915177645 [EditorId] 3915177645 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-R2215BI) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [24772] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [24772] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-joshu" at "2026-09-22T08:28:40.9862734Z"
+[Package Manager] Connected to IPC stream "Upm-34972" after 0.3 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.1+9fbee8e
+  Session Id:              c47c9a16e7a64034b3fe3c324bc29542
+  Correlation Id:          32feebaced1241f0f808d8e43c158db8
+  External correlation Id: 4948607638436582252
+  Machine Id:              exqjBiv5N5CM6KTaLJEw2tr+QKA=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-joshu" (connect: 0.25s, validation: 0.04s, handshake: 1.07s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-joshu-notifications" at "2026-09-22T08:28:42.1027109Z"
+[Licensing::Module] Connected to LicensingClient (PId: 6148, launch time: 0.00, total connection time: 1.36s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: ewogICJzdWJzR3JvdXAiIDogInVuaXR5IGVkaXRvciIsCiAgIm5hbWVzcGFjZSIgOiAidW5pdHlfZWRpdG9yIiwKICAidHlwZSIgOiAiRURJVE9SIiwKICAidGFnIiA6ICJVbml0eVBlcnNvbmFsXXXX
+  Product: Unity Personal Version
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 1.40s
+[Licensing::Module] Licensing is initialized (took 1.00s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Active build profile path: `Assets/Settings/Build Profiles/Web - Desktop - Release.asset`
+Artifact Garbage Collection - Removed 6 unused hashed content files
+Got setting from build profile YAML, name `m_BuildTarget`, value `20`
+Got setting from build profile YAML, name `m_Subtarget`, value `0`
+Initialize engine version: 6000.4.4f1 (360f97ecca93)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.4.4f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Users/joshu/Desktop/GameDev/Unity/ModularChess/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.4.4f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.4.4f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.4.4f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56972
+CodeReloadManager initialized
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.4f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.4.4f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.002361 seconds.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Package Manager log level set to [2]
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.418 seconds
+Domain Reload Profiling: 912ms
+	BeginReloadAssembly (155ms)
+		CreateAndSetChildDomain (12ms)
+	RebuildCommonClasses (41ms)
+	RebuildNativeTypeToScriptingClass (15ms)
+	initialDomainReloadingComplete (68ms)
+	LoadAllAssembliesAndSetupDomain (213ms)
+		LoadAssemblies (140ms)
+		AnalyzeDomain (203ms)
+			TypeCache.Refresh (202ms)
+				TypeCache.ScanAssembly (187ms)
+	FinalizeReload (420ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (51ms)
+			BeforeProcessingInitializeOnLoad (91ms)
+			ProcessInitializeOnLoadAttributes (114ms)
+			ProcessInitializeOnLoadMethodAttributes (94ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 65 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.2d.animation@14.0.3 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.2d.animation@a6f2f1d22eb5)
+    com.unity.2d.aseprite@4.0.1 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.2d.aseprite@151b68d46c40)
+    com.unity.2d.psdimporter@13.0.2 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.2d.psdimporter@11a0e04e0561)
+    com.unity.2d.spriteshape@14.0.1 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.2d.spriteshape@da3647ffbbd7)
+    com.unity.2d.tilemap.extras@7.0.1 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.2d.tilemap.extras@66df903b3633)
+    com.unity.2d.tooling@2.0.1 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.2d.tooling@baa4133dcff2)
+    com.unity.collab-proxy@2.12.4 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.collab-proxy@0b1559bcd34e)
+    com.unity.ide.rider@3.0.39 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.ide.rider@4504839d03f7)
+    com.unity.ide.visualstudio@2.0.27 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.ide.visualstudio@dc1ddd4f09b6)
+    com.unity.inputsystem@1.19.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.inputsystem@21a28c3a6c83)
+    com.unity.timeline@1.8.12 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.timeline@8cd8509afae5)
+    com.unity.visualscripting@1.9.11 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.visualscripting@8bed5ad90189)
+    com.unity.2d.common@13.0.1 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.2d.common@49d8bea2bff3)
+    com.unity.mathematics@1.3.3 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.mathematics@19a9377c4ffa)
+    com.unity.searcher@4.9.4 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.searcher@d45a78918735)
+    com.unity.burst@1.8.29 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.burst@6bb9aca3ef38)
+    com.unity.nuget.mono-cecil@1.11.6 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.test-framework.performance@3.4.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.test-framework.performance@aa81a99c4a75)
+  Built-in packages:
+    com.unity.2d.sprite@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.2d.sprite@929df5adbb1f)
+    com.unity.2d.tilemap@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.2d.tilemap@c457c5249013)
+    com.unity.multiplayer.center@1.0.1 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.multiplayer.center@f01f4ba8d00a)
+    com.unity.render-pipelines.universal@17.4.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.render-pipelines.universal@18d0e59f18f1)
+    com.unity.test-framework@1.6.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.test-framework@76560ee600cb)
+    com.unity.ugui@2.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.ugui@d8a2716f3013)
+    com.unity.modules.accessibility@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.ext.nunit@2.0.5 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+    com.unity.render-pipelines.core@17.4.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.render-pipelines.core@2269be549234)
+    com.unity.shadergraph@17.4.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.shadergraph@cd28a7c13031)
+    com.unity.render-pipelines.universal-config@17.4.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.render-pipelines.universal-config@0db4263b9e6b)
+    com.unity.collections@6.4.0 (location: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\Library\PackageCache\com.unity.collections@9c2353fb96f6)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.02 seconds
+[ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
+Starting: C:\Program Files\Unity\Hub\Editor\6000.4.4f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/2000b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/joshu/Desktop/GameDev/Unity/ModularChess
+DisplayProgressbar: Compiling Scripts
+Starting: C:\Program Files\Unity\Hub\Editor\6000.4.4f1\Editor\Data\netcorerun\netcorerun.exe "C:\Program Files\Unity\Hub\Editor\6000.4.4f1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/2000b0aE.dag.json" "Library/Bee/2000b0aE-inputdata.json" "Library\Bee\buildprogram0.traceevents"
+WorkingDir: C:/Users/joshu/Desktop/GameDev/Unity/ModularChess
+ExitCode: 4 Duration: 0s440ms
+Rebuilding DAG because FileSignature timestamp changed: Library/Bee/2000b0aE-inputdata.json
+[ 887/1153  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+*** Tundra requires additional run (0.41 seconds), 2 items updated, 886 evaluated
+ExitCode: 0 Duration: 1s483ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.4.4f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/2000b0aE.dag" --continue-on-failure --dagfilejson="Library\Bee\2000b0aE.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/joshu/Desktop/GameDev/Unity/ModularChess
+ExitCode: 0 Duration: 1s473ms
+Finished compiling graph: 1157 nodes, 22612 flattened edges (18484 ToBuild, 186 ToUse), maximum node priority 1314
+[ 619/1153  0s] WriteText Library/Bee/artifacts/2000b0aE.dag/ModularChess.Match.rsp
+[ 887/1153  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[1137/1153  0s] Csc Library/Bee/artifacts/2000b0aE.dag/ModularChess.Match.dll (+2 others)
+[1138/1153  0s] ILPostProcess Library/Bee/artifacts/2000b0aE.dag/post-processed/ModularChess.Match.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2000b0aE.dag/ModularChess.Match.dll, with 118 defines and 281 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1139/1153  0s] Csc Library/Bee/artifacts/2000b0aE.dag/ModularChess.Match.Tests.dll (+2 others)
+[1140/1153  0s] CopyFiles Library/ScriptAssemblies/ModularChess.Match.pdb
+[1141/1153  0s] ILPostProcess Library/Bee/artifacts/2000b0aE.dag/post-processed/ModularChess.Match.Tests.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2000b0aE.dag/ModularChess.Match.Tests.dll, with 116 defines and 275 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1142/1153  0s] CopyFiles Library/ScriptAssemblies/ModularChess.Match.Tests.dll
+[1143/1153  0s] CopyFiles Library/ScriptAssemblies/ModularChess.Match.Tests.pdb
+[1144/1153  0s] CopyFiles Library/ScriptAssemblies/ModularChess.Match.dll
+[1145/1153  0s] Csc Library/Bee/artifacts/2000b0aE.dag/Assembly-CSharp-firstpass.dll (+2 others)
+[1146/1153  0s] Csc Library/Bee/artifacts/2000b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[1147/1153  0s] ILPostProcess Library/Bee/artifacts/2000b0aE.dag/post-processed/Assembly-CSharp-firstpass.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2000b0aE.dag/Assembly-CSharp-firstpass.dll, with 118 defines and 336 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1148/1153  0s] ILPostProcess Library/Bee/artifacts/2000b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2000b0aE.dag/Assembly-CSharp-Editor.dll, with 116 defines and 365 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1149/1153  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[1150/1153  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+[1151/1153  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-firstpass.pdb
+[1152/1153  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll
+*** Tundra build success (1.45 seconds), 18 items updated, 1153 evaluated
+AssetDatabase: script compilation time: 3.821415s
+Begin MonoManager ReloadAssembly
+Assembly Assembly-CSharp-Editor-firstpass.dll at Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll not valid. Loading of assembly skipped.
+Assembly Assembly-CSharp.dll at Library/ScriptAssemblies/Assembly-CSharp.dll not valid. Loading of assembly skipped.
+Assembly DocCodeExamples.dll at Library/ScriptAssemblies/DocCodeExamples.dll not valid. Loading of assembly skipped.
+Assembly TestNewCustomAssembly.dll at Library/ScriptAssemblies/TestNewCustomAssembly.dll not valid. Loading of assembly skipped.
+Assembly Unity.2D.Animation.EditorTests.dll at Library/ScriptAssemblies/Unity.2D.Animation.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.2D.Aseprite.EditorTests.dll at Library/ScriptAssemblies/Unity.2D.Aseprite.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.2D.Common.EditorTests.dll at Library/ScriptAssemblies/Unity.2D.Common.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.2D.Psdimporter.EditorTests.dll at Library/ScriptAssemblies/Unity.2D.Psdimporter.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.2D.Sprite.Package.EditorTests.dll at Library/ScriptAssemblies/Unity.2D.Sprite.Package.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.2D.SpriteShape.EditorTests.dll at Library/ScriptAssemblies/Unity.2D.SpriteShape.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.2D.Tilemap.Package.EditorTests.dll at Library/ScriptAssemblies/Unity.2D.Tilemap.Package.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.BurstCompatibilityGen.dll at Library/ScriptAssemblies/Unity.Collections.BurstCompatibilityGen.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.DocCodeSamples.dll at Library/ScriptAssemblies/Unity.Collections.DocCodeSamples.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.PerformanceTests.dll at Library/ScriptAssemblies/Unity.Collections.PerformanceTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.Tests.dll at Library/ScriptAssemblies/Unity.Collections.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Collections.Tests.Playmode.dll at Library/ScriptAssemblies/Unity.Collections.Tests.Playmode.dll not valid. Loading of assembly skipped.
+Assembly Unity.InputSystem.IntegrationTests.dll at Library/ScriptAssemblies/Unity.InputSystem.IntegrationTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Mathematics.Tests.dll at Library/ScriptAssemblies/Unity.Mathematics.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Multiplayer.Center.Editor.Tests.dll at Library/ScriptAssemblies/Unity.Multiplayer.Center.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Multiplayer.Center.Tests.dll at Library/ScriptAssemblies/Unity.Multiplayer.Center.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Nuget.Mono-Cecil.dll at Library/ScriptAssemblies/Unity.Nuget.Mono-Cecil.dll not valid. Loading of assembly skipped.
+Assembly Unity.PathTracing.Editor.Tests.dll at Library/ScriptAssemblies/Unity.PathTracing.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.PathTracing.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.PathTracing.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Core.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Core.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Config.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Config.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Editor.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.RenderPipelines.Universal.Runtime.Tests.dll at Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.Searcher.EditorTests.dll at Library/ScriptAssemblies/Unity.Searcher.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly Unity.ShaderGraph.Editor.Tests.dll at Library/ScriptAssemblies/Unity.ShaderGraph.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.TextMeshPro.Editor.Tests.dll at Library/ScriptAssemblies/Unity.TextMeshPro.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.TextMeshPro.Tests.dll at Library/ScriptAssemblies/Unity.TextMeshPro.Tests.dll not valid. Loading of assembly skipped.
+Assembly Unity.UnifiedRayTracing.Editor.Tests.dll at Library/ScriptAssemblies/Unity.UnifiedRayTracing.Editor.Tests.dll not valid. Loading of assembly skipped.
+Assembly UnityEditor.UI.Common.Tests.dll at Library/ScriptAssemblies/UnityEditor.UI.Common.Tests.dll not valid. Loading of assembly skipped.
+Assembly UnityEditor.UI.EditorTests.dll at Library/ScriptAssemblies/UnityEditor.UI.EditorTests.dll not valid. Loading of assembly skipped.
+Assembly UnityEngine.UI.Tests.dll at Library/ScriptAssemblies/UnityEngine.UI.Tests.dll not valid. Loading of assembly skipped.
+Start importing Assets/Editor using Guid(13629af1c5415de4c9cbad2da0bf5155) (DefaultImporter) -> (Import Result ID: '63737b8cf1901bc6e6769614be4bac1d') in 0.0252301 seconds [static dependencies only]. Details - ImportResultOutputID=ebf1014b4e3c646e2639daca94801908 DependenciesID=19a78d1e9dcbe557c0ce44246d1ea56d StaticDependenciesID=ff2985d61ff7e11eda5964c00368e772 
+Start importing Assets/Scripts/Core/Roguelike using Guid(1b7dfd4c0c55d8a4790b8352d580e463) (DefaultImporter) -> (Import Result ID: '2ec7faf70782a3e5f7843e91b5b85afc') in 0.0079263 seconds [static dependencies only]. Details - ImportResultOutputID=35e7fab6fb84456d52b545e612e28e55 DependenciesID=6ca7f433674698df4ab1ca79781a5e8e StaticDependenciesID=fc455cd77f60efb3ea9f86dd45aa90e5 
+Refreshing native plugins compatible for Editor in 3.32 ms, found 5 plugins.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+Refreshing native plugins compatible for Editor in 2.26 ms, found 5 plugins.
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  3.638 seconds
+Domain Reload Profiling: 4964ms
+	BeginReloadAssembly (334ms)
+		DisableScriptedObjects (21ms)
+		CreateAndSetChildDomain (156ms)
+	RebuildCommonClasses (39ms)
+	RebuildNativeTypeToScriptingClass (15ms)
+	initialDomainReloadingComplete (256ms)
+	LoadAllAssembliesAndSetupDomain (682ms)
+		LoadAssemblies (444ms)
+		AnalyzeDomain (341ms)
+			TypeCache.Refresh (227ms)
+				TypeCache.ScanAssembly (210ms)
+			BuildScriptInfoCaches (99ms)
+			ResolveRequiredComponents (13ms)
+	FinalizeReload (3639ms)
+		SetupLoadedEditorAssemblies (0ms)
+			InitializePlatformSupportModulesInManaged (26ms)
+			BeforeProcessingInitializeOnLoad (199ms)
+			ProcessInitializeOnLoadAttributes (2909ms)
+			ProcessInitializeOnLoadMethodAttributes (218ms)
+			AfterProcessingInitializeOnLoad (7ms)
+		AwakeInstancesAfterBackupRestoration (21ms)
+Start importing Assets/Resources/Localization/zh-Hant.txt using Guid(130b27fe1a95f6549bbca3e7f2d7ed88) (TextScriptImporter) -> (Import Result ID: '1172072ae14741afe0b16e40f66a09bf') in 0.0031158 seconds [static dependencies only]. Details - ImportResultOutputID=31d5dda2e3bb37e97ae8a0dfc030436d DependenciesID=e184ea04721caeeec641595d900045f8 StaticDependenciesID=3ebbbae03146038356297ae9e2177a66 
+Start importing Assets/Resources/Localization/en.txt using Guid(aa11bb22cc33dd44ee55ff6677889900) (TextScriptImporter) -> (Import Result ID: 'fb00f6eafd7feaab2dab97238deaba2a') in 0.0017352 seconds [static dependencies only]. Details - ImportResultOutputID=5969e03ce7382a12e83077c199cd680d DependenciesID=4037ad57ec26d43cd781f4247294506e StaticDependenciesID=423846762c8fe36d1fa7d656b9d4003a 
+Start importing Assets/Resources/Localization/es.txt using Guid(bb22cc33dd44ee55ff6677889900aa11) (TextScriptImporter) -> (Import Result ID: '6c2a855c472b3f0e69705c1cc9c142f9') in 0.0017521 seconds [static dependencies only]. Details - ImportResultOutputID=954e5c25a4d8efa9c650f209093760bf DependenciesID=7eab683c68e60314a8082f98d0ee0b72 StaticDependenciesID=0d1744a1c5e4937050001969b6c3d2cc 
+Start importing Assets/Resources/Localization/tl.txt using Guid(cc33dd44ee55ff6677889900aabb1122) (TextScriptImporter) -> (Import Result ID: '4fc9fc84c6f9b05e415c410e5d2d3721') in 0.0021206 seconds [static dependencies only]. Details - ImportResultOutputID=488978e15e01d2e3e9db1172b8c2dc1f DependenciesID=cee2e1e55c8c83996c3812291275fc35 StaticDependenciesID=26d7ff606dae07021d9d486397d4da22 
+Start importing Assets/Resources/Localization/zh-Hans.txt using Guid(7ddc3875ec57adb40950032436b7d606) (TextScriptImporter) -> (Import Result ID: '01946cb1b33530dbbac2bd8a8a389e01') in 0.0021214 seconds [static dependencies only]. Details - ImportResultOutputID=9b5804f901522ecfd6aab26cc0bf3493 DependenciesID=325f87cb982d3ada7ac59f77a4afb9d8 StaticDependenciesID=488975aa0cc53e15562e1c138648a56f 
+Start importing Assets/Prefabs/Overlays/Play.prefab using Guid(e1010000000000000000000000000001) (PrefabImporter) -> (Import Result ID: '4942e4dcd29ebec21c60b6a4b018f314') in 0.1444062 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=31bc46bb866af1fcf9ddd1e296044e2d DependenciesID=1660ff73a33a15053cc3ddbe74892e3f StaticDependenciesID=50f4040f8334a3dc6f02f6ed0f724f52 
+Refreshing native plugins compatible for Editor in 2.24 ms, found 5 plugins.
+(Values over 0.050ms)
+Asset Pipeline Refresh (id=6ce1aedd9a15a4045835044d5134fe7c): Total: 10.127 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=8 (actual=8, local cache=0, cache server=0)
+		Asset DB Process Time: managed=10 ms, native=4567 ms
+		Asset DB Callback time: managed=287 ms, native=25 ms
+		Scripting: domain reloads=1, domain reload time=1331 ms, compile time=3823 ms, other=79 ms
+		Project Asset Count: scripts=1602, non-scripts=3326
+		Asset File Changes: new=1, changed=3, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokePackagesCallback: 21.248ms
+	ApplyChangesToAssetFolders: 0.972ms
+	Scan: 321.361ms
+	OnSourceAssetsModified: 0.844ms
+	CategorizeScriptCompilationAssets: 60.386ms
+	ProcessAssetsWithTransientArtifactChanges: 97.644ms
+	CategorizeAssets: 66.203ms
+	CompileScripts: 3822.931ms
+	ImportOutOfDateAssets: 3847.235ms (3651.255ms without children)
+		ImportManagerImport: 193.780ms (2.689ms without children)
+			UpdateCategorizedAssets: 0.104ms
+		UnloadImportedAssets: 0.783ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.761ms
+		OnDemandSchedulerStart: 0.622ms
+	PostProcessAllAssets: 288.810ms
+		VCAutoAddAssetPostprocess 1.011ms
+		XRBuildSystem.XRAssetImported 0.737ms
+		PostProcessCallbackCreateDeferredMaterials 0.052ms
+		MonoPostProcessAllAssets: 286.175ms
+			AssetPostprocessor.OnPostprocessAllAssets 218.870ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 18.764ms
+			UniversalRenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 11.135ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 6.246ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 2.046ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 2.028ms
+			ShaderGraphAssetPostProcessor.OnPostprocessAllAssets 1.630ms
+			AssetChangedListener.OnPostprocessAllAssets 1.426ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.228ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.807ms
+			MaterialPostprocessor.OnPostprocessAllAssets 0.774ms
+			SpriteEditorTexturePostprocessor.OnPostprocessAllAssets 0.555ms
+			UtilityWindowPostProcessor.OnPostprocessAllAssets 0.554ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.510ms
+			InputActionAssetPostprocessor.OnPostprocessAllAssets 0.403ms
+			UVCSAssetPostprocessor.OnPostprocessAllAssets 0.400ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.400ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.375ms
+			AssetProcessor.OnPostprocessAllAssets 0.369ms
+			PostProcessor.OnPostprocessAllAssets 0.349ms
+			SpriteShapeAssetPostProcessor.OnPostprocessAllAssets 0.324ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.305ms
+			InputActionJsonNameModifierAssetProcessor.OnPostprocessAllAssets 0.301ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.243ms
+			AssetEvents.OnPostprocessAllAssets 0.241ms
+			SpriteLibraryAssetPostprocessor.OnPostprocessAllAssets 0.215ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.207ms
+			ProjectSettingsPostprocessor.OnPostprocessAllAssets 0.184ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.175ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.163ms
+			SamplePostprocessor.OnPostprocessAllAssets 0.150ms
+			PSDImportPostProcessor.OnPostprocessAllAssets 0.146ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.141ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.126ms
+			SyncVS.PostprocessSyncProject 0.124ms
+			PSDImporterAssetPostProcessor.OnPostprocessAllAssets 0.099ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.075ms
+	PostAssetChangesProfiler: 4.978ms
+	UnloadStreamsBegin: 2.557ms
+	PersistCurrentRevisions: 0.214ms
+	GenerateScriptTypeHashes: 3.839ms
+	GenerateScriptTypeSerializationHashes: 6.715ms
+	Untracked: 1585.398ms
+
+Application.AssetDatabase Initial Refresh End
+Shader Hidden/ChartRasterizerHardware is not supported: GPU does not support conservative rasterization
+Shader Hidden/ChartRasterizerHardware is not supported: GPU does not support conservative rasterization
+Scanning for USB devices : 9.455ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-ModularChess
+Unloading 64 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 7470 unused Assets / (8.4 MB). Loaded Objects now: 8284.
+Memory consumption went from 223.4 MB to 215.0 MB.
+Total: 13.998000 ms (FindLiveObjects: 0.835800 ms CreateObjectMapping: 1.285400 ms MarkObjects: 7.325600 ms  DeleteObjects: 4.549100 ms)
+
+Start importing Assets/Prefabs/Overlays/BoonCard.prefab using Guid(ac078f5f2954fb44194a76fb9b52f2c6) (PrefabImporter) -> (Import Result ID: 'cea63f4e13ae4bd4baaa6cb4dea997ef') in 0.0104079 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=1a324dbaa6384756f2ff0ec638bfb618 DependenciesID=f662e0b898875cf6c6629f26bad16fdb StaticDependenciesID=b66a2ab7763b4c53a31757002e0e67d8 
+Refreshing native plugins compatible for Editor in 2.12 ms, found 5 plugins.
+Asset Pipeline Refresh (id=ab120f4267b5afc44bcee4f90a25c23e): Total: 0.090 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/Prefabs/Overlays/BoonOffer.prefab using Guid(e89be95255665a747bd8203d7d02c8a5) (PrefabImporter) -> (Import Result ID: '1c1fbf5b47c208165162009db483878b') in 0.009848 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=fe0302b69d32734b63d741bc1abbc27a DependenciesID=b2ae005bdfa503b89de03899dfe2aed3 StaticDependenciesID=fc9f37fde298480bed1dbfeec529c9cd 
+Refreshing native plugins compatible for Editor in 2.19 ms, found 5 plugins.
+Asset Pipeline Refresh (id=b27fe5a2b61139f4895ede5ae442c1c3): Total: 0.064 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/Prefabs/Overlays/RoguelikeHud.prefab using Guid(9e18bf830e4514c488690fee0404dee2) (PrefabImporter) -> (Import Result ID: '7bbaf5ef4087050c5e41862df9897843') in 0.0300115 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=8bb581c5a90583f0abe139af8dff2b44 DependenciesID=834dd65127c0be58d93c641fafc71636 StaticDependenciesID=6a3269d167edef218e2e0838b003e1f4 
+Refreshing native plugins compatible for Editor in 2.53 ms, found 5 plugins.
+Asset Pipeline Refresh (id=ae1da3235b32fd246b90f69ea6fbbfe3): Total: 0.083 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Loaded scene 'Library/Unused/b6f0478d7e9416a4895eee01e70fe800'
+	Deserialize:            0.804 ms
+	Integration:            6.056 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       11.506 ms
+	Total Operation Time:   18.368 ms
+Start importing Assets/Prefabs/Overlays/Play.prefab using Guid(e1010000000000000000000000000001) (PrefabImporter) -> (Import Result ID: '7d61f23ad2a5715aa0a2df85f0b36ac3') in 0.007216 seconds [static and dynamic dependencies]. Details - ImportResultOutputID=12412c0f260c707ceddf123fc820874a DependenciesID=c02b274facace5759cfc928dc75e424d StaticDependenciesID=6e8041dc60a436b0d557f795fbb15e44 
+Refreshing native plugins compatible for Editor in 2.65 ms, found 5 plugins.
+Asset Pipeline Refresh (id=27bfbbe529b2949409e553aaaa97ced2): Total: 0.061 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/Plugins/TextMesh Pro/Resources/Fonts & Materials/PixelOperator SDF.asset using Guid(0b172ba65f175a94e9eff4093b91db4c) (NativeFormatImporter) -> (Import Result ID: 'e8d063d2c84e731aaf672f85f07b3bc4') in 0.0023165 seconds [static dependencies only]. Details - ImportResultOutputID=1dfd8b05b9fcf6fbcef7ff485b035cf0 DependenciesID=88a65f20b7da67a30f986ae585032a89 StaticDependenciesID=fc4132bac10baa316ab5eb2164c68e48 
+Refreshing native plugins compatible for Editor in 2.62 ms, found 5 plugins.
+Asset Pipeline Refresh (id=1b5bf215996dcd54fab9fccd425a763c): Total: 0.047 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=06ffc645c612be04aae91bc707bf2a29): Total: 0.013 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+Roguelike prefabs built.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ModularChess.EditorTools.RoguelikePrefabBuilder:Build () (at Assets/Editor/RoguelikePrefabBuilder.cs:33)
+ModularChess.EditorTools.RoguelikePrefabBuilder:BuildFromBatch () (at Assets/Editor/RoguelikePrefabBuilder.cs:94)
+
+(Filename: Assets/Editor/RoguelikePrefabBuilder.cs Line: 33)
+
+Clearing [PixelOperator SDF] dynamic font asset data.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+TMPro.EditorEventCallbacks/<>c:<InitializeFontAssetResourceChangeCallBacks>b__0_0 () (at ./Library/PackageCache/com.unity.ugui@d8a2716f3013/Editor/TMP/TMP_EditorResourceManager.cs:36)
+UnityEditor.EditorApplication:Internal_EditorApplicationQuit ()
+ModularChess.EditorTools.RoguelikePrefabBuilder:BuildFromBatch () (at Assets/Editor/RoguelikePrefabBuilder.cs:95)
+
+(Filename: ./Library/PackageCache/com.unity.ugui@d8a2716f3013/Editor/TMP/TMP_EditorResourceManager.cs Line: 36)
+
+Start importing Assets/Plugins/TextMesh Pro/Resources/Fonts & Materials/PixelOperator SDF.asset using Guid(0b172ba65f175a94e9eff4093b91db4c) (NativeFormatImporter) -> (Import Result ID: '0b96d7af0fa05dd770218349bc004842') in 0.0018461 seconds [static dependencies only]. Details - ImportResultOutputID=1dfd8b05b9fcf6fbcef7ff485b035cf0 DependenciesID=22b186275949f74fa3a84f2e5c372447 StaticDependenciesID=0ea70e3447903a3583095c070c1339a4 
+Refreshing native plugins compatible for Editor in 2.72 ms, found 5 plugins.
+Asset Pipeline Refresh (id=567546fe2df3451419b925b59acc898a): Total: 0.046 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input Polling Thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-joshu-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-joshu channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+CodeReloadManager destroyed
+Checking for leaked weakptr:
+  Found no leaked weakptrs.
+[Package Manager] Server process was shutdown
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1790065735622,"processId":34972,"allocatedMemory":15686515,"memoryLabels":[{"Default":212764},{"Permanent":15276},{"NewDelete":65243},{"Thread":4230384},{"Manager":34093},{"VertexData":8},{"Geometry":816},{"Texture":24},{"Shader":850614},{"Material":24},{"GfxDevice":55313},{"Animation":392},{"Audio":3008},{"FreeType":8},{"FontEngine":736},{"Physics":2090},{"Physics2D":16},{"Serialization":888},{"Input":9880},{"JobScheduler":33024},{"TextLib":216},{"Mono":32},{"MonoCode":64},{"ScriptingNativeRuntime":155052},{"BaseObject":1620432},{"Resource":1184},{"Renderer":3008},{"Transform":4685},{"File":1088},{"WebCam":616},{"Culling":32},{"Terrain":11394},{"Wind":24},{"STL":40},{"String":22373},{"StaticString":6718},{"Utility":2673318},{"Curl":2478},{"PoolAlloc":2168},{"AI":80},{"TypeTree":13741},{"ScriptManager":448},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":120},{"GI":7792},{"Director":8320},{"CloudService":10256},{"WebRequest":6239},{"VR":48050},{"SceneManager":504},{"Video":64},{"LazyScriptCache":32},{"Camera":17},{"Secure":2113},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57888},{"StaticSafetyDebugInfo":278528},{"Analytics":464},{"Hierarchy":608},{"CoreStats":13032},{"Identifiers":12960},{"Gui":128},{"EditorUtility":110986},{"VersionControl":4},{"Undo":931},{"AssetDatabase":5026773},{"EditorGi":328},{"UnityConnect":37753},{"Upm":1912},{"UpmDiagnostics":8},{"AssetCompliance":64},{"DrivenProperties":72},{"LocalIPC":211},{"ProfilerEditor":9746},{"CoreBusinessMetrics":2876},{"Windowing":456},{"Licensing":1232},{"AssetReference":32},{"IPCStream":32}]}
+~StackAllocator(ALLOC_TEMP_MAIN) m_LastAlloc not NULL. Did you forget to call FreeAllStackAllocations()? To get more information, run app with -diag-temp-memory-leak-validation cmd line argument
