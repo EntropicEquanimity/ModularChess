@@ -1517,6 +1517,9 @@ namespace ModularChess.Match
                     return Loc.Format("result.resign", Loc.SideName(state.SideToMove));
                 case GameStatus.Aborted:
                     return Loc.Get("result.aborted");
+                case GameStatus.StageCleared:
+                case GameStatus.RunLost:
+                    return string.Empty;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), state.Status, null);
             }

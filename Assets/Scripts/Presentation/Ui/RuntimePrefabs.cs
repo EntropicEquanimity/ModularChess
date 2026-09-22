@@ -30,6 +30,9 @@ namespace ModularChess.Presentation
         const string OverlayDialogsPath = "Assets/Prefabs/Overlays/OverlayDialogs.prefab";
         const string DebugMenuPath = "Assets/Prefabs/Popup/DebugMenu.prefab";
         const string HistoryPath = "Assets/Prefabs/Overlays/History.prefab";
+        const string RoguelikeHudPath = "Assets/Prefabs/Overlays/RoguelikeHud.prefab";
+        const string BoonOfferPath = "Assets/Prefabs/Overlays/BoonOffer.prefab";
+        const string BoonCardPath = "Assets/Prefabs/Overlays/BoonCard.prefab";
 
         public static GameObject Canvas => Load(CanvasPath);
         public static GameObject TextButton => Load(ButtonPath);
@@ -57,6 +60,9 @@ namespace ModularChess.Presentation
         public static GameObject OverlayDialogs => Load(OverlayDialogsPath);
         public static GameObject DebugMenu => Load(DebugMenuPath);
         public static GameObject History => Load(HistoryPath);
+        public static GameObject RoguelikeHud => Load(RoguelikeHudPath);
+        public static GameObject BoonOffer => Load(BoonOfferPath);
+        public static GameObject BoonCard => Load(BoonCardPath);
 
         static GameObject Load(string assetPath)
         {

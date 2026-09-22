@@ -33,6 +33,8 @@ namespace ModularChess.Core
                 case Activity.VersusAi:
                 case Activity.VersusFriend:
                     return true;
+                case Activity.Roguelike:
+                    return false;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(activity), activity, null);
             }

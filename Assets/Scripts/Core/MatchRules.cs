@@ -11,14 +11,38 @@ namespace ModularChess.Core
             MatchSettings.Default);
         public IReadOnlyList<ModeId> Modes { get; }
         public MatchSettings Settings { get; }
+        public ILaw Law { get; }
+        public Side? PlayerSide { get; }
+        public PieceType StageTarget { get; }
         public bool IsCoreOnly => Modes.Count == 0;
         internal ModeHooks Hooks { get; }
         #endregion
 
         #region Public Methods
+        public static MatchRules Roguelike(Side playerSide, PieceType stageTarget)
+        {
+            return new MatchRules(
+                Array.Empty<ModeId>(),
+                MatchSettings.Default,
+                RoguelikeLaw.Instance,
+                playerSide,
+                stageTarget);
+        }
         public MatchRules(IReadOnlyList<ModeId> modes, MatchSettings settings)
+            : this(modes, settings, FideLaw.Instance, null, PieceType.King)
+        {
+        }
+        public MatchRules(
+            IReadOnlyList<ModeId> modes,
+            MatchSettings settings,
+            ILaw law,
+            Side? playerSide,
+            PieceType stageTarget)
         {
             Settings = settings ?? MatchSettings.Default;
+            Law = law ?? FideLaw.Instance;
+            PlayerSide = playerSide;
+            StageTarget = stageTarget;
             if (modes == null || modes.Count == 0)
             {
                 Modes = Array.Empty<ModeId>();

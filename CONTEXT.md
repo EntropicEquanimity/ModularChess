@@ -29,7 +29,7 @@ A later Activity. Pieces fight without the player choosing each Move. Not a Mode
 _Avoid_: autobattler as a Mode, idle chess, Survivor
 
 **Roguelike**:
-A later single-player Activity. Uses Run and Stage, not Match. Own HUD, not Match HUD. No Mode select. No Versus Friend. Play-screen label TBD.
+A later single-player Activity. Uses Run and Stage, not Match. Own HUD, not Match HUD. No Mode select. No Versus Friend. Play-screen label TBD; glossary/code name is Roguelike.
 _Avoid_: Survivor, Mode, Match HUD, Versus AI, Roguelike as a committed Play name
 
 **Roguelike Law**:

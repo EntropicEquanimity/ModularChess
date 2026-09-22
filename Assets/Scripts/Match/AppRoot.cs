@@ -25,10 +25,13 @@ namespace ModularChess.Match
         [SerializeField] MatchController match;
         [SerializeField] BoardView board;
         [SerializeField] MatchHud hud;
+        [SerializeField] RoguelikeController roguelike;
 
         MatchController _match;
         BoardView _board;
         MatchHud _hud;
+        RoguelikeController _roguelike;
+        RoguelikeHud _roguelikeHud;
         MainMenuView _mainMenu;
         readonly List<ModeId> _selectedModes = new List<ModeId>();
         readonly HostModeSettings _modeSettings = new HostModeSettings();
@@ -69,6 +72,8 @@ namespace ModularChess.Match
                 _match.RematchRequested += OnRematchRequested;
                 _match.ReplayLeftToHistory += OnReplayLeftToHistory;
             }
+            if (_roguelike != null)
+                _roguelike.LeftRun += ShowMainMenu;
             BindMainMenu();
             BindOverlays();
             GameAudio.Ensure();
@@ -84,6 +89,8 @@ namespace ModularChess.Match
                 _match.RematchRequested -= OnRematchRequested;
                 _match.ReplayLeftToHistory -= OnReplayLeftToHistory;
             }
+            if (_roguelike != null)
+                _roguelike.LeftRun -= ShowMainMenu;
             UnhookOptionsOverlay();
         }
 
@@ -125,6 +132,13 @@ namespace ModularChess.Match
             _match = match != null ? match : FindAnyObjectByType<MatchController>();
             _board = board != null ? board : FindAnyObjectByType<BoardView>();
             _hud = hud != null ? hud : FindAnyObjectByType<MatchHud>();
+            _roguelike = roguelike != null ? roguelike : FindAnyObjectByType<RoguelikeController>();
+            if (_roguelike == null)
+            {
+                GameObject go = new GameObject("RoguelikeController");
+                go.transform.SetParent(transform, false);
+                _roguelike = go.AddComponent<RoguelikeController>();
+            }
             if (mainMenu == null)
             {
                 Transform found = transform.Find("MainMenu");
@@ -181,6 +195,7 @@ namespace ModularChess.Match
                 () => OpenPrep(Activity.VersusAi),
                 () => OpenPrep(Activity.VersusFriend),
                 ShowJoin,
+                StartRoguelike,
                 ShowMainMenu);
             _matchSettings?.Bind(ConfirmPrep, ShowPlay);
             _lobbyView?.Bind(SitAsFriend, StartLobbyMatch, LeaveLobby);
@@ -264,6 +279,8 @@ namespace ModularChess.Match
                 _board.gameObject.SetActive(false);
             if (_hud != null)
                 _hud.gameObject.SetActive(false);
+            if (_roguelikeHud != null)
+                _roguelikeHud.gameObject.SetActive(false);
         }
 
         void ShowBoard()
@@ -622,6 +639,12 @@ namespace ModularChess.Match
                 return;
             }
 
+            if (_roguelike != null && _roguelike.IsPlaying)
+            {
+                _roguelike.Leave();
+                return;
+            }
+
             if (IsActive(matchSettingsOverlay))
             {
                 ShowPlay();
@@ -717,6 +740,47 @@ namespace ModularChess.Match
                 _match = FindAnyObjectByType<MatchController>();
             _match.Launch(session);
             GameAudio.PlayMatchMusic();
+        }
+
+        void StartRoguelike()
+        {
+            HideOverlays();
+            if (mainMenu != null)
+                mainMenu.SetActive(false);
+            EnsureRoguelikeHud();
+            if (_board != null)
+                _board.gameObject.SetActive(true);
+            if (_hud != null)
+                _hud.gameObject.SetActive(false);
+            if (_roguelikeHud != null)
+                _roguelikeHud.gameObject.SetActive(true);
+            if (_roguelike == null)
+                ResolveReferences();
+            InjectRoguelikeDeps();
+            _roguelike.Launch();
+            GameAudio.PlayMatchMusic();
+        }
+
+        void EnsureRoguelikeHud()
+        {
+            if (_roguelikeHud != null)
+                return;
+            _roguelikeHud = FindAnyObjectByType<RoguelikeHud>(FindObjectsInactive.Include);
+            if (_roguelikeHud != null)
+                return;
+            GameObject prefab = RuntimePrefabs.RoguelikeHud;
+            if (prefab == null)
+                return;
+            GameObject instance = Instantiate(prefab, transform);
+            instance.name = "RoguelikeHud";
+            _roguelikeHud = instance.GetComponent<RoguelikeHud>();
+        }
+
+        void InjectRoguelikeDeps()
+        {
+            if (_roguelike == null)
+                return;
+            _roguelike.Configure(_board, _roguelikeHud);
         }
 
         void EnsureHistoryOverlay()

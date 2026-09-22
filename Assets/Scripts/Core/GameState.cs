@@ -83,6 +83,7 @@ namespace ModularChess.Core
             ModeRuntime nextRuntime = Runtime;
             Board nextBoard = Board;
             bool bounced = false;
+            GameStatus? captureStatus = null;
 
             if (captured != null)
             {
@@ -109,6 +110,13 @@ namespace ModularChess.Core
                                 value.Value,
                                 Rules.Settings.MartyrThreshold);
                         }
+                    }
+                    if (Rules.PlayerSide != null)
+                    {
+                        captureStatus = Rules.Law.ResolveCapture(
+                            captured,
+                            Rules.PlayerSide.Value,
+                            Rules.StageTarget);
                     }
                 }
             }
@@ -160,7 +168,7 @@ namespace ModularChess.Core
                 _positionKeys,
                 Rules,
                 nextRuntime,
-                null,
+                captureStatus,
                 true);
         }
         public GameState EndTurn()
@@ -244,6 +252,32 @@ namespace ModularChess.Core
             return new GameState(
                 Board,
                 side,
+                EnPassantTarget,
+                CastlingRights,
+                HalfmoveClock,
+                FullmoveNumber,
+                History as Move[] ?? CopyHistory(),
+                _positionKeys,
+                Rules,
+                Runtime,
+                Status == GameStatus.InProgress ? null : Status,
+                false);
+        }
+        public GameState RelocateFriendly(Square from, Square to)
+        {
+            Piece moving = Board.GetPiece(from);
+            if (moving == null || moving.Type == PieceType.King)
+            {
+                throw new InvalidOperationException("Cannot relocate that Piece.");
+            }
+            if (!Board.CanPlace(to))
+            {
+                throw new InvalidOperationException("Destination is not empty.");
+            }
+            Board next = Board.WithPiece(from, null).WithPiece(to, moving);
+            return new GameState(
+                next,
+                SideToMove,
                 EnPassantTarget,
                 CastlingRights,
                 HalfmoveClock,
@@ -393,7 +427,7 @@ namespace ModularChess.Core
             }
             else
             {
-                Status = DrawEvaluator.Resolve(IsInCheck, legal.Count, halfmoveClock, _positionKeys, board);
+                Status = Rules.Law.ResolveStatus(IsInCheck, legal.Count, halfmoveClock, _positionKeys, board);
             }
         }
         private bool MoveEndsTurn(Piece moving, Move move, ModeRuntime runtime)

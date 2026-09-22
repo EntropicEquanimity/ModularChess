@@ -36,7 +36,7 @@ namespace ModularChess.Core.Tests
         public void EmpoweredBishop_SwapsWithAdjacentPawnsInEightDirections()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
-            GameState state = GameState.FromFen("4k3/8/8/3ppp2/3pBp2/3ppp2/8/4K3 w - - 0 1", rules);
+            GameState state = GameState.FromFen("4k3/8/8/3PPP2/3PBP2/3PPP2/8/4K3 w - - 0 1", rules);
             Piece bishop = state.Board.GetPiece(new Square(4, 3));
             state = state.ConfirmEmpowered(new[] { bishop.Id });
             Assert.IsTrue(MoveTestHelper.Has(state, "e4", "d3"));

@@ -85,7 +85,7 @@ namespace ModularChess.Core.Tests
             Assert.IsTrue(MoveTestHelper.Has(state, "e1", "g1"));
             Assert.IsTrue(MoveTestHelper.Has(state, "e1", "c1"));
             GameState blackToMove = MoveTestHelper.Play(state, "e1g1");
-            Assert.IsTrue(MoveTestHelper.Has(blackToMove, "e8", "g8"));
+            Assert.IsFalse(MoveTestHelper.Has(blackToMove, "e8", "g8"));
             Assert.IsTrue(MoveTestHelper.Has(blackToMove, "e8", "c8"));
         }
 

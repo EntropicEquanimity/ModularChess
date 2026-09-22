@@ -220,6 +220,8 @@ namespace ModularChess.Match
                     return state.SideToMove == Side.White ? 1 : 0;
                 case GameStatus.InProgress:
                 case GameStatus.Aborted:
+                case GameStatus.StageCleared:
+                case GameStatus.RunLost:
                     return 2;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), state.Status, null);

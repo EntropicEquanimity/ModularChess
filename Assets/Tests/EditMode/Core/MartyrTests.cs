@@ -324,7 +324,7 @@ namespace ModularChess.Core.Tests
         public void ReinforcementsNotOfferedWhenBackRankIsFull()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
-            GameState state = GameState.FromFen("rnbqkbnr/3p4/8/8/8/8/3P4/3QK3 w - - 0 1", rules);
+            GameState state = GameState.FromFen("rnbqkbnr/3p4/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Assert.IsTrue(state.DraftPending);
             DraftOffer offer = state.Runtime.PendingDraft.Value;
@@ -335,7 +335,7 @@ namespace ModularChess.Core.Tests
         public void ExileCannotTargetAbsolutelyPinnedPieces()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
-            GameState state = GameState.FromFen("4q3/8/8/8/8/4N3/3p4/R2QK3 w - - 0 1", rules);
+            GameState state = GameState.FromFen("4qk2/8/8/8/8/4N3/3p4/R2QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Assert.IsTrue(state.DraftPending);
             Square pinned = new Square(4, 2);

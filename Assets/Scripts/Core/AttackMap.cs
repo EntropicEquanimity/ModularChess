@@ -58,6 +58,7 @@ namespace ModularChess.Core
                     Directions.BishopFiles,
                     Directions.BishopRanks,
                     PieceType.Bishop,
+                    SliderRangeOf(rules),
                     runtime,
                     target)
                 || IsAttackedBySlider(
@@ -67,6 +68,7 @@ namespace ModularChess.Core
                     Directions.RookFiles,
                     Directions.RookRanks,
                     PieceType.Rook,
+                    SliderRangeOf(rules),
                     runtime,
                     target);
         }
@@ -206,6 +208,7 @@ namespace ModularChess.Core
             int[] fileDeltas,
             int[] rankDeltas,
             PieceType slider,
+            int sliderRange,
             ModeRuntime runtime,
             Piece occupant)
         {
@@ -213,7 +216,12 @@ namespace ModularChess.Core
             {
                 bool passedAlly = false;
                 Pattern.Ray(board, target, fileDeltas[i], rankDeltas[i], RayBuffer);
-                for (int s = 0; s < RayBuffer.Count; s++)
+                int limit = RayBuffer.Count;
+                if (sliderRange < limit)
+                {
+                    limit = sliderRange;
+                }
+                for (int s = 0; s < limit; s++)
                 {
                     PatternStep step = RayBuffer[s];
                     Piece piece = step.Occupant;
@@ -254,6 +262,10 @@ namespace ModularChess.Core
             }
 
             return false;
+        }
+        private static int SliderRangeOf(MatchRules rules)
+        {
+            return rules != null ? rules.Law.SliderRange : int.MaxValue;
         }
         private static bool HasAttacker(
             Board board,

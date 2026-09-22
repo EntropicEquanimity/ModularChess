@@ -11,17 +11,25 @@ namespace ModularChess.Presentation
         [SerializeField] Button versusAiButton;
         [SerializeField] Button versusFriendButton;
         [SerializeField] Button joinButton;
+        [SerializeField] Button roguelikeButton;
         [SerializeField] Button backButton;
         [SerializeField] Transform title;
         #endregion
 
         #region Public Methods
-        public void Bind(UnityAction onVersusAi, UnityAction onVersusFriend, UnityAction onJoin, UnityAction onBack)
+        public void Bind(
+            UnityAction onVersusAi,
+            UnityAction onVersusFriend,
+            UnityAction onJoin,
+            UnityAction onRoguelike,
+            UnityAction onBack)
         {
             Resolve();
             GameAudio.Bind(versusAiButton, onVersusAi);
             GameAudio.Bind(versusFriendButton, onVersusFriend);
             GameAudio.Bind(joinButton, onJoin);
+            if (roguelikeButton != null)
+                GameAudio.Bind(roguelikeButton, onRoguelike);
             GameAudio.Bind(backButton, onBack);
             RefreshLoc();
         }
@@ -32,6 +40,8 @@ namespace ModularChess.Presentation
             LocalizedText.Bind(versusAiButton, "play.versusAi");
             LocalizedText.Bind(versusFriendButton, "play.versusFriend");
             LocalizedText.Bind(joinButton, "play.join");
+            if (roguelikeButton != null)
+                LocalizedText.Bind(roguelikeButton, "play.roguelike");
             LocalizedText.Bind(backButton, "menu.back");
         }
         public void ApplyWebGlLimits()
@@ -55,6 +65,8 @@ namespace ModularChess.Presentation
                 versusFriendButton = ButtonNamed("VersusFriendButton");
             if (joinButton == null)
                 joinButton = ButtonNamed("JoinButton");
+            if (roguelikeButton == null)
+                roguelikeButton = ButtonNamed("RoguelikeButton");
             if (backButton == null)
                 backButton = ButtonNamed("BackButton");
             if (title == null)

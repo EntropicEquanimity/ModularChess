@@ -26,6 +26,8 @@ namespace ModularChess.Core
             ModeRuntime runtime = null)
         {
             runtime = runtime ?? ModeRuntime.Empty;
+            rules = rules ?? MatchRules.CoreOnly;
+            ILaw law = rules.Law;
             List<Move> pseudo = GeneratePseudoLegal(board, side, enPassantTarget, rules, runtime);
             AddModeMoves(board, side, rules, runtime, pseudo);
             List<Move> legal = new List<Move>(pseudo.Count + 2);
@@ -37,6 +39,12 @@ namespace ModularChess.Core
                     continue;
                 }
 
+                if (!law.CheckFiltersMoves)
+                {
+                    legal.Add(move);
+                    continue;
+                }
+
                 Board next = ApplyForLegality(board, move, rules, runtime);
                 if (!AttackMap.IsInCheck(next, side, rules, RuntimeAfterMove(board, move, rules, runtime)))
                 {
@@ -44,7 +52,7 @@ namespace ModularChess.Core
                 }
             }
 
-            if (runtime.ExtraMoveKingId == null)
+            if (runtime.ExtraMoveKingId == null && law.KingMayMove)
             {
                 AddCastling(board, side, castlingRights, legal, rules, runtime);
             }
@@ -86,7 +94,7 @@ namespace ModularChess.Core
                     switch (piece.Type)
                     {
                         case PieceType.Pawn:
-                            AddPawnMoves(board, from, piece, enPassantTarget, runtime, moves);
+                            AddPawnMoves(board, from, piece, enPassantTarget, runtime, rules, moves);
                             break;
                         case PieceType.Knight:
                             AddLeaperMoves(
@@ -96,6 +104,7 @@ namespace ModularChess.Core
                                 Directions.KnightFiles,
                                 Directions.KnightRanks,
                                 runtime,
+                                LawOf(rules).AllowsKingCapture,
                                 moves);
                             break;
                         case PieceType.Bishop:
@@ -106,6 +115,8 @@ namespace ModularChess.Core
                                 Directions.BishopFiles,
                                 Directions.BishopRanks,
                                 false,
+                                LawOf(rules).SliderRange,
+                                LawOf(rules).AllowsKingCapture,
                                 moves);
                             break;
                         case PieceType.Rook:
@@ -116,6 +127,8 @@ namespace ModularChess.Core
                                 Directions.RookFiles,
                                 Directions.RookRanks,
                                 runtime.IsEmpowered(piece.Id),
+                                LawOf(rules).SliderRange,
+                                LawOf(rules).AllowsKingCapture,
                                 moves);
                             break;
                         case PieceType.Queen:
@@ -126,6 +139,8 @@ namespace ModularChess.Core
                                 Directions.BishopFiles,
                                 Directions.BishopRanks,
                                 false,
+                                LawOf(rules).SliderRange,
+                                LawOf(rules).AllowsKingCapture,
                                 moves);
                             AddSliderMoves(
                                 board,
@@ -134,6 +149,8 @@ namespace ModularChess.Core
                                 Directions.RookFiles,
                                 Directions.RookRanks,
                                 false,
+                                LawOf(rules).SliderRange,
+                                LawOf(rules).AllowsKingCapture,
                                 moves);
                             if (runtime.IsEmpowered(piece.Id))
                             {
@@ -144,11 +161,16 @@ namespace ModularChess.Core
                                     Directions.KnightFiles,
                                     Directions.KnightRanks,
                                     runtime,
+                                    LawOf(rules).AllowsKingCapture,
                                     moves);
                             }
 
                             break;
                         case PieceType.King:
+                            if (!LawOf(rules).KingMayMove)
+                            {
+                                break;
+                            }
                             AddLeaperMoves(
                                 board,
                                 from,
@@ -156,6 +178,7 @@ namespace ModularChess.Core
                                 Directions.KingFiles,
                                 Directions.KingRanks,
                                 runtime,
+                                LawOf(rules).AllowsKingCapture,
                                 moves);
                             break;
                         default:
@@ -172,17 +195,20 @@ namespace ModularChess.Core
             Piece pawn,
             Square? enPassantTarget,
             ModeRuntime runtime,
+            MatchRules rules,
             List<Move> moves)
         {
             int forward = pawn.Side == Side.White ? 1 : -1;
             int startRank = pawn.Side == Side.White ? 1 : 6;
             int promotionRank = pawn.Side == Side.White ? 7 : 0;
             bool fleet = runtime.FleetPawns(pawn.Side);
+            bool allowsPromotion = LawOf(rules).AllowsPromotion;
+            bool allowsKingCapture = LawOf(rules).AllowsKingCapture;
 
             Square one = from.Offset(0, forward);
             if (one.IsOnBoard && board.GetPiece(one) == null)
             {
-                AddPawnAdvance(from, one, promotionRank, moves);
+                AddPawnAdvance(from, one, promotionRank, allowsPromotion, moves);
                 bool canDouble = from.Rank == startRank || fleet;
                 if (canDouble)
                 {
@@ -200,13 +226,13 @@ namespace ModularChess.Core
             }
 
             AddPawnCapture(
-                board, from, from.Offset(-1, forward), pawn, enPassantTarget, promotionRank, moves);
+                board, from, from.Offset(-1, forward), pawn, enPassantTarget, promotionRank, allowsPromotion, allowsKingCapture, moves);
             AddPawnCapture(
-                board, from, from.Offset(1, forward), pawn, enPassantTarget, promotionRank, moves);
+                board, from, from.Offset(1, forward), pawn, enPassantTarget, promotionRank, allowsPromotion, allowsKingCapture, moves);
         }
-        private static void AddPawnAdvance(Square from, Square to, int promotionRank, List<Move> moves)
+        private static void AddPawnAdvance(Square from, Square to, int promotionRank, bool allowsPromotion, List<Move> moves)
         {
-            if (to.Rank == promotionRank)
+            if (to.Rank == promotionRank && allowsPromotion)
             {
                 AddPromotions(from, to, null, moves);
                 return;
@@ -221,6 +247,8 @@ namespace ModularChess.Core
             Piece pawn,
             Square? enPassantTarget,
             int promotionRank,
+            bool allowsPromotion,
+            bool allowsKingCapture,
             List<Move> moves)
         {
             if (!to.IsOnBoard)
@@ -229,9 +257,9 @@ namespace ModularChess.Core
             }
 
             Piece occupant = board.GetPiece(to);
-            if (occupant != null && occupant.Side != pawn.Side && occupant.Type != PieceType.King)
+            if (occupant != null && occupant.Side != pawn.Side && (allowsKingCapture || occupant.Type != PieceType.King))
             {
-                if (to.Rank == promotionRank)
+                if (to.Rank == promotionRank && allowsPromotion)
                 {
                     AddPromotions(from, to, occupant.Type, moves);
                     return;
@@ -265,6 +293,7 @@ namespace ModularChess.Core
             int[] fileDeltas,
             int[] rankDeltas,
             ModeRuntime runtime,
+            bool allowsKingCapture,
             List<Move> moves)
         {
             for (int i = 0; i < fileDeltas.Length; i++)
@@ -282,7 +311,7 @@ namespace ModularChess.Core
                     continue;
                 }
 
-                if (occupant.Side != piece.Side && occupant.Type != PieceType.King)
+                if (occupant.Side != piece.Side && (allowsKingCapture || occupant.Type != PieceType.King))
                 {
                     moves.Add(new Move(from, to, MoveKind.Capture, capturedType: occupant.Type));
                 }
@@ -295,12 +324,19 @@ namespace ModularChess.Core
             int[] fileDeltas,
             int[] rankDeltas,
             bool passAllies,
+            int sliderRange,
+            bool allowsKingCapture,
             List<Move> moves)
         {
             for (int i = 0; i < fileDeltas.Length; i++)
             {
                 Pattern.Ray(board, from, fileDeltas[i], rankDeltas[i], RayBuffer);
-                for (int s = 0; s < RayBuffer.Count; s++)
+                int limit = RayBuffer.Count;
+                if (sliderRange < limit)
+                {
+                    limit = sliderRange;
+                }
+                for (int s = 0; s < limit; s++)
                 {
                     PatternStep step = RayBuffer[s];
                     Piece occupant = step.Occupant;
@@ -317,7 +353,7 @@ namespace ModularChess.Core
                         }
                         break;
                     }
-                    if (occupant.Type != PieceType.King)
+                    if (allowsKingCapture || occupant.Type != PieceType.King)
                     {
                         moves.Add(new Move(from, step.Square, MoveKind.Capture, capturedType: occupant.Type));
                     }
@@ -415,6 +451,10 @@ namespace ModularChess.Core
         private static ModeHooks HooksOf(MatchRules rules)
         {
             return rules != null ? rules.Hooks : ModeHooks.None;
+        }
+        private static ILaw LawOf(MatchRules rules)
+        {
+            return rules != null ? rules.Law : FideLaw.Instance;
         }
         private static void FilterToKing(Board board, List<Move> legal, Guid kingId)
         {

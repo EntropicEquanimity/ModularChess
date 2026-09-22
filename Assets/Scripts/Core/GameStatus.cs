@@ -8,6 +8,8 @@ namespace ModularChess.Core
         Draw,
         Timeout,
         Resign,
-        Aborted
+        Aborted,
+        StageCleared,
+        RunLost
     }
 }
