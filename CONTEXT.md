@@ -9,11 +9,11 @@ Always-on occupancy, Piece identity, Pattern geometry, and Turn structure. Prese
 _Avoid_: module, engine, always-on Mode, FIDE, rules authority
 
 **Law**:
-The chess-law pack for a Match or a Stage: King mobility, promotion, slider range, Check obligations, and what ends that Match or Stage. Versus AI and Versus Friend use FIDE Law. An Activity may supply a different Law. Not Core. Not a Mode.
+The chess-law pack for a Match or a Stage: King mobility, promotion, slider range, Check obligations, who moves first, and what ends that Match or Stage. Versus AI and Versus Friend use FIDE Law. Roguelike uses Roguelike Law. Not Core. Not a Mode.
 _Avoid_: Ruleset, FIDE as a Mode, Core as FIDE, rules authority
 
 **Activity**:
-What you came to do. MVP Activities are Versus AI and Versus Friend. Later Activities include Puzzle, Survivor, Auto Battler, and a chess-roguelike Activity that uses Run and Stage instead of Match. Versus AI and Versus Friend use FIDE Law; an Activity may supply a different Law. Join is not an Activity.
+What you came to do. MVP Activities are Versus AI and Versus Friend. Later Activities include Puzzle, Survivor, Auto Battler, and Roguelike. Versus AI and Versus Friend use FIDE Law; Roguelike supplies Roguelike Law. Join is not an Activity.
 _Avoid_: Opponent, Mode, game mode, match type
 
 **Mode**:
@@ -28,6 +28,14 @@ _Avoid_: Swarms as a second Activity, Mode, Versus AI
 A later Activity. Pieces fight without the player choosing each Move. Not a Mode. Not Survivor.
 _Avoid_: autobattler as a Mode, idle chess, Survivor
 
+**Roguelike**:
+A later single-player Activity. Uses Run and Stage, not Match. Own HUD, not Match HUD. No Mode select. No Versus Friend. Play-screen label TBD.
+_Avoid_: Survivor, Mode, Match HUD, Versus AI, Roguelike as a committed Play name
+
+**Roguelike Law**:
+Kings cannot move once a Stage starts. Slider range starts at 3, plus Range bonus, with no maximum. No promotion. Check does not force a reply and does not end the Stage. No Checkmate, Stalemate, or FIDE draws. The player's Side is random per Run, sits at the bottom, and always moves first. A Stage ends on capturing the Target; capturing the player's King ends the Run.
+_Avoid_: FIDE Law, White moves first, checkmate as the win, a slider range cap
+
 **Health**:
 A later Mode. Pieces carry hit points for that Match. After a legal Capture, that Mode may wound instead of removing. Runs after Chance Combat miss; Extra Life does not apply to a wound. Does not change which Moves are legal. Not Core. Not an Activity.
 _Avoid_: HP as Core, health bars as the Mode name, damage as Capture
@@ -41,7 +49,7 @@ A Play-screen action that enters a Versus Friend Lobby with a Join Code. Not an 
 _Avoid_: Activity, Opponent, watcher
 
 **Play**:
-Main-menu path to pick Versus AI, Versus Friend, or Join. Then Mode multi-select (only Modes allowed for that Activity), each Mode’s settings, then Versus AI starts after confirm or Versus Friend goes to Lobby. Match Settings stay on the left until Start. Main menu also has History, Unlocks, a disabled Customize control, Options, Credits, Exit, and Feedback (Google Form). Escape closes the top popup, then the overlay, back toward the main menu.
+Main-menu path to pick Versus AI, Versus Friend, or Join. Roguelike is a later Activity on this path with no Mode select and no Match Settings. Then Mode multi-select (only Modes allowed for that Activity), each Mode’s settings, then Versus AI starts after confirm or Versus Friend goes to Lobby. Match Settings stay on the left until Start. Main menu also has History, Unlocks, a disabled Customize control, Options, Credits, Exit, and Feedback (Google Form). Escape closes the top popup, then the overlay, back toward the main menu.
 _Avoid_: Opponent row
 
 **Exit**:
@@ -65,32 +73,88 @@ One playthrough of Versus AI or Versus Friend: Core, FIDE Law, Match Settings, a
 _Avoid_: game, game mode, Activity, Run, Stage
 
 **Run**:
-A 13-Stage playthrough of a later Activity. Ends if the player's King is captured; won by beating the Stage 13 boss. Not a Match. No meta-progression between Runs.
-_Avoid_: Match, Season, campaign, New Game+
+A 13-Stage Roguelike playthrough. Ends if the player's King is captured; won by beating the Stage 13 Boss. Leave aborts the Run. Not a Match. No Mode set. No persistence between Runs. No History or Replay.
+_Avoid_: Match, Season, campaign, New Game+, Mode select
 
 **Stage**:
-One Board in a Run. This Activity's Law applies when the Stage starts. Ends when that Stage's target Piece is captured. Not a Match.
+One Board in a Run. Roguelike Law applies when the Stage starts. The player's King sits on this Side's e-file back rank; the enemy King or Queen sits on theirs. Enemy Pieces enter from the far side. Ends when the Target is captured. Not a Match.
 _Avoid_: Match, level, round, Turn
+
+**Target**:
+The enemy Piece whose Capture ends the Stage: King on a normal Stage, Queen on a Mini-boss or Boss Stage.
+_Avoid_: Checkmate, always the King
+
+**Mini-boss**:
+Stages 6 and 12. No enemy King. Queen is the Target and is placed even if the Stage budget is below 9. The Boon offer is Blue-or-better.
+_Avoid_: Boss, Match, Mode
+
+**Boss**:
+Stage 13. No enemy King. Queen is the Target and is placed even if the Stage budget is below 9. Clearing it wins the Run. No Boon offer.
+_Avoid_: Mini-boss, Checkmate, New Game+
+
+**Boon**:
+A Run-persistent upgrade. One identity may sit in several Rarity bags; a later stacking copy adds, it does not upgrade, unless that identity is highest-Rarity only. Non-stacking or capped Boons leave all bags. Some Boons unlock at Stage 4. Not a Mode. Not a Draft.
+_Avoid_: Draft, Mode, power, card as the noun, unlock
+
+**Boon offer**:
+After every Stage clear except the Boss: 3 unique Boon identities. Roll Rarity from current weights, then pick from that bag; an empty bag rerolls Rarity. Cannot skip. Mini-boss offers set Grey weight to 0 for that offer only. While the offer is open, Hide/show Board is preview only.
+_Avoid_: Draft, skip, offer after Boss, rearrange during the offer
+
+**Rarity**:
+Grey, Blue, or Gold on a Boon. Offer odds are a designer AnimationCurve. Stage 1 Gold weight is 0.
+_Avoid_: tier, quality, rank, moving weight off Grey, Claude-authored odds
+
+**Gold**:
+In-Run currency. A Capture pays that PieceType's value (Pawn 1, Knight/Bishop 3, Rook 5, Queen 9, King 0) unless a Boon changes pay. Sell pays value minus 1. Carries across Stages with no cap. Not Unlocks.
+_Avoid_: Unlocks, Buy, money, coin
+
+**Shop**:
+A purchase-only overlay after the Boon offer on cleared Stages 4, 8, and 12. Five items priced 3–5× a PieceType value; reroll costs 2 Gold; shop items have no sell-back. Skippable. Hide/show Board is preview only while it is open. Not Unlocks.
+_Avoid_: Unlocks, selling Shop items, Mode catalog, Sell as item refund
+
+**Enemy Boon**:
+An automatic enemy Stage modifier, announced, rerolled each Stage. Concurrent count is floor(Stage / 3). Separate pool from player Boons. Not a Mode.
+_Avoid_: Fog of War as an Enemy Boon name, Draft, player Boon, Mode
+
+**Army size**:
+The cap on friendly non-King Pieces in Roguelike. Default 3. Gold upgrades cost 5 × upgrades already bought, purchased cap 12. Logistics and Advanced Logistics raise it past that purchased cap. The King does not count.
+_Avoid_: party size, unit cap, counting the King
+
+**Sell**:
+Removing a friendly Piece between Stages for Gold equal to its PieceType value minus 1 (Pawn 0, Knight/Bishop 2, Rook 4, Queen 8). Not a Shop item refund.
+_Avoid_: sell-back, Unlocks, Shop refund
+
+**Rearrange**:
+After the Boon offer and Shop (if any) are closed for that Stage clear, the player may move friendly Pieces, then Next Stage. Cannot reopen the Boon offer or Shop.
+_Avoid_: Setup, Draft, rearrange during Boon offer or Shop
+
+**Range bonus**:
+One Run-persistent add to slider range in Roguelike. Range-boosting Boons add to it. No maximum. Base slider range is 3.
+_Avoid_: per-boon independent range stacks, a range cap
+
+**Extra life**:
+A Roguelike charge: the next Capture that would remove that Piece is negated, then the charge is gone. One Extra life per Piece unless a Boon says otherwise. Death negation is in scope for Roguelike. Not Second Chance (that Boon grants Extra life to Pawns). Not the Empowered Knight mark.
+_Avoid_: Second Chance as the charge name, permadeath contradiction, Empowered mark
 
 **Match history**:
 A stored record of a finished Match, written only for a complete Match: Checkmate, Draw (including Stalemate and FIDE draws), Timeout, Resign, and Disconnect (that Side loses). Not Setup Leave. Not the Game. Not live notation. Payload is a compact event log for re-simulation: history actions (Square from–to, Move kind, promotion PieceType), Setup Empowered picks, Draft picks and targets, and Mode settings — enough to rebuild Piece identity, PieceType, Empowered, Status, and summons. Also stores clock seconds actually ticking (both Sides; not Setup, Draft, Disconnect, or Pause; increment does not add; none stores 0), the Mode set and those Modes’ settings, Match Settings (main time, increment, resolved Host Side, Versus AI strength), result (0 White, 1 Black, 2 Draw), and when the Match ended. Bombard is one live Move and two history actions: from→target, then target→from. An Empowered King’s extra Move is two history actions. Replay re-sims this log; it does not write a second store. Records that lack the event-log payload stay listed in History but cannot open Replay. Versus Friend: each device writes its own local record when the Match completes.
 _Avoid_: game history, PGN as the store, Host as the winner field, Bombard as a single from–to that looks like a slide-capture, Replay as the store, full Board snapshot per action, Host-only Match history
 
 **History**:
-Main-menu overlay of past Match history records. Scroll list, newest first, capped at N records (default 10; Options slider 5–50 in steps of 5; oldest drop when over cap). Lowering the cap in Options drops oldest records immediately until the list fits. No clear-all and no per-row delete — only the cap drops oldest. Each row shows date/time, Activity as `Versus AI` or `Versus Friend` (Joiners also show `Versus Friend`, not `Join`), Mode names, and result as Win, Loss, or Draw from this player’s Side (not White/Black/Draw). Tap a row to select it. Bottom controls: Replay (opens Replay for the selected row; disabled if none selected or the record is not Replayable) and Back. Records that lack the event-log payload stay listed but are not Replayable. Empty list shows a short empty-state line (“No matches yet”) with Replay disabled. History is main-menu only — not available mid-Match or mid-Replay. Not Match history (the store). Not Replay (the session).
-_Avoid_: Replay menu, save browser, unlimited keep-all, History mid-Match, White/Black as the row result, Join as the History Activity label, clear History
+Main-menu overlay of past Match history records. Scroll list, newest first, capped at N records (default 10; Options slider 5–50 in steps of 5; oldest drop when over cap). Lowering the cap in Options drops oldest records immediately until the list fits. No clear-all and no per-row delete — only the cap drops oldest. Each row shows date/time, Activity as `Versus AI` or `Versus Friend` (Joiners also show `Versus Friend`, not `Join`), Mode names, and result as Win, Loss, or Draw from this player’s Side (not White/Black/Draw). Tap a row to select it. Bottom controls: Replay (opens Replay for the selected row; disabled if none selected or the record is not Replayable) and Back. Records that lack the event-log payload stay listed but are not Replayable. Empty list shows a short empty-state line (“No matches yet”) with Replay disabled. History is main-menu only — not available mid-Match or mid-Replay. Not Match history (the store). Not Replay (the session). Runs are not listed.
+_Avoid_: Replay menu, save browser, unlimited keep-all, History mid-Match, White/Black as the row result, Join as the History Activity label, clear History, Run in History
 
 **Replay**:
 A viewing session of one Replayable Match history record. Uses the normal Match Board and Match HUD, not a separate screen. Not interactive play. Match clocks are hidden. Controls at the bottom: Auto play, Auto play speed (shown only while Auto play is on), Next Move, Last Move, Restart, Leave. No Draft cards, no Mode popups. Next/Last advance one history action per click. Next on the final action and Last on the opening are no-ops. Setup picks and Draft results apply instantly with no UI when that event is reached. Auto play advances actions; the wait applies when a Turn ends. Default Turn wait is 2 seconds; speed is a multiplier on that wait: 0.5×, 1×, 2×, 3×, 5×. When Auto play reaches the final action, it stops and stays on the end position. Tapping Next, Last, or Restart while Auto play is on stops Auto play, then applies that control. Entered from Results Replay or from History’s Replay. Restart resets to the opening position of that record. Leave ends the Replay (from Results path → main menu; from History path → History with the same row still selected). Escape does the same as Leave. Options is not available mid-Replay. Match HUD top line is `Replaying · {date} · {Activity} · {Mode names}`, replacing the Side-to-move line. Notation follows Options “show notation”; when shown, lines are the full true log as actions advance (no Fog-obscured lines). Capture tray / lost material updates as captures re-sim, same as a live Match. Board clicks are view-only and do not attempt Moves. Piece clicks play `tap.wav` and may show status; empty/Hidden-looking Squares play `piece-move.wav`; never invalid-click. Replay Vision is review: Fog regions stay marked, but Pieces are always shown identified, and Empowered/Status auras show whenever those marks exist. Not Rematch. Not a live Match.
 _Avoid_: Play Again, Rematch, spectator as Join, editing history, 3s default wait, Draft UI in Replay, Match clocks in Replay, Fog-obscured notation in Replay, Options mid-Replay, interactive Moves in Replay
 
 **Results**:
-The game-over panel after a Match ends. Bottom button group only: Rematch, Replay, Leave. Replay dismisses Results and opens a Replay of this Match’s history at the opening position. Leave returns to the main menu. Rematch follows Rematch. Not Options.
-_Avoid_: Play Again, extra Results actions beyond that trio, Results kept under Replay
+The game-over panel after a Match or a Run ends. After a Match: Rematch, Replay, Leave. After a Run: Rematch and Leave only — no Replay. Leave returns to the main menu. Rematch follows Rematch. Not Options.
+_Avoid_: Play Again, extra Results actions beyond that trio, Results kept under Replay, Replay after a Run
 
 **Rematch**:
-From Results, keep the same Modes and Match Settings. Versus Friend: new Lobby, same Host, same Join Code if the friend is still on Results; Host Starts; new Setup. Random Host color re-rolls. Versus AI: Confirm starts a new Match immediately. Either player may leave to Activity selection. If the friend already left, Host returns to Activity selection. Versus Friend Rematch waits for the other player; if they Leave, that control greys out and reads that they left.
-_Avoid_: Play Again, skip Setup, keep last Empowered set
+From Results, keep the same Modes and Match Settings. Versus Friend: new Lobby, same Host, same Join Code if the friend is still on Results; Host Starts; new Setup. Random Host color re-rolls. Versus AI: Confirm starts a new Match immediately. Roguelike: a new Run; Side re-rolls; Boons are not kept. Either player may leave to Activity selection. If the friend already left, Host returns to Activity selection. Versus Friend Rematch waits for the other player; if they Leave, that control greys out and reads that they left.
+_Avoid_: Play Again, skip Setup, keep last Empowered set, keep Boons
 
 **Match Settings**:
 Per-Match options that are part of Core, not a Mode. Host-authored and editable in the Lobby until the Match starts. Time control is two Host picks: main time (default none; none, Bullet 1 minute, Blitz 5 minutes, Rapid 15 minutes, Standard 30 minutes, or Extended 120 minutes) and increment (none, 1, 2, 5, 10, 15, 30, or 60 seconds). When main time is none, increment is none and that control is hidden. 0+0 is none. Host color (White, Black, or Random; White or Black shows in the Lobby immediately, Random resolves at Start before Setup), Versus AI strength (Easy, Medium, Hard; the AI uses the same Vision as a human — strength is play quality, not omniscience), and whether a Side may End Turn with zero Moves this Turn (default off).
@@ -125,8 +189,8 @@ A Piece chosen in Powerful Pieces Setup. Permanent for this Match, keyed by that
 _Avoid_: Amazon, extra Queen Move, two patterns, buff, upgrade, Super Queen
 
 **Side**:
-White or Black. Who owns a Piece, and who is to move. Each player sees their Side at the bottom of the screen. No flip toggle in MVP. After the Match, review keeps that orientation.
-_Avoid_: color, player, team, always White at bottom
+White or Black. Who owns a Piece, and who is to move. Each player sees their Side at the bottom of the screen. No flip toggle in MVP. After the Match, review keeps that orientation. In Roguelike the player's Side is random per Run; they still sit at the bottom and they always move first.
+_Avoid_: color, player, team, always White at bottom, White always moves first
 
 **Square**:
 One file and rank on the Board (a1–h8 in Core).
@@ -189,8 +253,8 @@ A Martyr power on your Rooks (replaces Wall Formation). Optional extra Move on t
 _Avoid_: Xiangqi Cannon, Wall Formation, hop a screen, replaces sliding Captures
 
 **Summoned**:
-A tag on Pieces created by Martyr (not a timed Status). 0 Lost Material if they leave. Not Empowered.
-_Avoid_: timed summon
+A tag on Pieces created by Martyr or Roguelike. Not a timed Status. Not Empowered. Martyr: 0 Lost Material if they leave. Roguelike: empty Squares in this Side's back 4 ranks, closest back rank first; leftover vanish. Reinforcements skip the back rank (the 3 ranks in front of it only).
+_Avoid_: timed summon, back rank only, one Square next to the original
 
 **Reinforcements**:
 A Martyr power. After the card is picked, still in the same Draft 60s, this Side clicks up to 2 empty Squares on their back rank to place Summoned Pawns. Occupied Squares are skipped. Timeout fills remaining at random among those empties. If fewer than 2 empties, leftover summons vanish. Infinite obtains.
@@ -229,7 +293,7 @@ One Side's opportunity to make one or more Moves. FIDE default is one Move. A Mo
 _Avoid_: action, sub-move, round
 
 **Check**:
-A Core fact: the Side to move's King is attacked on the Board. Fog does not change this. Show Check when the King is attacked, even if the attacker is Hidden. Whether Check forces a reply or can end the Match is Law. Invulnerable: the owner may still Move that King; no other Piece may target it, so it cannot be in Check. That King still occupies its Square. Sliding is blocked unless a Mode already allows passing through that occupant.
+A Core fact: the Side to move's King is attacked on the Board. Fog does not change this. Show Check when the King is attacked, even if the attacker is Hidden. Whether Check forces a reply or can end the Match or Stage is Law. Invulnerable: the owner may still Move that King; no other Piece may target it, so it cannot be in Check. That King still occupies its Square. Sliding is blocked unless a Mode already allows passing through that occupant.
 _Avoid_: threat, attack (as the noun), hide Check banner, Check as FIDE obligation
 
 **Checkmate**:
@@ -261,7 +325,7 @@ Versus Friend, from Turn 1, on your Turn only. Not Setup, not during Draft or Di
 _Avoid_: offer on their Turn, Setup draw spam
 
 **Pause**:
-Versus AI only. Stops the Match clock if any, and the AI (including Autoplay). Resume continues the same Match. Not during Setup or Draft. Versus Friend has no Pause. Escape Pauses Versus AI when no popup is open and it is not Setup or Draft. No takebacks, hints, or engine bar in MVP.
+Versus AI and Roguelike. Stops the Match clock if any, and the AI (including Autoplay). Resume continues the same Match or Run. Not during Setup or Draft. Versus Friend has no Pause. Escape Pauses Versus AI or Roguelike when no popup is open and it is not Setup or Draft. No takebacks, hints, or engine bar in MVP.
 _Avoid_: Friend Pause, Pause as Resign, takeback, hint, Escape as Exit during a Match
 
 **Autoplay**:
