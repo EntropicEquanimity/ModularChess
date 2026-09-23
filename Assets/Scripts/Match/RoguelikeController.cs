@@ -16,14 +16,10 @@ namespace ModularChess.Match
         [SerializeField] BoardView boardView;
         [SerializeField] RoguelikeHud hud;
         [SerializeField] RoguelikeShopView shop;
-        RoguelikeRunState _run;
+        readonly RunSession _session = new RunSession();
         RoguelikeRunSettings _settings = new RoguelikeRunSettings();
-        RoguelikeStageSpawn _spawn;
-        GameState _state;
-        readonly Dictionary<Guid, Square> _stageHomes = new Dictionary<Guid, Square>(16);
         Square? _selected;
         IReadOnlyList<Move> _movesFromSelection = Array.Empty<Move>();
-        IReadOnlyList<ShopItem> _shopItems = Array.Empty<ShopItem>();
         bool _subscribed;
         bool _rearranging;
         bool _offering;
@@ -35,32 +31,32 @@ namespace ModularChess.Match
         bool _firstBoardEnter = true;
         bool _stalledEmptyTurns;
         float _enemyWait = -1f;
-        System.Random _rng;
         public event Action LeftRun;
-        public bool IsPlaying => _run != null && _state != null;
-        public RoguelikeRunState Run => _run;
-        public GameState State => _state;
+        public bool IsPlaying => _session.IsActive;
+        public RoguelikeRunState Run => _session.Run;
+        public GameState State => _session.State;
         #endregion
 
         #region Unity
         void Update()
         {
-            if (_run == null || _state == null || _paused || _offering || _rearranging || _spawning || _clearing || _shopping)
+            if (!_session.IsActive || _paused || _offering || _rearranging || _spawning || _clearing || _shopping)
                 return;
-            if (_state.Status != GameStatus.InProgress)
+            if (_session.State.Status != GameStatus.InProgress)
                 return;
             if (boardView != null && boardView.PiecesBusy)
                 return;
-            if (_state.LegalMoves.Count == 0)
+            if (_session.State.LegalMoves.Count == 0)
             {
                 if (_stalledEmptyTurns)
                     return;
-                SkipTurn(_state.SideToMove.Opponent());
-                _stalledEmptyTurns = _state.LegalMoves.Count == 0;
+                _session.TrySkipEmptyTurn();
+                _stalledEmptyTurns = _session.State.LegalMoves.Count == 0;
+                hud?.Refresh(_session.Run, _session.State);
                 return;
             }
             _stalledEmptyTurns = false;
-            if (_state.SideToMove == _run.PlayerSide)
+            if (_session.State.SideToMove == _session.Run.PlayerSide)
                 return;
             if (_enemyWait < 0f)
                 _enemyWait = EnemyThinkSeconds;
@@ -88,9 +84,7 @@ namespace ModularChess.Match
         public void Launch(RoguelikeRunSettings settings = null)
         {
             _settings = settings ?? new RoguelikeRunSettings();
-            _rng = new System.Random(Environment.TickCount);
-            Side player = ResolvePlayerSide(_settings.PlayerColor);
-            _run = new RoguelikeRunState(player);
+            _session.Start(_settings);
             _rearranging = false;
             _offering = false;
             _shopping = false;
@@ -101,7 +95,6 @@ namespace ModularChess.Match
             _firstBoardEnter = true;
             _stalledEmptyTurns = false;
             _enemyWait = -1f;
-            _stageHomes.Clear();
             Subscribe();
             if (boardView != null)
             {
@@ -109,18 +102,16 @@ namespace ModularChess.Match
                 boardView.CompleteMotion();
                 boardView.SetMotionPaused(false);
                 boardView.ReviewVision = false;
-                boardView.ViewerSide = player;
+                boardView.ViewerSide = _session.Run.PlayerSide;
             }
-            hud?.Present(_run);
+            hud?.Present(_session.Run);
             shop?.Dismiss();
             BeginStage(null);
         }
         public void Leave()
         {
             Unsubscribe();
-            _run = null;
-            _state = null;
-            _spawn = null;
+            _session.Clear();
             _selected = null;
             _movesFromSelection = Array.Empty<Move>();
             _rearranging = false;
@@ -129,14 +120,13 @@ namespace ModularChess.Match
             _spawning = false;
             _clearing = false;
             _dragRearrange = false;
-            _stageHomes.Clear();
             shop?.Dismiss();
             hud?.Dismiss();
             LeftRun?.Invoke();
         }
         public void GiveUp()
         {
-            if (_run == null)
+            if (!_session.IsActive)
                 return;
             hud?.ShowLose();
             shop?.Dismiss();
@@ -144,27 +134,27 @@ namespace ModularChess.Match
         }
         public void PickBoon(BoonDefinition def)
         {
-            if (!_offering || def == null || _run == null)
+            if (!_offering || def == null || !_session.IsActive)
                 return;
-            _run.AddBoon(def);
+            _session.AddBoon(def);
             _offering = false;
             hud?.HideBoonOffer();
             AfterBoon();
         }
         public void NextStage()
         {
-            if (!_rearranging || _run == null)
+            if (!_rearranging || !_session.IsActive)
                 return;
             _rearranging = false;
             hud?.SetRearrange(false);
-            if (_run.IsBossStage())
+            if (_session.Run.IsBossStage())
             {
                 hud?.ShowWin();
                 return;
             }
-            List<CarriedPiece> army = ExtractArmy(_state, _run.PlayerSide);
-            _run.AdvanceStage();
-            if (_run.IsWon)
+            List<CarriedPiece> army = _session.ExtractArmy();
+            _session.AdvanceStage();
+            if (_session.Run.IsWon)
             {
                 hud?.ShowWin();
                 return;
@@ -177,37 +167,22 @@ namespace ModularChess.Match
         }
         public void BuyShopItem(int index)
         {
-            if (!_shopping || _run == null || _state == null)
+            if (!_shopping || !_session.IsActive)
                 return;
-            if (index < 0 || index >= _shopItems.Count)
+            if (!_session.TryBuyShopItem(index))
                 return;
-            ShopItem item = _shopItems[index];
-            if (item.Price < 0)
-                return;
-            if (CountArmy(_state, _run.PlayerSide) >= _run.ArmySizeCap)
-                return;
-            if (!TryFindShopSquare(out Square square))
-                return;
-            if (!_run.TrySpendGold(item.Price))
-                return;
-            _state = _state.AddPiece(Piece.Create(item.Type, _run.PlayerSide), square);
-            var next = new List<ShopItem>(_shopItems.Count);
-            for (int i = 0; i < _shopItems.Count; i++)
-                next.Add(i == index ? new ShopItem(item.Type, -1) : _shopItems[i]);
-            _shopItems = next;
             RefreshBoard();
-            hud?.Refresh(_run, _state);
-            shop?.Present(_shopItems, _run, _state, BuyShopItem, RerollShop, CloseShop);
+            hud?.Refresh(_session.Run, _session.State);
+            shop?.Present(_session.ShopItems, _session.Run, _session.State, BuyShopItem, RerollShop, CloseShop);
         }
         public void RerollShop()
         {
-            if (!_shopping || _run == null)
+            if (!_shopping || !_session.IsActive)
                 return;
-            if (!_run.TrySpendGold(RoguelikeBalance.ShopRerollCost))
+            if (!_session.TryRerollShop())
                 return;
-            _shopItems = ShopOfferBuilder.Build(_rng);
-            hud?.Refresh(_run, _state);
-            shop?.Present(_shopItems, _run, _state, BuyShopItem, RerollShop, CloseShop);
+            hud?.Refresh(_session.Run, _session.State);
+            shop?.Present(_session.ShopItems, _session.Run, _session.State, BuyShopItem, RerollShop, CloseShop);
         }
         public void CloseShop()
         {
@@ -222,43 +197,40 @@ namespace ModularChess.Match
         #region Private Methods
         void BeginStage(IReadOnlyList<CarriedPiece> carriedArmy)
         {
-            _run.SetEnemyBoon(RoguelikeBalance.EnemyBoonForStage(_run.StageNumber));
             _shopping = false;
             shop?.Dismiss();
-            _spawn = RoguelikeStageFactory.Create(_run, _rng, _settings, carriedArmy);
-            _state = _spawn.State;
+            RoguelikeStageSpawn spawn = _session.BeginStage(carriedArmy);
             _selected = null;
             _movesFromSelection = Array.Empty<Move>();
             _enemyWait = -1f;
             _spawning = true;
             _clearing = false;
-            CaptureStageHomes();
-            hud?.AnnounceEnemyBoon(_run.ActiveEnemyBoon);
-            hud?.Refresh(_run, _state);
+            hud?.AnnounceEnemyBoon(_session.Run.ActiveEnemyBoon);
+            hud?.Refresh(_session.Run, _session.State);
             if (boardView == null)
             {
                 _spawning = false;
                 return;
             }
-            boardView.ViewerSide = _run.PlayerSide;
-            var snap = new List<Guid>(4) { _spawn.PlayerKingId };
-            if (_firstBoardEnter && _spawn.StartingPieceId.HasValue)
-                snap.Add(_spawn.StartingPieceId.Value);
+            boardView.ViewerSide = _session.Run.PlayerSide;
+            var snap = new List<Guid>(4) { spawn.PlayerKingId };
+            if (_firstBoardEnter && spawn.StartingPieceId.HasValue)
+                snap.Add(spawn.StartingPieceId.Value);
             if (carriedArmy != null)
             {
                 for (int i = 0; i < carriedArmy.Count; i++)
                     snap.Add(carriedArmy[i].Id);
             }
-            var fromBottom = new List<Guid>(_spawn.PlayerEntryIds);
-            if (!_firstBoardEnter && carriedArmy == null && _spawn.StartingPieceId.HasValue)
-                fromBottom.Add(_spawn.StartingPieceId.Value);
+            var fromBottom = new List<Guid>(spawn.PlayerEntryIds);
+            if (!_firstBoardEnter && carriedArmy == null && spawn.StartingPieceId.HasValue)
+                fromBottom.Add(spawn.StartingPieceId.Value);
             bool slide = _firstBoardEnter;
             _firstBoardEnter = false;
             boardView.BindStageReveal(
-                _state,
-                _run.PlayerSide,
+                _session.State,
+                _session.Run.PlayerSide,
                 snap,
-                _spawn.EnemyPieceIds,
+                spawn.EnemyPieceIds,
                 fromBottom,
                 PieceEntrySeconds,
                 PieceStaggerSeconds,
@@ -273,35 +245,19 @@ namespace ModularChess.Match
         void OnSpawnComplete()
         {
             _spawning = false;
-            CaptureStageHomes();
-            hud?.Refresh(_run, _state);
-        }
-        void CaptureStageHomes()
-        {
-            _stageHomes.Clear();
-            if (_state == null || _run == null)
-                return;
-            for (int i = 0; i < 64; i++)
-            {
-                Square square = Square.FromIndex(i);
-                Piece piece = _state.Board.GetPiece(square);
-                if (piece == null || piece.Side != _run.PlayerSide)
-                    continue;
-                if (_state.Runtime.IsSummoned(piece.Id))
-                    continue;
-                _stageHomes[piece.Id] = square;
-            }
+            _session.CaptureStageHomes();
+            hud?.Refresh(_session.Run, _session.State);
         }
         void EnterRearrange()
         {
             _rearranging = true;
             _dragRearrange = false;
             hud?.SetRearrange(true);
-            hud?.Refresh(_run, _state);
+            hud?.Refresh(_session.Run, _session.State);
         }
         void AfterBoon()
         {
-            if (_run != null && RoguelikeBalance.IsShopStage(_run.StageNumber) && shop != null)
+            if (_session.IsActive && RoguelikeBalance.IsShopStage(_session.Run.StageNumber) && shop != null)
             {
                 OpenShop();
                 return;
@@ -311,9 +267,9 @@ namespace ModularChess.Match
         void OpenShop()
         {
             _shopping = true;
-            _shopItems = ShopOfferBuilder.Build(_rng);
-            hud?.Refresh(_run, _state);
-            shop.Present(_shopItems, _run, _state, BuyShopItem, RerollShop, CloseShop);
+            _session.OpenShop();
+            hud?.Refresh(_session.Run, _session.State);
+            shop.Present(_session.ShopItems, _session.Run, _session.State, BuyShopItem, RerollShop, CloseShop);
         }
         void Subscribe()
         {
@@ -335,10 +291,10 @@ namespace ModularChess.Match
         }
         void OnSquarePressed(Square square)
         {
-            if (!_rearranging || _run == null || _state == null || _clearing)
+            if (!_rearranging || !_session.IsActive || _clearing)
                 return;
-            Piece piece = _state.Board.GetPiece(square);
-            if (piece == null || piece.Side != _run.PlayerSide || piece.Type == PieceType.King)
+            Piece piece = _session.State.Board.GetPiece(square);
+            if (piece == null || piece.Side != _session.Run.PlayerSide || piece.Type == PieceType.King)
             {
                 _dragRearrange = false;
                 return;
@@ -356,18 +312,18 @@ namespace ModularChess.Match
                 return;
             if (_selected.Value.Equals(square.Value))
                 return;
-            if (!_state.Board.CanPlace(square.Value))
+            if (!_session.State.Board.CanPlace(square.Value))
             {
                 ClearSelection();
                 return;
             }
-            _state = _state.RelocateFriendly(_selected.Value, square.Value);
+            _session.RelocateFriendly(_selected.Value, square.Value);
             ClearSelection();
             RefreshBoard();
         }
         void OnSquareClicked(Square square)
         {
-            if (_run == null || _state == null || _offering || _spawning || _clearing || _shopping)
+            if (!_session.IsActive || _offering || _spawning || _clearing || _shopping)
                 return;
             if (boardView != null && boardView.PiecesBusy)
                 return;
@@ -378,7 +334,7 @@ namespace ModularChess.Match
                 HandleRearrangeClick(square);
                 return;
             }
-            if (_state.Status != GameStatus.InProgress || _state.SideToMove != _run.PlayerSide)
+            if (_session.State.Status != GameStatus.InProgress || _session.State.SideToMove != _session.Run.PlayerSide)
                 return;
             if (_selected != null)
             {
@@ -391,22 +347,22 @@ namespace ModularChess.Match
                     }
                 }
             }
-            Piece piece = _state.Board.GetPiece(square);
-            if (piece == null || piece.Side != _run.PlayerSide)
+            Piece piece = _session.State.Board.GetPiece(square);
+            if (piece == null || piece.Side != _session.Run.PlayerSide)
             {
                 ClearSelection();
                 return;
             }
             _selected = square;
-            _movesFromSelection = _state.LegalMovesFrom(square);
+            _movesFromSelection = _session.State.LegalMovesFrom(square);
             boardView?.SetSelection(square);
         }
         void HandleRearrangeClick(Square square)
         {
             if (_selected == null)
             {
-                Piece piece = _state.Board.GetPiece(square);
-                if (piece == null || piece.Side != _run.PlayerSide || piece.Type == PieceType.King)
+                Piece piece = _session.State.Board.GetPiece(square);
+                if (piece == null || piece.Side != _session.Run.PlayerSide || piece.Type == PieceType.King)
                     return;
                 _selected = square;
                 boardView?.SetSelection(square);
@@ -417,31 +373,27 @@ namespace ModularChess.Match
                 ClearSelection();
                 return;
             }
-            if (!_state.Board.CanPlace(square))
+            if (!_session.State.Board.CanPlace(square))
             {
                 ClearSelection();
                 return;
             }
-            _state = _state.RelocateFriendly(_selected.Value, square);
+            _session.RelocateFriendly(_selected.Value, square);
             ClearSelection();
             RefreshBoard();
         }
         void ApplyMove(Move move)
         {
-            Side mover = _state.SideToMove;
-            PieceType? captured = move.CapturedType;
-            _state = _state.Apply(move);
-            if (captured != null && mover == _run.PlayerSide && !CaptureBounced(move, captured.Value))
-                _run.AddGold(RoguelikeBalance.CaptureGold(captured.Value));
+            RunMoveResult result = _session.ApplyMove(move);
             ClearSelection();
             RefreshBoard();
-            hud?.Refresh(_run, _state);
-            if (_state.Status == GameStatus.StageCleared)
+            hud?.Refresh(_session.Run, _session.State);
+            if (result.Status == GameStatus.StageCleared)
             {
                 OnStageCleared();
                 return;
             }
-            if (_state.Status == GameStatus.RunLost)
+            if (result.Status == GameStatus.RunLost)
                 hud?.ShowLose();
         }
         void OnStageCleared()
@@ -450,8 +402,9 @@ namespace ModularChess.Match
             _offering = false;
             _shopping = false;
             _rearranging = false;
-            AwardKnockedOffKingGold();
-            Side enemy = _run.PlayerSide.Opponent();
+            _session.AwardKnockedOffKingGold();
+            hud?.Refresh(_session.Run, _session.State);
+            Side enemy = _session.Run.PlayerSide.Opponent();
             if (boardView == null)
             {
                 FinishStageClearPresentation();
@@ -461,15 +414,15 @@ namespace ModularChess.Match
         }
         void FinishStageClearPresentation()
         {
-            if (_run == null)
+            if (!_session.IsActive)
                 return;
-            if (_run.IsBossStage())
+            if (_session.Run.IsBossStage())
             {
                 _clearing = false;
                 hud?.ShowWin();
                 return;
             }
-            Dictionary<Guid, Square> livingHomes = LivingHomes();
+            Dictionary<Guid, Square> livingHomes = _session.LivingHomes();
             if (boardView != null && livingHomes.Count > 0 && !AnimationPrefs.Instant)
             {
                 boardView.AnimatePiecesToSquares(livingHomes, ApplyHomesAndContinue);
@@ -479,16 +432,12 @@ namespace ModularChess.Match
         }
         void ApplyHomesAndContinue()
         {
-            if (_run == null || _state == null)
+            if (!_session.IsActive)
                 return;
-            _state = _state.PrepareRearrange(_run.PlayerSide, _stageHomes);
+            _session.PrepareRearrange();
             RefreshBoard();
             _clearing = false;
-            IReadOnlyList<BoonDefinition> offer = BoonOfferBuilder.Build(
-                BoonCatalog.PlayerPool,
-                _run.Stacks,
-                _run.StageNumber,
-                _rng);
+            IReadOnlyList<BoonDefinition> offer = _session.BuildBoonOffer();
             if (offer.Count == 0)
             {
                 AfterBoon();
@@ -497,77 +446,18 @@ namespace ModularChess.Match
             _offering = true;
             hud?.ShowBoonOffer(offer);
         }
-        Dictionary<Guid, Square> LivingHomes()
-        {
-            var result = new Dictionary<Guid, Square>(_stageHomes.Count);
-            if (_state == null || _run == null)
-                return result;
-            for (int i = 0; i < 64; i++)
-            {
-                Square square = Square.FromIndex(i);
-                Piece piece = _state.Board.GetPiece(square);
-                if (piece == null || piece.Side != _run.PlayerSide)
-                    continue;
-                if (_state.Runtime.IsSummoned(piece.Id))
-                    continue;
-                if (!_stageHomes.TryGetValue(piece.Id, out Square home))
-                    continue;
-                if (!square.Equals(home))
-                    result[piece.Id] = home;
-            }
-            return result;
-        }
         void PlayEnemyMove()
         {
-            if (_state == null)
+            if (!_session.IsActive)
                 return;
-            if (_state.LegalMoves.Count == 0)
-            {
-                SkipTurn(_state.SideToMove.Opponent());
-                return;
-            }
-            Move? best = null;
-            for (int i = 0; i < _state.LegalMoves.Count; i++)
-            {
-                Move move = _state.LegalMoves[i];
-                if (move.CapturedType != null)
-                {
-                    best = move;
-                    break;
-                }
-            }
+            Move? best = _session.ChooseEnemyMove();
             if (best == null)
-                best = _state.LegalMoves[_rng.Next(_state.LegalMoves.Count)];
-            ApplyMove(best.Value);
-        }
-        void SkipTurn(Side next)
-        {
-            if (_run == null || _state == null)
-                return;
-            _state = _state.WithSideToMove(next);
-            _enemyWait = -1f;
-            ClearSelection();
-            hud?.Refresh(_run, _state);
-        }
-        bool CaptureBounced(Move move, PieceType captured)
-        {
-            Piece occupant = _state.Board.GetPiece(move.To);
-            return occupant != null && occupant.Type == captured && occupant.Side != _run.PlayerSide;
-        }
-        void AwardKnockedOffKingGold()
-        {
-            if (_state == null || _run == null)
-                return;
-            Side enemy = _run.PlayerSide.Opponent();
-            for (int i = 0; i < 64; i++)
             {
-                Piece piece = _state.Board.GetPiece(Square.FromIndex(i));
-                if (piece == null || piece.Side != enemy || piece.Type != PieceType.King)
-                    continue;
-                _run.AddGold(RoguelikeBalance.CaptureGold(PieceType.King));
-                hud?.Refresh(_run, _state);
+                _session.TrySkipEmptyTurn();
+                hud?.Refresh(_session.Run, _session.State);
                 return;
             }
+            ApplyMove(best.Value);
         }
         void ClearSelection()
         {
@@ -577,79 +467,17 @@ namespace ModularChess.Match
         }
         void RefreshBoard()
         {
-            if (boardView == null || _state == null)
+            if (boardView == null || !_session.IsActive)
                 return;
-            boardView.ViewerSide = _run.PlayerSide;
-            boardView.Bind(_state);
-            if (_state.History.Count > 0)
+            boardView.ViewerSide = _session.Run.PlayerSide;
+            boardView.Bind(_session.State);
+            if (_session.State.History.Count > 0)
             {
-                Move last = _state.History[_state.History.Count - 1];
+                Move last = _session.State.History[_session.State.History.Count - 1];
                 boardView.SetLastMove(last.From, last.To);
             }
             else
                 boardView.ClearLastMove();
-        }
-        static List<CarriedPiece> ExtractArmy(GameState state, Side player)
-        {
-            var army = new List<CarriedPiece>(16);
-            if (state == null)
-                return army;
-            for (int i = 0; i < 64; i++)
-            {
-                Square square = Square.FromIndex(i);
-                Piece piece = state.Board.GetPiece(square);
-                if (piece == null || piece.Side != player)
-                    continue;
-                if (state.Runtime.IsSummoned(piece.Id))
-                    continue;
-                army.Add(new CarriedPiece(piece.Type, square, piece.Id, piece.HasMoved));
-            }
-            return army;
-        }
-        static int CountArmy(GameState state, Side player)
-        {
-            if (state == null)
-                return 0;
-            int count = 0;
-            foreach (Piece piece in state.Board.OccupiedPieces)
-            {
-                if (piece.Side == player && piece.Type != PieceType.King && !state.Runtime.IsSummoned(piece.Id))
-                    count++;
-            }
-            return count;
-        }
-        bool TryFindShopSquare(out Square square)
-        {
-            square = default;
-            if (_state == null || _run == null)
-                return false;
-            int back = _run.PlayerSide == Side.White ? 0 : 7;
-            int forward = _run.PlayerSide == Side.White ? 1 : -1;
-            for (int depth = 0; depth < 4; depth++)
-            {
-                int rank = back + forward * depth;
-                if (rank < 0 || rank >= Square.BoardSize)
-                    break;
-                for (int file = 0; file < Square.BoardSize; file++)
-                {
-                    square = new Square(file, rank);
-                    if (_state.Board.CanPlace(square))
-                        return true;
-                }
-            }
-            return false;
-        }
-        Side ResolvePlayerSide(HostColor color)
-        {
-            switch (color)
-            {
-                case HostColor.White:
-                    return Side.White;
-                case HostColor.Black:
-                    return Side.Black;
-                default:
-                    return _rng.Next(2) == 0 ? Side.White : Side.Black;
-            }
         }
         #endregion
     }

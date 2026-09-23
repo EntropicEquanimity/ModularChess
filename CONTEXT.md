@@ -81,8 +81,12 @@ One playthrough of Versus AI or Versus Friend: Core, FIDE Law, Match Settings, a
 _Avoid_: game, game mode, Activity, Run, Stage
 
 **Run**:
-A 13-Stage Roguelike playthrough. Ends if the player's King is captured; won by beating the Stage 13 Boss. Leave aborts the Run. Not a Match. No Mode set. No persistence between Runs. No History or Replay.
+A 13-Stage Roguelike playthrough (and later other Run Activities). Ends if the player's King is captured; won by beating the Stage 13 Boss. Leave aborts the Run. Not a Match. No Mode set. No persistence between Runs. No History or Replay. Playthrough logic lives in RunSession; Unity adapters stay thin.
 _Avoid_: Match, Season, campaign, New Game+, Mode select
+
+**RunSession**:
+The deep playthrough module for Run Activities (Roguelike first; reusable later). Owns Stage start, shop placement, rearrange prep, capture gold, empty-turn skip, and enemy move pick. Presentation and input stay in the Match-layer adapter.
+_Avoid_: MatchController, folding Run into Match
 
 **Stage**:
 One Board in a Run. Roguelike Law applies when the Stage starts. The player's King sits on this Side's e-file back rank; the enemy King sits on theirs. Mini-boss and Boss add extra Queens beside that King. Enemy Pieces enter from the far side. Ends when the Target is captured. Not a Match.
