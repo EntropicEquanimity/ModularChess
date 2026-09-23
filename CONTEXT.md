@@ -9,8 +9,16 @@ Always-on occupancy, Piece identity, Pattern geometry, and Turn structure. Prese
 _Avoid_: module, engine, always-on Mode, FIDE, rules authority
 
 **Law**:
-The chess-law pack for a Match or a Stage: King mobility, promotion, slider range, Check obligations, who moves first, and what ends that Match or Stage. Versus AI and Versus Friend use FIDE Law. Roguelike uses Roguelike Law. Not Core. Not a Mode.
-_Avoid_: Ruleset, FIDE as a Mode, Core as FIDE, rules authority
+The chess-law pack for a Match or a Stage: King mobility, promotion, slider range, Check obligations, who moves first, and what ends that Match or Stage. Versus AI and Versus Friend use FIDE Law via VersusRules (Mode set + FIDE). Roguelike uses Roguelike Law via StageRules (Player Side, Stage Target, Extra Life hooks — not a Match bag). Not Core. Not a Mode.
+_Avoid_: Ruleset, FIDE as a Mode, Core as FIDE, rules authority, MatchRules for Runs
+
+**VersusRules**:
+The rules object for a Versus Match: Mode set, Match Settings, FIDE Law, ModeHooks.For. Not used for Runs or Stages.
+_Avoid_: MatchRules, StageRules, Roguelike Law
+
+**StageRules**:
+The rules object for one Roguelike Stage: Roguelike Law, Player Side, Stage Target, Extra Life hooks. Empty Mode list. Not a Match. Not VersusRules.
+_Avoid_: MatchRules, Mode select, FIDE Law
 
 **Activity**:
 What you came to do. MVP Activities are Versus AI and Versus Friend. Later Activities include Puzzle, Survivor, Auto Battler, and Roguelike. Versus AI and Versus Friend use FIDE Law; Roguelike supplies Roguelike Law. Join is not an Activity.

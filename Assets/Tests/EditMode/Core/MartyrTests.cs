@@ -10,7 +10,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void CapturesQueueDraftAtThreshold()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Assert.AreEqual(1, state.Runtime.LostMaterial(Side.Black));
@@ -41,7 +41,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void ReinforcementsPlaceTwoPawnsAndSkipOccupiedSquares()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Square kingSquare = new Square(4, 7);
@@ -71,7 +71,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void ReinforcementsNeverReplaceKingOnFileA()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("k7/3p4/8/8/8/8/8/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d7");
             Square kingSquare = new Square(0, 7);
@@ -98,7 +98,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void ReinforcementsNeverReplaceRookOnBackRank()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("r3k2r/3p4/8/8/8/8/8/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d7");
             Square aRook = new Square(0, 7);
@@ -127,7 +127,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void StasisFieldIsNotOfferedWhenOpponentHasNoQueen()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/3P4/8/8/8/8/8/4K3 b - - 0 1", rules);
             state = MoveTestHelper.Play(state, "e8d7");
             Assert.IsTrue(state.DraftPending);
@@ -137,7 +137,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void FleetPawnsCannotBeOfferedAfterObtainLimit()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3pp3/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Assert.IsTrue(state.DraftPending);
@@ -153,7 +153,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void BattlefieldPromotionPromotesTheChosenPawn()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/3n4/8/8/2p1p3/3QK3 w - - 0 1", rules);
             Piece chosen = state.Board.GetPiece(new Square(2, 1));
             Piece other = state.Board.GetPiece(new Square(4, 1));
@@ -175,7 +175,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void CapturesAreRecordedInOrderAndSkipExtraLifeBounce()
         {
-            MatchRules martyr = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 9));
+            VersusRules martyr = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 9));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3pp3/3QK3 w - - 0 1", martyr);
             Piece first = state.Board.GetPiece(new Square(3, 1));
             Piece second = state.Board.GetPiece(new Square(4, 1));
@@ -188,7 +188,7 @@ namespace ModularChess.Core.Tests
             state = MoveTestHelper.Play(state, "d2e2");
             Assert.AreEqual(2, state.Runtime.Captures.Count);
             Assert.AreEqual(second.Id, state.Runtime.Captures[1].Id);
-            MatchRules extraLife = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            VersusRules extraLife = new VersusRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
             GameState bounce = GameState.FromFen("4k3/8/8/8/8/8/3n4/3QK3 w - - 0 1", extraLife);
             Piece knight = bounce.Board.GetPiece(new Square(3, 1));
             bounce = bounce.ConfirmEmpowered(new[] { knight.Id });
@@ -199,7 +199,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void DraftOfferNeverDuplicatesACard()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Assert.IsTrue(state.DraftPending);
@@ -208,7 +208,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void RallyKeepsTheTurnOpenForOneExtraMove()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             state = state.ApplyDraft(MartyrPower.Rally, null, null);
@@ -225,7 +225,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void ExileRemovesAnEnemyThenReturnsItAfterTwoOfTheirTurns()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3pP3/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Piece queen = state.Board.GetPiece(new Square(3, 1));
@@ -247,7 +247,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void RevivalReturnsTheLastCapturedFriendlyAsSummoned()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
             Piece pawn = state.Board.GetPiece(new Square(3, 1));
             state = MoveTestHelper.Play(state, "d1d2");
@@ -270,7 +270,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void RevivalPicksAmongEmptySquaresOnTheOpenRank()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             var files = new HashSet<int>();
             for (int n = 0; n < 32; n++)
             {
@@ -310,7 +310,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void DraftOfferUsesMartyrDraftOptionsCount()
         {
-            MatchRules rules = new MatchRules(
+            VersusRules rules = new VersusRules(
                 new[] { ModeId.Martyr },
                 new MatchSettings(martyrThreshold: 1, martyrDraftOptions: 5));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
@@ -323,7 +323,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void ReinforcementsNotOfferedWhenBackRankIsFull()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("rnbqkbnr/3p4/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Assert.IsTrue(state.DraftPending);
@@ -334,7 +334,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void ExileCannotTargetAbsolutelyPinnedPieces()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4qk2/8/8/8/8/4N3/3p4/R2QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Assert.IsTrue(state.DraftPending);
@@ -351,7 +351,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void BattlefieldPromotionPieceHasLegalMoves()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            VersusRules rules = new VersusRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/2pp4/3QK3 w - - 0 1", rules);
             state = MoveTestHelper.Play(state, "d1d2");
             Piece pawn = state.Board.GetPiece(new Square(2, 1));

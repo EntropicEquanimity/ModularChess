@@ -1238,52 +1238,13 @@ namespace ModularChess.Match
             _draftTargets.Clear();
             if (_state == null)
                 return;
-            Side side;
-            PieceType type;
-            if (power == MartyrPower.BattlefieldPromotion)
+            IReadOnlyList<Square> fromCore = _state.DraftTargets(power);
+            for (int i = 0; i < fromCore.Count; i++)
             {
-                side = _state.SideToMove;
-                type = PieceType.Pawn;
-            }
-            else if (power == MartyrPower.StasisField)
-            {
-                side = _state.SideToMove.Opponent();
-                type = PieceType.Queen;
-            }
-            else if (power == MartyrPower.Exile)
-            {
-                for (int i = 0; i < 64; i++)
-                {
-                    Square square = Square.FromIndex(i);
-                    if (_state.IsExileTarget(square))
-                        _draftTargets.Add(square);
-                }
-                return;
-            }
-            else if (power == MartyrPower.Reinforcements)
-            {
-                int back = _state.SideToMove == Side.White ? 0 : 7;
-                for (int file = 0; file < Square.BoardSize; file++)
-                {
-                    Square square = new Square(file, back);
-                    if (!_state.Board.CanPlace(square))
-                        continue;
-                    if (_reinforcementPicks.Contains(square))
-                        continue;
-                    _draftTargets.Add(square);
-                }
-                return;
-            }
-            else
-            {
-                return;
-            }
-            for (int i = 0; i < 64; i++)
-            {
-                Square square = Square.FromIndex(i);
-                Piece piece = _state.Board.GetPiece(square);
-                if (piece != null && piece.Side == side && piece.Type == type)
-                    _draftTargets.Add(square);
+                Square square = fromCore[i];
+                if (power == MartyrPower.Reinforcements && _reinforcementPicks.Contains(square))
+                    continue;
+                _draftTargets.Add(square);
             }
         }
         void ApplyDraftTargeting()

@@ -22,11 +22,11 @@ namespace ModularChess.Core
             Side side,
             Square? enPassantTarget,
             CastlingRights castlingRights,
-            MatchRules rules = null,
+            Rules rules = null,
             ModeRuntime runtime = null)
         {
             runtime = runtime ?? ModeRuntime.Empty;
-            rules = rules ?? MatchRules.CoreOnly;
+            rules = rules ?? VersusRules.CoreOnly;
             ILaw law = rules.Law;
             List<Move> pseudo = GeneratePseudoLegal(board, side, enPassantTarget, rules, runtime);
             AddModeMoves(board, side, rules, runtime, pseudo);
@@ -71,7 +71,7 @@ namespace ModularChess.Core
             Board board,
             Side side,
             Square? enPassantTarget,
-            MatchRules rules,
+            Rules rules,
             ModeRuntime runtime)
         {
             List<Move> moves = new List<Move>(64);
@@ -195,7 +195,7 @@ namespace ModularChess.Core
             Piece pawn,
             Square? enPassantTarget,
             ModeRuntime runtime,
-            MatchRules rules,
+            Rules rules,
             List<Move> moves)
         {
             int forward = pawn.Side == Side.White ? 1 : -1;
@@ -364,7 +364,7 @@ namespace ModularChess.Core
         private static void AddModeMoves(
             Board board,
             Side side,
-            MatchRules rules,
+            Rules rules,
             ModeRuntime runtime,
             List<Move> moves)
         {
@@ -424,7 +424,7 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException();
             }
         }
-        private static Board ApplyForLegality(Board board, Move move, MatchRules rules, ModeRuntime runtime)
+        private static Board ApplyForLegality(Board board, Move move, Rules rules, ModeRuntime runtime)
         {
             Piece captured = CapturedPiece(board, move);
             if (captured != null)
@@ -438,7 +438,7 @@ namespace ModularChess.Core
 
             return board.ApplyUnchecked(move);
         }
-        private static ModeRuntime RuntimeAfterMove(Board board, Move move, MatchRules rules, ModeRuntime runtime)
+        private static ModeRuntime RuntimeAfterMove(Board board, Move move, Rules rules, ModeRuntime runtime)
         {
             Piece captured = CapturedPiece(board, move);
             if (captured == null)
@@ -448,11 +448,11 @@ namespace ModularChess.Core
 
             return HooksOf(rules).ResolveCapture(board, move, captured, runtime).Runtime;
         }
-        private static ModeHooks HooksOf(MatchRules rules)
+        private static ModeHooks HooksOf(Rules rules)
         {
             return rules != null ? rules.Hooks : ModeHooks.None;
         }
-        private static ILaw LawOf(MatchRules rules)
+        private static ILaw LawOf(Rules rules)
         {
             return rules != null ? rules.Law : FideLaw.Instance;
         }
@@ -472,7 +472,7 @@ namespace ModularChess.Core
             Side side,
             CastlingRights rights,
             List<Move> legal,
-            MatchRules rules,
+            Rules rules,
             ModeRuntime runtime)
         {
             Square? kingSquare = board.FindKing(side);
@@ -518,7 +518,7 @@ namespace ModularChess.Core
             int rookFile,
             int throughFile,
             Side side,
-            MatchRules rules,
+            Rules rules,
             ModeRuntime runtime)
         {
             Square rookFrom = new Square(rookFile, kingFrom.Rank);

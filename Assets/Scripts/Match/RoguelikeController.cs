@@ -190,7 +190,7 @@ namespace ModularChess.Match
                 return;
             if (!_run.TrySpendGold(item.Price))
                 return;
-            _state = _state.AddPiece(new Piece(item.Type, _run.PlayerSide), square);
+            _state = _state.AddPiece(Piece.Create(item.Type, _run.PlayerSide), square);
             var next = new List<ShopItem>(_shopItems.Count);
             for (int i = 0; i < _shopItems.Count; i++)
                 next.Add(i == index ? new ShopItem(item.Type, -1) : _shopItems[i]);

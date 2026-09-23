@@ -5,14 +5,14 @@ namespace ModularChess.Core.Tests
 {
     internal static class RoguelikePositions
     {
-        public static GameState KingsOnly(MatchRules rules)
+        public static GameState KingsOnly(Rules rules)
         {
             Board board = Board.Empty()
                 .WithPiece(Sq("e1"), new Piece(PieceType.King, Side.White))
                 .WithPiece(Sq("e8"), new Piece(PieceType.King, Side.Black));
             return GameState.FromPosition(board, Side.White, null, CastlingRights.None, 0, 1, rules: rules);
         }
-        public static GameState WhiteRookOnA1(MatchRules rules)
+        public static GameState WhiteRookOnA1(Rules rules)
         {
             Board board = Board.Empty()
                 .WithPiece(Sq("e1"), new Piece(PieceType.King, Side.White))
@@ -20,7 +20,7 @@ namespace ModularChess.Core.Tests
                 .WithPiece(Sq("e8"), new Piece(PieceType.King, Side.Black));
             return GameState.FromPosition(board, Side.White, null, CastlingRights.None, 0, 1, rules: rules);
         }
-        public static GameState WhiteInCheckWithKnightEscape(MatchRules rules)
+        public static GameState WhiteInCheckWithKnightEscape(Rules rules)
         {
             Board board = Board.Empty()
                 .WithPiece(Sq("e1"), new Piece(PieceType.King, Side.White))
@@ -29,7 +29,7 @@ namespace ModularChess.Core.Tests
                 .WithPiece(Sq("e4"), new Piece(PieceType.Rook, Side.Black));
             return GameState.FromPosition(board, Side.White, null, CastlingRights.None, 0, 1, rules: rules);
         }
-        public static GameState WhiteQueenAttacksEnemyKing(MatchRules rules)
+        public static GameState WhiteQueenAttacksEnemyKing(Rules rules)
         {
             Board board = Board.Empty()
                 .WithPiece(Sq("e1"), new Piece(PieceType.King, Side.White))
@@ -37,7 +37,7 @@ namespace ModularChess.Core.Tests
                 .WithPiece(Sq("e8"), new Piece(PieceType.King, Side.Black));
             return GameState.FromPosition(board, Side.White, null, CastlingRights.None, 0, 1, rules: rules);
         }
-        public static GameState WhiteQueenAttacksEnemyPawnBesideKing(MatchRules rules)
+        public static GameState WhiteQueenAttacksEnemyPawnBesideKing(Rules rules)
         {
             Board board = Board.Empty()
                 .WithPiece(Sq("e1"), new Piece(PieceType.King, Side.White))
@@ -46,7 +46,7 @@ namespace ModularChess.Core.Tests
                 .WithPiece(Sq("d7"), new Piece(PieceType.Pawn, Side.Black));
             return GameState.FromPosition(board, Side.White, null, CastlingRights.None, 0, 1, rules: rules);
         }
-        public static GameState BlackQueenAttacksPlayerKing(MatchRules rules)
+        public static GameState BlackQueenAttacksPlayerKing(Rules rules)
         {
             Board board = Board.Empty()
                 .WithPiece(Sq("e1"), new Piece(PieceType.King, Side.White))
@@ -54,7 +54,7 @@ namespace ModularChess.Core.Tests
                 .WithPiece(Sq("e4"), new Piece(PieceType.Queen, Side.Black));
             return GameState.FromPosition(board, Side.Black, null, CastlingRights.None, 0, 1, rules: rules);
         }
-        public static GameState WhitePawnOnSeventh(MatchRules rules)
+        public static GameState WhitePawnOnSeventh(Rules rules)
         {
             Board board = Board.Empty()
                 .WithPiece(Sq("e1"), new Piece(PieceType.King, Side.White))
@@ -62,7 +62,7 @@ namespace ModularChess.Core.Tests
                 .WithPiece(Sq("e8"), new Piece(PieceType.King, Side.Black));
             return GameState.FromPosition(board, Side.White, null, CastlingRights.None, 0, 1, rules: rules);
         }
-        public static GameState WhiteKingAloneNoMoves(MatchRules rules)
+        public static GameState WhiteKingAloneNoMoves(Rules rules)
         {
             Board board = Board.Empty()
                 .WithPiece(Sq("a1"), new Piece(PieceType.King, Side.White))

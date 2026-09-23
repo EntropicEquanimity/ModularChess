@@ -10,7 +10,7 @@ namespace ModularChess.Match.Tests
         [Test]
         public void HardChoose_StartingFog_FinishesUnderBudget()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
             GameState state = GameState.StartingPosition(rules);
             AssertUnderBudget(state, AiStrength.Hard, Side.White, 200);
         }
@@ -18,7 +18,7 @@ namespace ModularChess.Match.Tests
         [Test]
         public void HardChoose_BusyMidgameFog_FinishesUnderBudget()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
             GameState state = GameState.StartingPosition(rules);
             state = Apply(state, "e2e4");
             state = Apply(state, "e7e5");

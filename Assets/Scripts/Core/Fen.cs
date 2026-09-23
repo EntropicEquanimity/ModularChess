@@ -11,7 +11,7 @@ namespace ModularChess.Core
         #endregion
 
         #region Public Methods
-        public static GameState Parse(string fen, MatchRules rules = null)
+        public static GameState Parse(string fen, Rules rules = null)
         {
             if (string.IsNullOrWhiteSpace(fen))
             {

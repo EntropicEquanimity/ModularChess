@@ -8,7 +8,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void FogOfWar_HidesEnemyHomeWhileInProgress()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
             GameState state = GameState.StartingPosition(rules);
             VisionMap vision = VisionMap.Compute(state, Side.White);
             Assert.AreEqual(GameStatus.InProgress, state.Status);
@@ -19,7 +19,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void FogOfWar_LiftsOnCheckmate()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
             GameState state = MoveTestHelper.Play(
                 GameState.StartingPosition(rules),
                 "f2f3",

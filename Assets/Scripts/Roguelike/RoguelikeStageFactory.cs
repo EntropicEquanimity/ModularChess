@@ -44,7 +44,7 @@ namespace ModularChess.Core
             Side player = run.PlayerSide;
             Side enemy = player.Opponent();
             PieceType target = run.StageTarget();
-            MatchRules rules = MatchRules.Roguelike(player, target);
+            Rules rules = StageRules.Create(player, target);
             int playerBack = player == Side.White ? 0 : 7;
             int enemyBack = enemy == Side.White ? 0 : 7;
             Piece playerKing;

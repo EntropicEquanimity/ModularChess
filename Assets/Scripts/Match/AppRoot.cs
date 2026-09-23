@@ -536,7 +536,7 @@ namespace ModularChess.Match
                 _modeSettings.EmpoweredCount,
                 _modeSettings.MartyrThreshold,
                 _modeSettings.MartyrDraftOptions);
-            var rules = new MatchRules(_selectedModes, settings);
+            var rules = new VersusRules(_selectedModes, settings);
             if (_activity == Activity.VersusAi)
             {
                 StartMatch(new MatchSession

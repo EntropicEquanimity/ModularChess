@@ -6,11 +6,11 @@ namespace ModularChess.Match
     public sealed class LocalLobby
     {
         public string Code { get; }
-        public MatchRules Rules { get; }
+        public Rules Rules { get; }
         public MatchSettings Settings { get; }
         public bool FriendSeated { get; set; }
 
-        public LocalLobby(string code, MatchRules rules, MatchSettings settings)
+        public LocalLobby(string code, Rules rules, MatchSettings settings)
         {
             Code = code ?? throw new ArgumentNullException(nameof(code));
             Rules = rules ?? throw new ArgumentNullException(nameof(rules));

@@ -41,13 +41,8 @@ namespace ModularChess.Core
             {
                 return AllIdentified;
             }
-
-            if (state.Rules == null || !state.Rules.Has(ModeId.FogOfWar))
-            {
-                return AllIdentified;
-            }
-
-            return FogVision.Compute(state, viewer);
+            Rules rules = state.Rules ?? VersusRules.CoreOnly;
+            return rules.Hooks.ComputeVision(state, viewer);
         }
 
         public static VisionMap Fill(SquareSight sight)

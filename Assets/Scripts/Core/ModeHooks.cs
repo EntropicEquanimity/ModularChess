@@ -56,17 +56,43 @@ namespace ModularChess.Core
         CaptureResolution Resolve(Board board, Move move, Piece captured, ModeRuntime runtime);
     }
 
+    internal interface IVisionHook
+    {
+        VisionMap Compute(GameState state, Side viewer);
+    }
+
+    internal interface ITurnHook
+    {
+        ModeRuntime AfterCaptureRemoved(Piece captured, Rules rules, ModeRuntime runtime);
+        Board OnTurnEnd(Board board, ModeRuntime runtime, Side endingSide, out ModeRuntime nextRuntime);
+        ModeRuntime MaybeOpenDraft(GameState state, ModeRuntime runtime, Side sideToMove, Board board);
+    }
+
+    internal interface IDraftHook
+    {
+        void CollectTargets(GameState state, MartyrPower power, List<Square> into);
+    }
+
     internal sealed class ModeHooks
     {
         #region Fields
         public static ModeHooks None { get; } = new ModeHooks(
             Array.Empty<IMoveHook>(),
-            Array.Empty<ICaptureResolution>());
+            Array.Empty<ICaptureResolution>(),
+            Array.Empty<IVisionHook>(),
+            Array.Empty<ITurnHook>(),
+            Array.Empty<IDraftHook>());
         public static ModeHooks ExtraLife { get; } = new ModeHooks(
             Array.Empty<IMoveHook>(),
-            new ICaptureResolution[] { new ExtraLifeResolution() });
+            new ICaptureResolution[] { new ExtraLifeResolution() },
+            Array.Empty<IVisionHook>(),
+            Array.Empty<ITurnHook>(),
+            Array.Empty<IDraftHook>());
         readonly IMoveHook[] _moves;
         readonly ICaptureResolution[] _captures;
+        readonly IVisionHook[] _visions;
+        readonly ITurnHook[] _turns;
+        readonly IDraftHook[] _drafts;
         #endregion
 
         #region Public Methods
@@ -78,6 +104,9 @@ namespace ModularChess.Core
             }
             var moves = new List<IMoveHook>();
             var captures = new List<ICaptureResolution>();
+            var visions = new List<IVisionHook>();
+            var turns = new List<ITurnHook>();
+            var drafts = new List<IDraftHook>();
             for (int i = 0; i < modes.Count; i++)
             {
                 switch (modes[i])
@@ -88,11 +117,21 @@ namespace ModularChess.Core
                         break;
                     case ModeId.Martyr:
                         moves.Add(new MartyrMoves());
+                        turns.Add(new MartyrTurnHook());
+                        drafts.Add(new MartyrDraftHook());
+                        break;
+                    case ModeId.FogOfWar:
+                        visions.Add(new FogVisionHook());
                         break;
                 }
             }
             SortByPriority(captures);
-            return new ModeHooks(moves.ToArray(), captures.ToArray());
+            return new ModeHooks(
+                moves.ToArray(),
+                captures.ToArray(),
+                visions.ToArray(),
+                turns.ToArray(),
+                drafts.ToArray());
         }
         public void AppendMoves(Board board, Side side, ModeRuntime runtime, List<Move> moves)
         {
@@ -123,13 +162,66 @@ namespace ModularChess.Core
             }
             return CaptureResolution.Remove(current);
         }
+        public VisionMap ComputeVision(GameState state, Side viewer)
+        {
+            if (_visions.Length == 0)
+            {
+                return VisionMap.AllIdentified;
+            }
+            return _visions[0].Compute(state, viewer);
+        }
+        public ModeRuntime AfterCaptureRemoved(Piece captured, Rules rules, ModeRuntime runtime)
+        {
+            ModeRuntime current = runtime ?? ModeRuntime.Empty;
+            for (int i = 0; i < _turns.Length; i++)
+            {
+                current = _turns[i].AfterCaptureRemoved(captured, rules, current);
+            }
+            return current;
+        }
+        public Board OnTurnEnd(Board board, ModeRuntime runtime, Side endingSide, out ModeRuntime nextRuntime)
+        {
+            nextRuntime = runtime ?? ModeRuntime.Empty;
+            Board current = board;
+            for (int i = 0; i < _turns.Length; i++)
+            {
+                current = _turns[i].OnTurnEnd(current, nextRuntime, endingSide, out nextRuntime);
+            }
+            return current;
+        }
+        public ModeRuntime MaybeOpenDraft(GameState state, ModeRuntime runtime, Side sideToMove, Board board)
+        {
+            ModeRuntime current = runtime ?? ModeRuntime.Empty;
+            for (int i = 0; i < _turns.Length; i++)
+            {
+                current = _turns[i].MaybeOpenDraft(state, current, sideToMove, board);
+            }
+            return current;
+        }
+        public IReadOnlyList<Square> CollectDraftTargets(GameState state, MartyrPower power)
+        {
+            var into = new List<Square>();
+            for (int i = 0; i < _drafts.Length; i++)
+            {
+                _drafts[i].CollectTargets(state, power, into);
+            }
+            return into;
+        }
         #endregion
 
         #region Private Methods
-        ModeHooks(IMoveHook[] moves, ICaptureResolution[] captures)
+        ModeHooks(
+            IMoveHook[] moves,
+            ICaptureResolution[] captures,
+            IVisionHook[] visions,
+            ITurnHook[] turns,
+            IDraftHook[] drafts)
         {
             _moves = moves ?? Array.Empty<IMoveHook>();
             _captures = captures ?? Array.Empty<ICaptureResolution>();
+            _visions = visions ?? Array.Empty<IVisionHook>();
+            _turns = turns ?? Array.Empty<ITurnHook>();
+            _drafts = drafts ?? Array.Empty<IDraftHook>();
         }
         static void SortByPriority(List<ICaptureResolution> captures)
         {

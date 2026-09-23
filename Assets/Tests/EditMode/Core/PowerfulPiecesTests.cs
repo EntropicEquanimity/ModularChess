@@ -8,7 +8,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void EmpoweredQueen_HasKnightLeap()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
             GameState state = GameState.StartingPosition(rules);
             Piece queen = state.Board.GetPiece(new Square(3, 0));
             Piece knight = state.Board.GetPiece(new Square(1, 0));
@@ -20,7 +20,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void EmpoweredKing_KeepsTurnOpen()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/8/4K2R w - - 0 1", rules);
             Piece king = state.Board.GetPiece(new Square(4, 0));
             state = state.ConfirmEmpowered(new[] { king.Id });
@@ -35,7 +35,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void EmpoweredBishop_SwapsWithAdjacentPawnsInEightDirections()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
             GameState state = GameState.FromFen("4k3/8/8/3PPP2/3PBP2/3PPP2/8/4K3 w - - 0 1", rules);
             Piece bishop = state.Board.GetPiece(new Square(4, 3));
             state = state.ConfirmEmpowered(new[] { bishop.Id });
@@ -54,7 +54,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void EmpoweredPawn_MovesForwardAndCannotCapture()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
             GameState state = GameState.FromFen("4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1", rules);
             Piece pawn = state.Board.GetPiece(new Square(4, 3));
             state = state.ConfirmEmpowered(new[] { pawn.Id });
@@ -64,7 +64,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void EmpoweredPawn_IsProtectedOnlyFromTheThreeFrontSquares()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
             GameState front = GameState.FromFen("4k3/8/8/4q3/4P3/8/8/4K3 b - - 0 1", rules);
             Piece frontPawn = front.Board.GetPiece(new Square(4, 3));
             front = front.ConfirmEmpowered(new[] { frontPawn.Id });
@@ -81,7 +81,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void EmpoweredPawn_BlackFrontIsOppositeWhite()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
             GameState front = GameState.FromFen("4k3/8/8/4p3/4Q3/8/8/4K3 w - - 0 1", rules);
             Piece frontPawn = front.Board.GetPiece(new Square(4, 4));
             front = front.ConfirmEmpowered(new[] { frontPawn.Id });
@@ -98,7 +98,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void EmpoweredBishop_CannotCaptureEnemySuperPawnFromTheFront()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);
             GameState adjacent = GameState.FromFen("4k3/8/8/4p3/3B4/8/8/4K3 w - - 0 1", rules);
             Piece bishop = adjacent.Board.GetPiece(new Square(3, 3));
             Piece pawn = adjacent.Board.GetPiece(new Square(4, 4));

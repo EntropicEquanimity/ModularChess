@@ -8,7 +8,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void StartingPosition_HomeRanksAreIdentified()
         {
-            MatchRules rules = new MatchRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
+            VersusRules rules = new VersusRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
             GameState state = GameState.StartingPosition(rules);
             VisionMap vision = VisionMap.Compute(state, Side.White);
             Assert.AreEqual(SquareSight.Identified, vision[new Square(0, 0)]);

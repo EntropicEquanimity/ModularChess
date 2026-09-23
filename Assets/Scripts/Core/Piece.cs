@@ -12,6 +12,7 @@ namespace ModularChess.Core
         #endregion
 
         #region Public Methods
+        public static Piece Create(PieceType type, Side side) { return new Piece(type, side); }
         internal Piece(PieceType type, Side side, bool hasMoved = false, Guid? id = null)
         {
             Id = id ?? Guid.NewGuid();

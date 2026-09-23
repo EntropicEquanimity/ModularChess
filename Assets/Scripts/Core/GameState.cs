@@ -17,7 +17,7 @@ namespace ModularChess.Core
         public CastlingRights CastlingRights { get; }
         public int HalfmoveClock { get; }
         public int FullmoveNumber { get; }
-        public MatchRules Rules { get; }
+        public Rules Rules { get; }
         public ModeRuntime Runtime { get; }
         public int MovesThisTurn => Runtime.MovesThisTurn;
         public bool TurnOpen => Runtime.ExtraMoveKingId != null || (Runtime.RallyArmed && MovesThisTurn > 0);
@@ -25,11 +25,11 @@ namespace ModularChess.Core
         #endregion
 
         #region Public Methods
-        public static GameState StartingPosition(MatchRules rules = null)
+        public static GameState StartingPosition(Rules rules = null)
         {
             return Fen.Parse(Fen.StartingPosition, rules);
         }
-        public static GameState FromFen(string fen, MatchRules rules = null)
+        public static GameState FromFen(string fen, Rules rules = null)
         {
             return Fen.Parse(fen, rules);
         }
@@ -42,7 +42,7 @@ namespace ModularChess.Core
             int fullmoveNumber,
             Move[] history = null,
             string[] previousPositionKeys = null,
-            MatchRules rules = null,
+            Rules rules = null,
             ModeRuntime runtime = null,
             GameStatus? forcedStatus = null)
         {
@@ -100,17 +100,7 @@ namespace ModularChess.Core
                         ? new Square(move.To.File, move.From.Rank)
                         : move.To;
                     nextRuntime = nextRuntime.AddCapture(captured, false, origin);
-                    if (Rules.Has(ModeId.Martyr) && !nextRuntime.IsSummoned(captured.Id))
-                    {
-                        int? value = PieceValues.Get(captured.Type);
-                        if (value != null)
-                        {
-                            nextRuntime = nextRuntime.AddLostMaterial(
-                                captured.Side,
-                                value.Value,
-                                Rules.Settings.MartyrThreshold);
-                        }
-                    }
+                    nextRuntime = Rules.Hooks.AfterCaptureRemoved(captured, Rules, nextRuntime);
                     if (Rules.PlayerSide != null)
                     {
                         captureStatus = Rules.Law.ResolveCapture(
@@ -145,9 +135,9 @@ namespace ModularChess.Core
             if (endsTurn)
             {
                 nextRuntime = nextRuntime.TickStatuses(SideToMove);
-                nextBoard = MartyrRules.ResolveExpiredExiles(nextBoard, nextRuntime, SideToMove, out nextRuntime);
+                nextBoard = Rules.Hooks.OnTurnEnd(nextBoard, nextRuntime, SideToMove, out nextRuntime);
                 nextRuntime = nextRuntime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false);
-                nextRuntime = MaybeOpenDraft(nextRuntime, nextSide, nextBoard);
+                nextRuntime = Rules.Hooks.MaybeOpenDraft(this, nextRuntime, nextSide, nextBoard);
             }
             else
             {
@@ -185,10 +175,10 @@ namespace ModularChess.Core
             }
 
             ModeRuntime nextRuntime = Runtime.TickStatuses(SideToMove);
-            Board nextBoard = MartyrRules.ResolveExpiredExiles(Board, nextRuntime, SideToMove, out nextRuntime);
+            Board nextBoard = Rules.Hooks.OnTurnEnd(Board, nextRuntime, SideToMove, out nextRuntime);
             nextRuntime = nextRuntime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false);
             Side nextSide = SideToMove.Opponent();
-            nextRuntime = MaybeOpenDraft(nextRuntime, nextSide, nextBoard);
+            nextRuntime = Rules.Hooks.MaybeOpenDraft(this, nextRuntime, nextSide, nextBoard);
             int nextFullmove = SideToMove == Side.Black ? FullmoveNumber + 1 : FullmoveNumber;
             return new GameState(
                 nextBoard,
@@ -245,7 +235,7 @@ namespace ModularChess.Core
             }
 
             ModeRuntime next = Runtime.WithEmpowered(ids, extraLife);
-            next = MaybeOpenDraft(next, SideToMove, Board);
+            next = Rules.Hooks.MaybeOpenDraft(this, next, SideToMove, Board);
             return CloneWithRuntime(next);
         }
         public GameState WithSideToMove(Side side)
@@ -461,7 +451,19 @@ namespace ModularChess.Core
         }
         public bool IsExileTarget(Square square)
         {
-            return MartyrRules.CanExile(Board, square, Rules, Runtime, SideToMove);
+            IReadOnlyList<Square> targets = DraftTargets(MartyrPower.Exile);
+            for (int i = 0; i < targets.Count; i++)
+            {
+                if (targets[i].Equals(square))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public IReadOnlyList<Square> DraftTargets(MartyrPower power)
+        {
+            return Rules.Hooks.CollectDraftTargets(this, power);
         }
         #endregion
 
@@ -475,7 +477,7 @@ namespace ModularChess.Core
             int fullmoveNumber,
             Move[] history,
             string[] previousPositionKeys,
-            MatchRules rules,
+            Rules rules,
             ModeRuntime runtime,
             GameStatus? forcedStatus,
             bool appendPositionKey)
@@ -487,7 +489,7 @@ namespace ModularChess.Core
             HalfmoveClock = halfmoveClock;
             FullmoveNumber = fullmoveNumber;
             History = history ?? Array.Empty<Move>();
-            Rules = rules ?? MatchRules.CoreOnly;
+            Rules = rules ?? VersusRules.CoreOnly;
             Runtime = runtime ?? ModeRuntime.Empty;
 
             IsInCheck = AttackMap.IsInCheck(board, sideToMove, Rules, Runtime);
@@ -547,26 +549,6 @@ namespace ModularChess.Core
                 return false;
             }
             return true;
-        }
-        private ModeRuntime MaybeOpenDraft(ModeRuntime runtime, Side sideToMove, Board board)
-        {
-            if (!Rules.Has(ModeId.Martyr) || runtime.PendingDraft != null)
-            {
-                return runtime;
-            }
-
-            int queued = sideToMove == Side.White ? runtime.WhiteDraftsQueued : runtime.BlackDraftsQueued;
-            if (queued <= 0)
-            {
-                return runtime;
-            }
-
-            DraftOffer offer = MartyrRules.BuildOffer(this, runtime, sideToMove, board);
-            PieceType? battlefield = offer.Contains(MartyrPower.BattlefieldPromotion)
-                ? offer.BattlefieldType
-                : null;
-
-            return runtime.WithPendingDraft(offer, battlefield);
         }
         private Piece FindCaptured(Move move)
         {

@@ -8,7 +8,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void King_HasNoLegalMoves_OnceStageStarted()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.KingsOnly(rules);
             Assert.IsFalse(MoveTestHelper.Has(state, "e1", "e2"));
             Assert.IsFalse(MoveTestHelper.Has(state, "e1", "d1"));
@@ -18,7 +18,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void Slider_RangeIsCappedAtThree()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.WhiteRookOnA1(rules);
             Assert.IsTrue(MoveTestHelper.Has(state, "a1", "a4"));
             Assert.IsFalse(MoveTestHelper.Has(state, "a1", "a5"));
@@ -27,7 +27,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void Check_DoesNotForceReply()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.WhiteInCheckWithKnightEscape(rules);
             Assert.IsTrue(state.IsInCheck);
             Assert.IsTrue(MoveTestHelper.Has(state, "b1", "a3"));
@@ -36,7 +36,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void CapturingEnemyKing_ClearsStage()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.WhiteQueenAttacksEnemyKing(rules);
             state = MoveTestHelper.PlayOne(state, "e5e8");
             Assert.AreEqual(GameStatus.StageCleared, state.Status);
@@ -45,7 +45,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void OnlyEnemyKingRemaining_ClearsStage()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.WhiteQueenAttacksEnemyPawnBesideKing(rules);
             state = MoveTestHelper.PlayOne(state, "d5d7");
             Assert.AreEqual(GameStatus.StageCleared, state.Status);
@@ -54,7 +54,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void CapturingPlayerKing_EndsRun()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.BlackQueenAttacksPlayerKing(rules);
             state = MoveTestHelper.PlayOne(state, "e4e1");
             Assert.AreEqual(GameStatus.RunLost, state.Status);
@@ -63,7 +63,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void NoPromotion_OnLastRank()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.WhitePawnOnSeventh(rules);
             Assert.IsTrue(MoveTestHelper.Has(state, "a7", "a8"));
             Assert.IsFalse(MoveTestHelper.Has(state, "a7", "a8", PieceType.Queen));
@@ -75,7 +75,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void EmptyLegalMoves_IsNotCheckmate()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.WhiteKingAloneNoMoves(rules);
             Assert.AreEqual(GameStatus.InProgress, state.Status);
             Assert.AreEqual(0, state.LegalMoves.Count);
@@ -84,7 +84,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void ExtraLives_StackAndBounceUntilSpent()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.WhiteQueenAttacksEnemyKing(rules);
             Piece king = state.Board.GetPiece(new Square(4, 7));
             ModeRuntime runtime = ModeRuntime.Empty.GrantExtraLives(king.Id, 2);
@@ -113,7 +113,7 @@ namespace ModularChess.Core.Tests
         [Test]
         public void PrepareRearrange_RemovesSummonedPieces()
         {
-            MatchRules rules = MatchRules.Roguelike(Side.White, PieceType.King);
+            Rules rules = StageRules.Create(Side.White, PieceType.King);
             GameState state = RoguelikePositions.WhiteRookOnA1(rules);
             ModeRuntime runtime = ModeRuntime.Empty;
             Board board = SummonPlacement.PlacePawns(

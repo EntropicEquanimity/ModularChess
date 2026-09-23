@@ -172,9 +172,9 @@ namespace ModularChess.Match
                 reinforcements = slots
             };
         }
-        public static MatchRules RulesFrom(MatchHistoryRecord record)
+        public static VersusRules RulesFrom(MatchHistoryRecord record)
         {
-            if (record == null) return new MatchRules(Array.Empty<ModeId>(), MatchSettings.Default);
+            if (record == null) return new VersusRules(Array.Empty<ModeId>(), MatchSettings.Default);
             var modes = new List<ModeId>();
             if (record.modes != null)
             {
@@ -190,11 +190,11 @@ namespace ModularChess.Match
                 Math.Max(0, record.empoweredCount),
                 Math.Max(0, record.martyrThreshold),
                 Math.Max(0, record.martyrDraftOptions));
-            return new MatchRules(modes, settings);
+            return new VersusRules(modes, settings);
         }
         public static MatchSession SessionFrom(MatchHistoryRecord record)
         {
-            MatchRules rules = RulesFrom(record);
+            VersusRules rules = RulesFrom(record);
             Side side = record != null ? (Side)record.playerSide : Side.White;
             return new MatchSession
             {
@@ -227,7 +227,7 @@ namespace ModularChess.Match
                     throw new ArgumentOutOfRangeException(nameof(state), state.Status, null);
             }
         }
-        static int[] ModeIds(MatchRules rules)
+        static int[] ModeIds(Rules rules)
         {
             var ids = new int[rules.Modes.Count];
             for (int i = 0; i < rules.Modes.Count; i++)

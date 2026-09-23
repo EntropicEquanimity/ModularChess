@@ -13,7 +13,7 @@ namespace ModularChess.Core
         public static bool IsInCheck(
             Board board,
             Side side,
-            MatchRules rules = null,
+            Rules rules = null,
             ModeRuntime runtime = null)
         {
             Square? king = board.FindKing(side);
@@ -34,7 +34,7 @@ namespace ModularChess.Core
             Board board,
             Square square,
             Side bySide,
-            MatchRules rules = null,
+            Rules rules = null,
             ModeRuntime runtime = null)
         {
             if (!square.IsOnBoard)
@@ -263,7 +263,7 @@ namespace ModularChess.Core
 
             return false;
         }
-        private static int SliderRangeOf(MatchRules rules)
+        private static int SliderRangeOf(Rules rules)
         {
             return rules != null ? rules.Law.SliderRange : int.MaxValue;
         }

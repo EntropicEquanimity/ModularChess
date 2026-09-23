@@ -215,7 +215,7 @@ namespace ModularChess.Core
             }
             return true;
         }
-        static bool IsRelevant(Board board, MatchRules rules, ModeRuntime runtime, Side side, MartyrPower power)
+        static bool IsRelevant(Board board, Rules rules, ModeRuntime runtime, Side side, MartyrPower power)
         {
             switch (power)
             {
@@ -268,7 +268,7 @@ namespace ModularChess.Core
             bag.RemoveAt(index);
             return power;
         }
-        static bool HasExilableEnemy(Board board, MatchRules rules, ModeRuntime runtime, Side side)
+        static bool HasExilableEnemy(Board board, Rules rules, ModeRuntime runtime, Side side)
         {
             Side enemy = side.Opponent();
             for (int i = 0; i < 64; i++)
@@ -285,7 +285,7 @@ namespace ModularChess.Core
             }
             return false;
         }
-        public static bool IsAbsolutelyPinned(Board board, Square square, MatchRules rules, ModeRuntime runtime)
+        public static bool IsAbsolutelyPinned(Board board, Square square, Rules rules, ModeRuntime runtime)
         {
             Piece piece = board.GetPiece(square);
             if (piece == null || piece.Type == PieceType.King)
@@ -299,7 +299,7 @@ namespace ModularChess.Core
             Board without = board.WithPiece(square, null);
             return AttackMap.IsInCheck(without, piece.Side, rules, runtime);
         }
-        public static bool CanExile(Board board, Square square, MatchRules rules, ModeRuntime runtime, Side draftingSide)
+        public static bool CanExile(Board board, Square square, Rules rules, ModeRuntime runtime, Side draftingSide)
         {
             Piece piece = board.GetPiece(square);
             if (piece == null || piece.Side == draftingSide || piece.Type == PieceType.King)
@@ -307,6 +307,63 @@ namespace ModularChess.Core
                 return false;
             }
             return !IsAbsolutelyPinned(board, square, rules, runtime);
+        }
+        public static void CollectDraftTargets(GameState state, MartyrPower power, List<Square> into)
+        {
+            if (state == null || into == null)
+            {
+                return;
+            }
+            Side side;
+            PieceType type;
+            if (power == MartyrPower.BattlefieldPromotion)
+            {
+                side = state.SideToMove;
+                type = PieceType.Pawn;
+            }
+            else if (power == MartyrPower.StasisField)
+            {
+                side = state.SideToMove.Opponent();
+                type = PieceType.Queen;
+            }
+            else if (power == MartyrPower.Exile)
+            {
+                for (int i = 0; i < 64; i++)
+                {
+                    Square square = Square.FromIndex(i);
+                    if (CanExile(state.Board, square, state.Rules, state.Runtime, state.SideToMove))
+                    {
+                        into.Add(square);
+                    }
+                }
+                return;
+            }
+            else if (power == MartyrPower.Reinforcements)
+            {
+                int back = state.SideToMove == Side.White ? 0 : 7;
+                for (int file = 0; file < Square.BoardSize; file++)
+                {
+                    Square square = new Square(file, back);
+                    if (state.Board.CanPlace(square))
+                    {
+                        into.Add(square);
+                    }
+                }
+                return;
+            }
+            else
+            {
+                return;
+            }
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = Square.FromIndex(i);
+                Piece piece = state.Board.GetPiece(square);
+                if (piece != null && piece.Side == side && piece.Type == type)
+                {
+                    into.Add(square);
+                }
+            }
         }
         static int LastFriendlyCaptureIndex(ModeRuntime runtime, Side side)
         {
