@@ -147,11 +147,12 @@ namespace ModularChess.Presentation
                     return Loc.Get("status.invulnerable");
                 case StatusKind.Stasis:
                     return Loc.Get("status.stasis");
+                case StatusKind.Rearguard:
+                    return Loc.Get("status.rearguard");
                 default:
                     throw new System.ArgumentOutOfRangeException(nameof(kind), kind, null);
             }
         }
-
         static string StatusDescription(PieceStatus status)
         {
             switch (status.Kind)
@@ -160,6 +161,8 @@ namespace ModularChess.Presentation
                     return Loc.Format("status.invulnerable.body", status.RemainingTurns);
                 case StatusKind.Stasis:
                     return Loc.Format("status.stasis.body", status.RemainingTurns);
+                case StatusKind.Rearguard:
+                    return Loc.Format("status.rearguard.body", status.RemainingTurns);
                 default:
                     throw new System.ArgumentOutOfRangeException(nameof(status.Kind), status.Kind, null);
             }

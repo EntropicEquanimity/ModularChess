@@ -15,5 +15,15 @@ namespace ModularChess.Core.Tests
             Assert.AreEqual(SquareSight.Identified, vision[new Square(4, 1)]);
             Assert.AreNotEqual(SquareSight.Identified, vision[new Square(4, 6)]);
         }
+
+        [Test]
+        public void OccupantBeyondRayBlocker_IsHiddenNotShadow()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.FogOfWar }, MatchSettings.Default);
+            GameState state = GameState.FromFen("4k3/8/4n3/8/4r3/8/4R3/4K3 w - - 0 1", rules);
+            VisionMap vision = VisionMap.Compute(state, Side.White);
+            Assert.AreEqual(SquareSight.Identified, vision[new Square(4, 3)]);
+            Assert.AreEqual(SquareSight.Hidden, vision[new Square(4, 5)]);
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace ModularChess.Core
         public HostColor HostColor { get; }
         public AiStrength AiStrength { get; }
         public bool AllowEndTurnWithZeroMoves { get; }
-        public int EmpoweredCount { get; }
+        public int EmpowerBudget { get; }
         public int MartyrThreshold { get; }
         public int MartyrDraftOptions { get; }
         public static MatchSettings Default { get; } = new MatchSettings();
@@ -19,7 +19,7 @@ namespace ModularChess.Core
             HostColor hostColor = HostColor.White,
             AiStrength aiStrength = AiStrength.Medium,
             bool allowEndTurnWithZeroMoves = false,
-            int empoweredCount = 2,
+            int empowerBudget = EmpoweredPowers.DefaultBudget,
             int martyrThreshold = 6,
             int martyrDraftOptions = 3)
         {
@@ -27,20 +27,14 @@ namespace ModularChess.Core
             HostColor = hostColor;
             AiStrength = aiStrength;
             AllowEndTurnWithZeroMoves = allowEndTurnWithZeroMoves;
-            EmpoweredCount = empoweredCount < 1 ? 2 : empoweredCount;
+            EmpowerBudget = EmpoweredPowers.ClampBudget(empowerBudget);
             MartyrThreshold = martyrThreshold < 1 ? 6 : martyrThreshold;
             if (martyrDraftOptions < 1)
-            {
                 MartyrDraftOptions = 3;
-            }
             else if (martyrDraftOptions > 5)
-            {
                 MartyrDraftOptions = 5;
-            }
             else
-            {
                 MartyrDraftOptions = martyrDraftOptions;
-            }
         }
         #endregion
     }

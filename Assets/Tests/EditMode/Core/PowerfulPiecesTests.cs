@@ -126,5 +126,24 @@ namespace ModularChess.Core.Tests
             Assert.IsFalse(string.IsNullOrWhiteSpace(EmpoweredPowers.Describe(PieceType.Queen)));
             Assert.IsFalse(string.IsNullOrWhiteSpace(EmpoweredPowers.Describe(PieceType.King)));
         }
+
+        [Test]
+        public void EmpoweredPowers_CostTable()
+        {
+            Assert.AreEqual(3, EmpoweredPowers.Cost(PieceType.Queen));
+            Assert.AreEqual(2, EmpoweredPowers.Cost(PieceType.King));
+            Assert.AreEqual(2, EmpoweredPowers.Cost(PieceType.Rook));
+            Assert.AreEqual(2, EmpoweredPowers.Cost(PieceType.Knight));
+            Assert.AreEqual(1, EmpoweredPowers.Cost(PieceType.Bishop));
+            Assert.AreEqual(1, EmpoweredPowers.Cost(PieceType.Pawn));
+        }
+
+        [Test]
+        public void MatchSettings_DefaultEmpowerBudgetIsFour()
+        {
+            Assert.AreEqual(4, MatchSettings.Default.EmpowerBudget);
+            Assert.AreEqual(3, new MatchSettings(empowerBudget: 1).EmpowerBudget);
+            Assert.AreEqual(20, new MatchSettings(empowerBudget: 99).EmpowerBudget);
+        }
     }
 }

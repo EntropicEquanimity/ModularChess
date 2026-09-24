@@ -7,13 +7,13 @@ namespace ModularChess.Core
         public static readonly ModeDefinition FogOfWar = new ModeDefinition(
             ModeId.FogOfWar,
             "Fog of War",
-            "You see Squares in Vision. Shadow marks a ray one Square beyond. Hidden occupancy is unknown.",
+            "You see Squares in Vision. Hidden occupancy is unknown.",
             allowsHotseat: false);
 
         public static readonly ModeDefinition PowerfulPieces = new ModeDefinition(
             ModeId.PowerfulPieces,
             "Powerful Pieces",
-            "Each Side empowers N Pieces in Setup. Each Core PieceType has one power.");
+            "Each Side spends an Empower budget in Setup. Each Core PieceType has one power and one cost.");
 
         public static readonly ModeDefinition Martyr = new ModeDefinition(
             ModeId.Martyr,

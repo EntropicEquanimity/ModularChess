@@ -364,6 +364,150 @@ namespace ModularChess.Core.Tests
             Assert.AreEqual(pawn.Id, promoted.Id);
             Assert.Greater(state.LegalMovesFrom(new Square(2, 1)).Count, 0);
         }
+        [Test]
+        public void UntouchableKingLastsThreeTurns()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            Assert.IsTrue(state.DraftPending);
+            state = state.ApplyDraft(MartyrPower.UntouchableKing, null, null);
+            Square? king = state.Board.FindKing(Side.Black);
+            Assert.IsNotNull(king);
+            Piece kingPiece = state.Board.GetPiece(king.Value);
+            Assert.IsTrue(state.Runtime.TryGetStatus(kingPiece.Id, out PieceStatus status));
+            Assert.AreEqual(StatusKind.Invulnerable, status.Kind);
+            Assert.AreEqual(3, status.RemainingTurns);
+        }
+        [Test]
+        public void KnightAscensionObtainLimitIsInfinite()
+        {
+            Assert.AreEqual(int.MaxValue, MartyrRules.ObtainLimit(MartyrPower.KnightAscension));
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/3n4/3p4/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            state = state.ApplyDraft(MartyrPower.KnightAscension, null, null);
+            Assert.AreEqual(1, state.Runtime.ObtainCount(Side.Black, MartyrPower.KnightAscension));
+            Assert.Less(1, MartyrRules.ObtainLimit(MartyrPower.KnightAscension));
+        }
+        [Test]
+        public void FogVisionIsNotOfferedWithoutFogOfWar()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            Assert.IsTrue(state.DraftPending);
+            Assert.IsFalse(state.Runtime.PendingDraft.Value.Contains(MartyrPower.FogVision));
+        }
+        [Test]
+        public void IronCurtainIsNotOfferedWithEmptyBackRanks()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("8/8/4k3/8/8/8/3p4/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            Assert.IsTrue(state.DraftPending);
+            Assert.IsFalse(HasPieceOnBackTwo(state.Board, Side.Black));
+            Assert.IsFalse(state.Runtime.PendingDraft.Value.Contains(MartyrPower.IronCurtain));
+        }
+        [Test]
+        public void OverloadIsNotOfferedInCheck()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/3p4/8/8/8/8/8/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d7");
+            Assert.IsTrue(state.DraftPending);
+            Assert.AreEqual(Side.Black, state.SideToMove);
+            Assert.IsTrue(state.IsInCheck);
+            Assert.IsFalse(state.Runtime.PendingDraft.Value.Contains(MartyrPower.Overload));
+        }
+        [Test]
+        public void SecondFrontPlacesSummonedKnightOnBackTwo()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            Square dest = new Square(0, 6);
+            state = state.ApplyDraft(MartyrPower.SecondFront, null, new[] { dest });
+            Piece knight = state.Board.GetPiece(dest);
+            Assert.IsNotNull(knight);
+            Assert.AreEqual(PieceType.Knight, knight.Type);
+            Assert.AreEqual(Side.Black, knight.Side);
+            Assert.IsTrue(state.Runtime.IsSummoned(knight.Id));
+        }
+        [Test]
+        public void TurncoatConvertsEnemyPawn()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/3pP3/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            Piece whitePawn = state.Board.GetPiece(new Square(4, 1));
+            Assert.IsNotNull(whitePawn);
+            Assert.AreEqual(Side.White, whitePawn.Side);
+            state = state.ApplyDraft(MartyrPower.Turncoat, whitePawn.Id, null);
+            Piece converted = state.Board.GetPiece(new Square(4, 1));
+            Assert.IsNotNull(converted);
+            Assert.AreEqual(Side.Black, converted.Side);
+            Assert.AreEqual(PieceType.Pawn, converted.Type);
+            Assert.IsTrue(state.Runtime.IsSummoned(converted.Id));
+            Assert.AreNotEqual(whitePawn.Id, converted.Id);
+        }
+        [Test]
+        public void LandmineCapturesEnemyThatEndsOnIt()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 9));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/8/3QK3 w - - 0 1", rules);
+            ModeRuntime runtime = state.Runtime.AddLandmine(Side.Black, new Square(3, 2));
+            state = GameState.FromPosition(
+                state.Board,
+                state.SideToMove,
+                state.EnPassantTarget,
+                state.CastlingRights,
+                state.HalfmoveClock,
+                state.FullmoveNumber,
+                null,
+                null,
+                rules,
+                runtime);
+            state = MoveTestHelper.Play(state, "d1d3");
+            Assert.IsNull(state.Board.GetPiece(new Square(3, 2)));
+            Assert.IsFalse(state.Runtime.TryGetLandmine(new Square(3, 2), out _));
+        }
+        [Test]
+        public void BloodDebtRetaliatesAgainstCapturer()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 9));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
+            ModeRuntime runtime = state.Runtime.AddBloodDebt(Side.Black);
+            state = GameState.FromPosition(
+                state.Board,
+                state.SideToMove,
+                state.EnPassantTarget,
+                state.CastlingRights,
+                state.HalfmoveClock,
+                state.FullmoveNumber,
+                null,
+                null,
+                rules,
+                runtime);
+            Assert.AreEqual(1, state.Runtime.BloodDebtCharges(Side.Black));
+            state = MoveTestHelper.Play(state, "d1d2");
+            Assert.IsNull(state.Board.GetPiece(new Square(3, 1)));
+            Assert.AreEqual(0, state.Runtime.BloodDebtCharges(Side.Black));
+            Assert.AreEqual(2, state.Runtime.Captures.Count);
+        }
+        static bool HasPieceOnBackTwo(Board board, Side side)
+        {
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = Square.FromIndex(i);
+                Piece piece = board.GetPiece(square);
+                if (piece != null && piece.Side == side && GameState.IsBackTwoRanks(square, side))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         static int CountExiled(ModeRuntime runtime)
         {
             int count = 0;

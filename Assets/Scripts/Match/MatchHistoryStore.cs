@@ -43,6 +43,7 @@ namespace ModularChess.Match
         public MatchHistoryAction[] moves;
         public int clockSeconds;
         public int[] modes;
+        public int empowerBudget;
         public int empoweredCount;
         public int martyrThreshold;
         public int martyrDraftOptions;
@@ -85,7 +86,7 @@ namespace ModularChess.Match
                 moves = BuildLegacyMoves(events),
                 clockSeconds = Math.Max(0, clockSeconds),
                 modes = ModeIds(session.Rules),
-                empoweredCount = session.Rules.Settings.EmpoweredCount,
+                empowerBudget = session.Rules.Settings.EmpowerBudget,
                 martyrThreshold = session.Rules.Settings.MartyrThreshold,
                 martyrDraftOptions = session.Rules.Settings.MartyrDraftOptions,
                 mainMinutes = session.Rules.Settings.Time.BaseMinutes,
@@ -182,12 +183,17 @@ namespace ModularChess.Match
                     modes.Add((ModeId)record.modes[i]);
             }
             var time = new TimeControl(Math.Max(0, record.mainMinutes), Math.Max(0, record.incrementSeconds));
+            int budget = record.empowerBudget > 0
+                ? record.empowerBudget
+                : (record.empoweredCount >= EmpoweredPowers.MinBudget
+                    ? record.empoweredCount
+                    : EmpoweredPowers.DefaultBudget);
             var settings = new MatchSettings(
                 time,
                 HostColor.White,
                 (AiStrength)record.aiStrength,
                 false,
-                Math.Max(0, record.empoweredCount),
+                budget,
                 Math.Max(0, record.martyrThreshold),
                 Math.Max(0, record.martyrDraftOptions));
             return new MatchRules(modes, settings);

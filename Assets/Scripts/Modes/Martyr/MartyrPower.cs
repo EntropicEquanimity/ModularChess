@@ -4,16 +4,27 @@ namespace ModularChess.Core
     {
         Reinforcements,
         FleetPawns,
-        #region Not In Use
-        Bombard,
-        Phalanx,
-        #endregion
         UntouchableKing,
         StasisField,
         KnightAscension,
         BattlefieldPromotion,
         Rally,
         Revival,
-        Exile
+        Exile,
+        SecondFront,
+        IronCurtain,
+        Turncoat,
+        VanishingAct,
+        BloodDebt,
+        Rearguard,
+        Overload,
+        Landmine,
+        ReserveCall,
+        FogVision,
+        DustCloud,
+        #region Not In Use
+        Bombard,
+        Phalanx
+        #endregion
     }
 }

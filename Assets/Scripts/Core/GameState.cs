@@ -20,7 +20,9 @@ namespace ModularChess.Core
         public MatchRules Rules { get; }
         public ModeRuntime Runtime { get; }
         public int MovesThisTurn => Runtime.MovesThisTurn;
-        public bool TurnOpen => Runtime.ExtraMoveKingId != null || (Runtime.RallyArmed && MovesThisTurn > 0);
+        public bool TurnOpen => Runtime.ExtraMoveKingId != null
+            || (Runtime.RallyArmed && MovesThisTurn > 0)
+            || (Runtime.OverloadPieceId != null && Runtime.OverloadMovesMade < 2);
         public bool DraftPending => Runtime.PendingDraft != null;
         #endregion
 
@@ -83,7 +85,6 @@ namespace ModularChess.Core
             ModeRuntime nextRuntime = Runtime;
             Board nextBoard = Board;
             bool bounced = false;
-
             if (captured != null)
             {
                 CaptureResolution resolved = Rules.Hooks.ResolveCapture(Board, move, captured, nextRuntime);
@@ -110,34 +111,46 @@ namespace ModularChess.Core
                                 Rules.Settings.MartyrThreshold);
                         }
                     }
+                    nextBoard = ResolveMartyrAfterCapture(
+                        nextBoard,
+                        move,
+                        moving,
+                        captured,
+                        origin,
+                        ref nextRuntime);
                 }
             }
             else
             {
                 nextBoard = Board.ApplyUnchecked(move);
+                nextBoard = ResolveLandmine(nextBoard, move, moving, ref nextRuntime);
             }
-
             if (move.Kind == MoveKind.Promotion
                 && nextRuntime.IsEmpowered(moving.Id)
                 && moving.Type == PieceType.Pawn)
             {
                 nextRuntime = nextRuntime.WithoutEmpowered(moving.Id);
             }
-
+            if (nextRuntime.OverloadPieceId != null && nextRuntime.OverloadPieceId.Value == moving.Id)
+            {
+                int overloadMoves = nextRuntime.OverloadMovesMade + 1;
+                nextRuntime = nextRuntime.WithOverload(moving.Id, overloadMoves);
+                if (overloadMoves >= 2)
+                {
+                    nextBoard = RemoveOverloadPiece(nextBoard, moving, move.To, ref nextRuntime);
+                }
+            }
             CastlingRights nextCastling = bounced ? CastlingRights : CastlingRights.AfterMove(move, Board);
             Square? nextEnPassant = bounced ? null : ComputeEnPassantTarget(move, moving);
             bool resetsClock = moving.Type == PieceType.Pawn || (captured != null && !bounced);
             int nextHalfmove = resetsClock ? 0 : HalfmoveClock + 1;
             int nextMovesThisTurn = nextRuntime.MovesThisTurn + 1;
-            bool endsTurn = MoveEndsTurn(moving, move, nextRuntime);
+            bool endsTurn = MoveEndsTurn(moving, nextRuntime);
             Side nextSide = endsTurn ? SideToMove.Opponent() : SideToMove;
             int nextFullmove = SideToMove == Side.Black && endsTurn ? FullmoveNumber + 1 : FullmoveNumber;
-
             if (endsTurn)
             {
-                nextRuntime = nextRuntime.TickStatuses(SideToMove);
-                nextBoard = MartyrRules.ResolveExpiredExiles(nextBoard, nextRuntime, SideToMove, out nextRuntime);
-                nextRuntime = nextRuntime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false);
+                nextBoard = FinishTurnSideEffects(nextBoard, ref nextRuntime);
                 nextRuntime = MaybeOpenDraft(nextRuntime, nextSide, nextBoard);
             }
             else
@@ -175,9 +188,8 @@ namespace ModularChess.Core
                 throw new InvalidOperationException("End Turn is not legal.");
             }
 
-            ModeRuntime nextRuntime = Runtime.TickStatuses(SideToMove);
-            Board nextBoard = MartyrRules.ResolveExpiredExiles(Board, nextRuntime, SideToMove, out nextRuntime);
-            nextRuntime = nextRuntime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false);
+            ModeRuntime nextRuntime = Runtime;
+            Board nextBoard = FinishTurnSideEffects(Board, ref nextRuntime);
             Side nextSide = SideToMove.Opponent();
             nextRuntime = MaybeOpenDraft(nextRuntime, nextSide, nextBoard);
             int nextFullmove = SideToMove == Side.Black ? FullmoveNumber + 1 : FullmoveNumber;
@@ -328,6 +340,22 @@ namespace ModularChess.Core
         {
             return MartyrRules.CanExile(Board, square, Rules, Runtime, SideToMove);
         }
+        public bool IsVanishingActPiece(Square square)
+        {
+            Piece piece = Board.GetPiece(square);
+            if (piece == null || piece.Side != SideToMove) return false;
+            int? value = PieceValues.Get(piece.Type);
+            if (value == null || value.Value <= 1) return false;
+            return AttackMap.IsAttacked(Board, square, SideToMove.Opponent(), Rules, Runtime);
+        }
+        public static bool IsOwnHalf(Square square, Side side)
+        {
+            return MartyrRules.IsOwnHalf(square, side);
+        }
+        public static bool IsBackTwoRanks(Square square, Side side)
+        {
+            return MartyrRules.IsBackTwoRanks(square, side);
+        }
         #endregion
 
         #region Private Methods
@@ -396,22 +424,154 @@ namespace ModularChess.Core
                 Status = DrawEvaluator.Resolve(IsInCheck, legal.Count, halfmoveClock, _positionKeys, board);
             }
         }
-        private bool MoveEndsTurn(Piece moving, Move move, ModeRuntime runtime)
+        private bool MoveEndsTurn(Piece moving, ModeRuntime runtime)
         {
+            if (runtime.OverloadPieceId != null && runtime.OverloadPieceId.Value == moving.Id)
+            {
+                return runtime.OverloadMovesMade >= 2;
+            }
             int after = runtime.MovesThisTurn + 1;
-            if (after >= 2)
-            {
-                return true;
-            }
-            if (runtime.RallyArmed)
-            {
-                return false;
-            }
+            if (after >= 2) return true;
+            if (runtime.RallyArmed) return false;
             if (moving.Type == PieceType.King && runtime.IsEmpowered(moving.Id) && Runtime.ExtraMoveKingId == null)
             {
                 return false;
             }
             return true;
+        }
+        private Board FinishTurnSideEffects(Board board, ref ModeRuntime runtime)
+        {
+            if (runtime.OverloadPieceId != null && runtime.OverloadMovesMade < 2)
+            {
+                Square? square = board.FindSquare(runtime.OverloadPieceId.Value);
+                if (square != null)
+                {
+                    Piece piece = board.GetPiece(square.Value);
+                    if (piece != null)
+                    {
+                        board = RemoveOverloadPiece(board, piece, square.Value, ref runtime);
+                    }
+                }
+                else
+                {
+                    runtime = runtime.ClearOverload();
+                }
+            }
+            runtime = runtime.TickStatuses(SideToMove).TickSideEffects(SideToMove);
+            board = MartyrRules.ResolveExpiredExiles(board, runtime, SideToMove, out runtime);
+            runtime = runtime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false).ClearOverload();
+            return board;
+        }
+        private Board ResolveMartyrAfterCapture(
+            Board board,
+            Move move,
+            Piece moving,
+            Piece captured,
+            Square lossSquare,
+            ref ModeRuntime runtime)
+        {
+            if (!Rules.Has(ModeId.Martyr)) return board;
+            board = ResolveBloodDebt(board, move, moving, captured, lossSquare, ref runtime);
+            board = ResolveLandmine(board, move, moving, ref runtime);
+            board = ResolveReserveCall(board, move, moving, captured, lossSquare, ref runtime);
+            return board;
+        }
+        private Board ResolveBloodDebt(
+            Board board,
+            Move move,
+            Piece moving,
+            Piece captured,
+            Square lossSquare,
+            ref ModeRuntime runtime)
+        {
+            if (runtime.BloodDebtCharges(captured.Side) <= 0) return board;
+            Square capturerSquare = move.Kind == MoveKind.Bombard ? move.From : move.To;
+            Piece capturer = board.GetPiece(capturerSquare);
+            if (capturer == null || capturer.Id != moving.Id) return board;
+            runtime = runtime.SpendBloodDebt(captured.Side);
+            Move retaliate = new Move(lossSquare, capturerSquare, MoveKind.Capture, capturedType: capturer.Type);
+            CaptureResolution resolved = Rules.Hooks.ResolveCapture(board, retaliate, capturer, runtime);
+            runtime = resolved.Runtime;
+            if (resolved.Kind == CaptureResolutionKind.Negate) return board;
+            runtime = runtime.AddCapture(capturer, false, capturerSquare);
+            if (!runtime.IsSummoned(capturer.Id))
+            {
+                int? value = PieceValues.Get(capturer.Type);
+                if (value != null)
+                {
+                    runtime = runtime.AddLostMaterial(capturer.Side, value.Value, Rules.Settings.MartyrThreshold);
+                }
+            }
+            return board.WithPiece(capturerSquare, null);
+        }
+        private Board ResolveReserveCall(
+            Board board,
+            Move move,
+            Piece moving,
+            Piece captured,
+            Square lossSquare,
+            ref ModeRuntime runtime)
+        {
+            if (!runtime.ReserveCallArmed(captured.Side) || captured.Type == PieceType.Pawn) return board;
+            runtime = runtime.WithReserveCall(captured.Side, false);
+            Square capturerSquare = move.Kind == MoveKind.Bombard ? move.From : move.To;
+            Piece capturer = board.GetPiece(capturerSquare);
+            if (capturer != null && capturer.Id == moving.Id)
+            {
+                board = board.WithPiece(capturerSquare, null);
+                if (board.CanPlace(move.From))
+                {
+                    board = board.WithPiece(move.From, capturer);
+                }
+            }
+            if (board.CanPlace(lossSquare))
+            {
+                Piece pawn = new Piece(PieceType.Pawn, captured.Side);
+                board = board.WithPiece(lossSquare, pawn);
+                runtime = runtime.AddSummoned(pawn.Id);
+            }
+            return board;
+        }
+        private Board ResolveLandmine(Board board, Move move, Piece moving, ref ModeRuntime runtime)
+        {
+            if (!Rules.Has(ModeId.Martyr) || move.Kind == MoveKind.Bombard) return board;
+            if (!runtime.TryGetLandmine(move.To, out LandmineMarker mine)) return board;
+            if (mine.Owner == moving.Side) return board;
+            Piece occupant = board.GetPiece(move.To);
+            if (occupant == null || occupant.Id != moving.Id) return board;
+            Move detonate = new Move(move.To, move.To, MoveKind.Capture, capturedType: occupant.Type);
+            CaptureResolution resolved = Rules.Hooks.ResolveCapture(board, detonate, occupant, runtime);
+            runtime = resolved.Runtime.RemoveLandmineAt(move.To);
+            if (resolved.Kind == CaptureResolutionKind.Negate) return board;
+            runtime = runtime.AddCapture(occupant, false, move.To);
+            if (!runtime.IsSummoned(occupant.Id))
+            {
+                int? value = PieceValues.Get(occupant.Type);
+                if (value != null)
+                {
+                    runtime = runtime.AddLostMaterial(occupant.Side, value.Value, Rules.Settings.MartyrThreshold);
+                }
+            }
+            return board.WithPiece(move.To, null);
+        }
+        private Board RemoveOverloadPiece(Board board, Piece piece, Square square, ref ModeRuntime runtime)
+        {
+            Piece occupant = board.GetPiece(square);
+            if (occupant == null || occupant.Id != piece.Id)
+            {
+                runtime = runtime.ClearOverload();
+                return board;
+            }
+            runtime = runtime.AddCapture(occupant, false, square).ClearOverload();
+            if (!runtime.IsSummoned(occupant.Id))
+            {
+                int? value = PieceValues.Get(occupant.Type);
+                if (value != null)
+                {
+                    runtime = runtime.AddLostMaterial(occupant.Side, value.Value, Rules.Settings.MartyrThreshold);
+                }
+            }
+            return board.WithPiece(square, null);
         }
         private ModeRuntime MaybeOpenDraft(ModeRuntime runtime, Side sideToMove, Board board)
         {

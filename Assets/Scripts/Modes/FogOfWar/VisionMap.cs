@@ -5,65 +5,75 @@ namespace ModularChess.Core
     public sealed class VisionMap
     {
         readonly SquareSight[] _cells;
-
         VisionMap(SquareSight[] cells)
         {
             _cells = cells;
         }
-
         public SquareSight this[Square square]
         {
             get
             {
-                if (!square.IsOnBoard)
-                {
-                    return SquareSight.Hidden;
-                }
-
+                if (!square.IsOnBoard) return SquareSight.Hidden;
                 return _cells[square.ToIndex()];
             }
         }
-
         public bool IsIdentified(Square square) => this[square] == SquareSight.Identified;
-
-        public bool IsShadow(Square square) => this[square] == SquareSight.Shadow;
-
         public static VisionMap AllIdentified { get; } = Fill(SquareSight.Identified);
-
         public static VisionMap Compute(GameState state, Side viewer)
         {
-            if (state == null)
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            if (state.Status != GameStatus.InProgress) return AllIdentified;
+            bool fog = state.Rules != null && state.Rules.Has(ModeId.FogOfWar);
+            SquareSight[] cells;
+            if (fog)
             {
-                throw new ArgumentNullException(nameof(state));
+                cells = FogVision.ComputeCells(state, viewer);
             }
-
-            if (state.Status != GameStatus.InProgress)
+            else
             {
-                return AllIdentified;
+                cells = FillCells(SquareSight.Identified);
             }
-
-            if (state.Rules == null || !state.Rules.Has(ModeId.FogOfWar))
-            {
-                return AllIdentified;
-            }
-
-            return FogVision.Compute(state, viewer);
-        }
-
-        public static VisionMap Fill(SquareSight sight)
-        {
-            var cells = new SquareSight[Square.BoardSize * Square.BoardSize];
-            for (int i = 0; i < cells.Length; i++)
-            {
-                cells[i] = sight;
-            }
-
+            ApplyDustCloud(cells, state, viewer);
+            ApplyFogVisionPower(cells, state, viewer);
             return new VisionMap(cells);
         }
-
+        public static VisionMap Fill(SquareSight sight)
+        {
+            return new VisionMap(FillCells(sight));
+        }
         internal static VisionMap FromCells(SquareSight[] cells)
         {
             return new VisionMap(cells);
+        }
+        static SquareSight[] FillCells(SquareSight sight)
+        {
+            var cells = new SquareSight[Square.BoardSize * Square.BoardSize];
+            for (int i = 0; i < cells.Length; i++) cells[i] = sight;
+            return cells;
+        }
+        static void ApplyDustCloud(SquareSight[] cells, GameState state, Side viewer)
+        {
+            Side opponent = viewer.Opponent();
+            if (state.Runtime.DustCloudTurns(opponent) <= 0) return;
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = Square.FromIndex(i);
+                if (!MartyrRules.IsOwnHalf(square, opponent)) continue;
+                cells[i] = SquareSight.Hidden;
+            }
+        }
+        static void ApplyFogVisionPower(SquareSight[] cells, GameState state, Side viewer)
+        {
+            if (state.Runtime.FogVisionTurns(viewer) <= 0) return;
+            Board board = state.Board;
+            for (int i = 0; i < 64; i++)
+            {
+                Piece piece = board.GetPiece(Square.FromIndex(i));
+                if (piece != null && piece.Side != viewer)
+                {
+                    cells[i] = SquareSight.Identified;
+                }
+            }
         }
     }
 }

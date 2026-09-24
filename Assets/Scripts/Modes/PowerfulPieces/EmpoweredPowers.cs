@@ -3,6 +3,27 @@ namespace ModularChess.Core
     public static class EmpoweredPowers
     {
         public const string EffectName = "Empowered";
+        public const int DefaultBudget = 4;
+        public const int MinBudget = 3;
+        public const int MaxBudget = 20;
+
+        public static int Cost(PieceType type)
+        {
+            switch (type)
+            {
+                case PieceType.Queen:
+                    return 3;
+                case PieceType.King:
+                case PieceType.Rook:
+                case PieceType.Knight:
+                    return 2;
+                case PieceType.Bishop:
+                case PieceType.Pawn:
+                    return 1;
+                default:
+                    throw new System.ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
 
         public static string Describe(PieceType type)
         {
@@ -23,6 +44,15 @@ namespace ModularChess.Core
                 default:
                     throw new System.ArgumentOutOfRangeException(nameof(type), type, null);
             }
+        }
+
+        public static int ClampBudget(int budget)
+        {
+            if (budget < MinBudget)
+                return MinBudget;
+            if (budget > MaxBudget)
+                return MaxBudget;
+            return budget;
         }
     }
 }

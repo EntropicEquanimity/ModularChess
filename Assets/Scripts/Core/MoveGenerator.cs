@@ -38,10 +38,17 @@ namespace ModularChess.Core
                 }
 
                 Board next = ApplyForLegality(board, move, rules, runtime);
-                if (!AttackMap.IsInCheck(next, side, rules, RuntimeAfterMove(board, move, rules, runtime)))
+                ModeRuntime afterRuntime = RuntimeAfterMove(board, move, rules, runtime);
+                if (AttackMap.IsInCheck(next, side, rules, afterRuntime))
                 {
-                    legal.Add(move);
+                    continue;
                 }
+                if (runtime.OverloadPieceId != null
+                    && DeliversCheck(board, move, side, rules, runtime, next, afterRuntime))
+                {
+                    continue;
+                }
+                legal.Add(move);
             }
 
             if (runtime.ExtraMoveKingId == null)
@@ -51,9 +58,12 @@ namespace ModularChess.Core
 
             if (runtime.ExtraMoveKingId != null)
             {
-                FilterToKing(board, legal, runtime.ExtraMoveKingId.Value);
+                FilterToPiece(board, legal, runtime.ExtraMoveKingId.Value);
             }
-
+            if (runtime.OverloadPieceId != null)
+            {
+                FilterToPiece(board, legal, runtime.OverloadPieceId.Value);
+            }
             return legal;
         }
         #endregion
@@ -341,7 +351,6 @@ namespace ModularChess.Core
             {
                 return false;
             }
-
             Piece captured = CapturedPiece(board, move);
             if (captured != null)
             {
@@ -349,7 +358,6 @@ namespace ModularChess.Core
                 {
                     return false;
                 }
-
                 if (runtime.IsEmpowered(captured.Id)
                     && captured.Type == PieceType.Pawn
                     && !Pattern.SuperPawnAllowsCapture(PawnSquare(move), captured.Side, move.From))
@@ -357,7 +365,13 @@ namespace ModularChess.Core
                     return false;
                 }
             }
-
+            Side opponent = moving.Side.Opponent();
+            if (runtime.IronCurtainTurns(opponent) > 0
+                && MartyrRules.IsBackTwoRanks(move.To, opponent)
+                && move.Kind != MoveKind.Bombard)
+            {
+                return false;
+            }
             return true;
         }
         private static Square PawnSquare(Move move)
@@ -416,16 +430,36 @@ namespace ModularChess.Core
         {
             return rules != null ? rules.Hooks : ModeHooks.None;
         }
-        private static void FilterToKing(Board board, List<Move> legal, Guid kingId)
+        private static void FilterToPiece(Board board, List<Move> legal, Guid pieceId)
         {
             for (int i = legal.Count - 1; i >= 0; i--)
             {
                 Piece piece = board.GetPiece(legal[i].From);
-                if (piece == null || piece.Id != kingId)
+                if (piece == null || piece.Id != pieceId)
                 {
                     legal.RemoveAt(i);
                 }
             }
+        }
+        private static bool DeliversCheck(
+            Board board,
+            Move move,
+            Side side,
+            MatchRules rules,
+            ModeRuntime runtime,
+            Board next,
+            ModeRuntime afterRuntime)
+        {
+            Piece moving = board.GetPiece(move.From);
+            if (moving == null || runtime.OverloadPieceId == null || moving.Id != runtime.OverloadPieceId.Value)
+            {
+                return false;
+            }
+            return AttackMap.IsInCheck(next, side.Opponent(), rules, afterRuntime);
+        }
+        private static void FilterToKing(Board board, List<Move> legal, Guid kingId)
+        {
+            FilterToPiece(board, legal, kingId);
         }
         private static void AddCastling(
             Board board,

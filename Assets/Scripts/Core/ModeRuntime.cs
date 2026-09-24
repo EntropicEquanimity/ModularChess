@@ -17,6 +17,7 @@ namespace ModularChess.Core
         private readonly Dictionary<MartyrPower, int> _whiteObtains;
         private readonly Dictionary<MartyrPower, int> _blackObtains;
         private readonly List<CaptureRecord> _captures;
+        private readonly List<LandmineMarker> _landmines;
         public int WhiteLostMaterial { get; private set; }
         public int BlackLostMaterial { get; private set; }
         public int WhiteDraftsQueued { get; private set; }
@@ -27,7 +28,19 @@ namespace ModularChess.Core
         public bool BlackFleetPawns { get; private set; }
         public bool WhiteBombard { get; private set; }
         public bool BlackBombard { get; private set; }
+        public int WhiteIronCurtainTurns { get; private set; }
+        public int BlackIronCurtainTurns { get; private set; }
+        public int WhiteBloodDebtCharges { get; private set; }
+        public int BlackBloodDebtCharges { get; private set; }
+        public bool WhiteReserveCallArmed { get; private set; }
+        public bool BlackReserveCallArmed { get; private set; }
+        public int WhiteFogVisionTurns { get; private set; }
+        public int BlackFogVisionTurns { get; private set; }
+        public int WhiteDustCloudTurns { get; private set; }
+        public int BlackDustCloudTurns { get; private set; }
         public Guid? ExtraMoveKingId { get; private set; }
+        public Guid? OverloadPieceId { get; private set; }
+        public int OverloadMovesMade { get; private set; }
         public int MovesThisTurn { get; private set; }
         public bool RallyArmed { get; private set; }
         public DraftOffer? PendingDraft { get; private set; }
@@ -54,6 +67,12 @@ namespace ModularChess.Core
         public bool FleetPawns(Side side) => side == Side.White ? WhiteFleetPawns : BlackFleetPawns;
         public bool Bombard(Side side) => side == Side.White ? WhiteBombard : BlackBombard;
         public int LostMaterial(Side side) => side == Side.White ? WhiteLostMaterial : BlackLostMaterial;
+        public int IronCurtainTurns(Side side) => side == Side.White ? WhiteIronCurtainTurns : BlackIronCurtainTurns;
+        public int BloodDebtCharges(Side side) => side == Side.White ? WhiteBloodDebtCharges : BlackBloodDebtCharges;
+        public bool ReserveCallArmed(Side side) => side == Side.White ? WhiteReserveCallArmed : BlackReserveCallArmed;
+        public int FogVisionTurns(Side side) => side == Side.White ? WhiteFogVisionTurns : BlackFogVisionTurns;
+        public int DustCloudTurns(Side side) => side == Side.White ? WhiteDustCloudTurns : BlackDustCloudTurns;
+        public IReadOnlyList<LandmineMarker> Landmines => _landmines;
         public bool Unlocked(Side side, MartyrPower power)
         {
             return side == Side.White
@@ -86,7 +105,6 @@ namespace ModularChess.Core
                     next._empowered.Add(id);
                 }
             }
-
             if (extraLifeIds != null)
             {
                 foreach (Guid id in extraLifeIds)
@@ -94,7 +112,6 @@ namespace ModularChess.Core
                     next._extraLife.Add(id);
                 }
             }
-
             next.SetupComplete = true;
             return next;
         }
@@ -115,6 +132,17 @@ namespace ModularChess.Core
             ModeRuntime next = Clone();
             next.ExtraMoveKingId = kingId;
             return next;
+        }
+        public ModeRuntime WithOverload(Guid? pieceId, int movesMade)
+        {
+            ModeRuntime next = Clone();
+            next.OverloadPieceId = pieceId;
+            next.OverloadMovesMade = movesMade;
+            return next;
+        }
+        public ModeRuntime ClearOverload()
+        {
+            return WithOverload(null, 0);
         }
         public ModeRuntime WithoutEmpowered(Guid pieceId)
         {
@@ -153,7 +181,6 @@ namespace ModularChess.Core
                 int after = next.BlackLostMaterial / threshold;
                 next.BlackDraftsQueued += Math.Max(0, after - before);
             }
-
             return next;
         }
         public ModeRuntime WithStatus(Guid pieceId, PieceStatus status)
@@ -161,6 +188,85 @@ namespace ModularChess.Core
             ModeRuntime next = Clone();
             next._statuses[pieceId] = status;
             return next;
+        }
+        public ModeRuntime WithIronCurtain(Side side, int turns)
+        {
+            ModeRuntime next = Clone();
+            if (side == Side.White) next.WhiteIronCurtainTurns = turns;
+            else next.BlackIronCurtainTurns = turns;
+            return next;
+        }
+        public ModeRuntime AddBloodDebt(Side side)
+        {
+            ModeRuntime next = Clone();
+            if (side == Side.White) next.WhiteBloodDebtCharges++;
+            else next.BlackBloodDebtCharges++;
+            return next;
+        }
+        public ModeRuntime SpendBloodDebt(Side side)
+        {
+            ModeRuntime next = Clone();
+            if (side == Side.White)
+            {
+                if (next.WhiteBloodDebtCharges > 0) next.WhiteBloodDebtCharges--;
+            }
+            else
+            {
+                if (next.BlackBloodDebtCharges > 0) next.BlackBloodDebtCharges--;
+            }
+            return next;
+        }
+        public ModeRuntime WithReserveCall(Side side, bool armed)
+        {
+            ModeRuntime next = Clone();
+            if (side == Side.White) next.WhiteReserveCallArmed = armed;
+            else next.BlackReserveCallArmed = armed;
+            return next;
+        }
+        public ModeRuntime WithFogVision(Side side, int turns)
+        {
+            ModeRuntime next = Clone();
+            if (side == Side.White) next.WhiteFogVisionTurns = turns;
+            else next.BlackFogVisionTurns = turns;
+            return next;
+        }
+        public ModeRuntime WithDustCloud(Side side, int turns)
+        {
+            ModeRuntime next = Clone();
+            if (side == Side.White) next.WhiteDustCloudTurns = turns;
+            else next.BlackDustCloudTurns = turns;
+            return next;
+        }
+        public ModeRuntime AddLandmine(Side owner, Square square)
+        {
+            ModeRuntime next = Clone();
+            next._landmines.Add(new LandmineMarker(owner, square));
+            return next;
+        }
+        public ModeRuntime RemoveLandmineAt(Square square)
+        {
+            ModeRuntime next = Clone();
+            for (int i = next._landmines.Count - 1; i >= 0; i--)
+            {
+                if (next._landmines[i].Square.Equals(square))
+                {
+                    next._landmines.RemoveAt(i);
+                }
+            }
+            return next;
+        }
+        public bool TryGetLandmine(Square square, out LandmineMarker marker)
+        {
+            for (int i = 0; i < _landmines.Count; i++)
+            {
+                if (_landmines[i].Square.Equals(square))
+                {
+                    marker = _landmines[i];
+                    return true;
+                }
+            }
+            marker = default;
+            return false;
         }
         public ModeRuntime Unlock(Side side, MartyrPower power)
         {
@@ -171,28 +277,14 @@ namespace ModularChess.Core
             obtains[power] = count + 1;
             if (power == MartyrPower.FleetPawns)
             {
-                if (side == Side.White)
-                {
-                    next.WhiteFleetPawns = true;
-                }
-                else
-                {
-                    next.BlackFleetPawns = true;
-                }
+                if (side == Side.White) next.WhiteFleetPawns = true;
+                else next.BlackFleetPawns = true;
             }
-
             if (power == MartyrPower.Bombard)
             {
-                if (side == Side.White)
-                {
-                    next.WhiteBombard = true;
-                }
-                else
-                {
-                    next.BlackBombard = true;
-                }
+                if (side == Side.White) next.WhiteBombard = true;
+                else next.BlackBombard = true;
             }
-
             return next;
         }
         public ModeRuntime ConsumeDraftSlot(Side side)
@@ -200,23 +292,14 @@ namespace ModularChess.Core
             ModeRuntime next = Clone();
             if (side == Side.White)
             {
-                if (next.WhiteDraftsQueued > 0)
-                {
-                    next.WhiteDraftsQueued--;
-                }
-
+                if (next.WhiteDraftsQueued > 0) next.WhiteDraftsQueued--;
                 next.WhiteDraftsResolved++;
             }
             else
             {
-                if (next.BlackDraftsQueued > 0)
-                {
-                    next.BlackDraftsQueued--;
-                }
-
+                if (next.BlackDraftsQueued > 0) next.BlackDraftsQueued--;
                 next.BlackDraftsResolved++;
             }
-
             next.PendingDraft = null;
             next.PendingBattlefieldType = null;
             return next;
@@ -247,10 +330,7 @@ namespace ModularChess.Core
             for (int i = 0; i < next._captures.Count; i++)
             {
                 CaptureRecord record = next._captures[i];
-                if (!record.Exiled || record.Side != sideThatEndedTurn)
-                {
-                    continue;
-                }
+                if (!record.Exiled || record.Side != sideThatEndedTurn) continue;
                 next._captures[i] = record.WithRemaining(record.RemainingTurns - 1);
             }
             return next;
@@ -273,14 +353,25 @@ namespace ModularChess.Core
                 PieceStatus status = next._statuses[keys[i]];
                 if (status.AffectedSide != sideThatEndedTurn) continue;
                 PieceStatus ticked = status.Tick();
-                if (ticked.RemainingTurns <= 0)
-                {
-                    next._statuses.Remove(keys[i]);
-                }
-                else
-                {
-                    next._statuses[keys[i]] = ticked;
-                }
+                if (ticked.RemainingTurns <= 0) next._statuses.Remove(keys[i]);
+                else next._statuses[keys[i]] = ticked;
+            }
+            return next;
+        }
+        public ModeRuntime TickSideEffects(Side sideThatEndedTurn)
+        {
+            ModeRuntime next = Clone();
+            if (sideThatEndedTurn == Side.White)
+            {
+                if (next.WhiteIronCurtainTurns > 0) next.WhiteIronCurtainTurns--;
+                if (next.WhiteFogVisionTurns > 0) next.WhiteFogVisionTurns--;
+                if (next.WhiteDustCloudTurns > 0) next.WhiteDustCloudTurns--;
+            }
+            else
+            {
+                if (next.BlackIronCurtainTurns > 0) next.BlackIronCurtainTurns--;
+                if (next.BlackFogVisionTurns > 0) next.BlackFogVisionTurns--;
+                if (next.BlackDustCloudTurns > 0) next.BlackDustCloudTurns--;
             }
             return next;
         }
@@ -299,6 +390,7 @@ namespace ModularChess.Core
             _whiteObtains = new Dictionary<MartyrPower, int>();
             _blackObtains = new Dictionary<MartyrPower, int>();
             _captures = new List<CaptureRecord>();
+            _landmines = new List<LandmineMarker>();
         }
         private ModeRuntime(ModeRuntime source)
         {
@@ -312,6 +404,7 @@ namespace ModularChess.Core
             _whiteObtains = new Dictionary<MartyrPower, int>(source._whiteObtains);
             _blackObtains = new Dictionary<MartyrPower, int>(source._blackObtains);
             _captures = new List<CaptureRecord>(source._captures);
+            _landmines = new List<LandmineMarker>(source._landmines);
             WhiteLostMaterial = source.WhiteLostMaterial;
             BlackLostMaterial = source.BlackLostMaterial;
             WhiteDraftsQueued = source.WhiteDraftsQueued;
@@ -322,7 +415,19 @@ namespace ModularChess.Core
             BlackFleetPawns = source.BlackFleetPawns;
             WhiteBombard = source.WhiteBombard;
             BlackBombard = source.BlackBombard;
+            WhiteIronCurtainTurns = source.WhiteIronCurtainTurns;
+            BlackIronCurtainTurns = source.BlackIronCurtainTurns;
+            WhiteBloodDebtCharges = source.WhiteBloodDebtCharges;
+            BlackBloodDebtCharges = source.BlackBloodDebtCharges;
+            WhiteReserveCallArmed = source.WhiteReserveCallArmed;
+            BlackReserveCallArmed = source.BlackReserveCallArmed;
+            WhiteFogVisionTurns = source.WhiteFogVisionTurns;
+            BlackFogVisionTurns = source.BlackFogVisionTurns;
+            WhiteDustCloudTurns = source.WhiteDustCloudTurns;
+            BlackDustCloudTurns = source.BlackDustCloudTurns;
             ExtraMoveKingId = source.ExtraMoveKingId;
+            OverloadPieceId = source.OverloadPieceId;
+            OverloadMovesMade = source.OverloadMovesMade;
             MovesThisTurn = source.MovesThisTurn;
             RallyArmed = source.RallyArmed;
             PendingDraft = source.PendingDraft;

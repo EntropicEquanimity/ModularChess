@@ -86,7 +86,10 @@ namespace ModularChess.Core
             {
                 return false;
             }
-
+            if (runtime.HasStatus(target.Id, StatusKind.Rearguard))
+            {
+                return false;
+            }
             return true;
         }
         #endregion

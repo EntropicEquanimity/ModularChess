@@ -1,0 +1,27 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.4/staging' branch; Version is '6000.4.4f1 (360f97ecca93) revision 3542935'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'en' Physical Memory: 16298 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-joshu" at "2026-09-24T08:19:16.3278068Z"
+System  architecture: x64
+Process architecture: x64
+Date: 2026-09-24T08:19:16Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.4.4f1\Editor\Unity.exe
+-batchmode
+-nographics
+-projectPath
+C:\Users\joshu\Desktop\GameDev\Unity\ModularChess
+-runTests
+-testPlatform
+EditMode
+-testFilter
+ModularChess.Core.Tests.MartyrTests
+-testResults
+C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\TestResults-Martyr.xml
+-logFile
+C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\TestLog-MartyrNew.txt
+Successfully changed project path to: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess
+C:/Users/joshu/Desktop/GameDev/Unity/ModularChess
+Exiting without the bug reporter. Application will terminate with return code 1

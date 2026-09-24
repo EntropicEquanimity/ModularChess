@@ -9,7 +9,7 @@ namespace ModularChess.Presentation
 {
     public sealed class HostModeSettings
     {
-        public int EmpoweredCount = 2;
+        public int EmpowerBudget = EmpoweredPowers.DefaultBudget;
         public int MartyrThreshold = 6;
         public int MartyrDraftOptions = 3;
     }
@@ -224,7 +224,13 @@ namespace ModularChess.Presentation
                 case ModeId.FogOfWar:
                     return;
                 case ModeId.PowerfulPieces:
-                    AddStepper(content, Loc.Get("mode.setting.empowered"), () => settings.EmpoweredCount, v => settings.EmpoweredCount = v, 1, 8);
+                    AddStepper(
+                        content,
+                        Loc.Get("mode.setting.empowered"),
+                        () => settings.EmpowerBudget,
+                        v => settings.EmpowerBudget = EmpoweredPowers.ClampBudget(v),
+                        EmpoweredPowers.MinBudget,
+                        EmpoweredPowers.MaxBudget);
                     break;
                 case ModeId.Martyr:
                     AddStepper(content, Loc.Get("mode.setting.lost"), () => settings.MartyrThreshold, v => settings.MartyrThreshold = v, 1, 18);

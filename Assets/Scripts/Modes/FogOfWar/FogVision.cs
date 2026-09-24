@@ -6,10 +6,13 @@ namespace ModularChess.Core
     {
         public static VisionMap Compute(GameState state, Side viewer)
         {
+            return VisionMap.FromCells(ComputeCells(state, viewer));
+        }
+        internal static SquareSight[] ComputeCells(GameState state, Side viewer)
+        {
             var cells = new SquareSight[Square.BoardSize * Square.BoardSize];
             Board board = state.Board;
             ModeRuntime runtime = state.Runtime;
-
             int homeMin = viewer == Side.White ? 0 : 6;
             int homeMax = viewer == Side.White ? 1 : 7;
             for (int file = 0; file < Square.BoardSize; file++)
@@ -19,7 +22,6 @@ namespace ModularChess.Core
                     cells[new Square(file, rank).ToIndex()] = SquareSight.Identified;
                 }
             }
-
             for (int i = 0; i < 64; i++)
             {
                 Square from = Square.FromIndex(i);
@@ -30,8 +32,7 @@ namespace ModularChess.Core
                     GrantFromPiece(board, runtime, state.EnPassantTarget, from, piece, cells);
                 }
             }
-
-            return VisionMap.FromCells(cells);
+            return cells;
         }
 
         static void GrantFromPiece(
@@ -79,7 +80,7 @@ namespace ModularChess.Core
             int forward = side == Side.White ? 1 : -1;
             int startRank = side == Side.White ? 1 : 6;
             Square one = from.Offset(0, forward);
-            MarkRayStep(board, one, cells, grantShadow: true);
+            MarkIdentified(one, cells);
             if (one.IsOnBoard && board.GetPiece(one) == null && from.Rank == startRank)
             {
                 Square two = from.Offset(0, forward * 2);
@@ -139,32 +140,8 @@ namespace ModularChess.Core
                         continue;
                     }
 
-                    Square beyond = cursor.Offset(files[i], ranks[i]);
-                    if (beyond.IsOnBoard && board.GetPiece(beyond) != null)
-                    {
-                        int index = beyond.ToIndex();
-                        if (cells[index] != SquareSight.Identified)
-                        {
-                            cells[index] = SquareSight.Shadow;
-                        }
-                    }
-
                     break;
                 }
-            }
-        }
-
-        static void MarkRayStep(Board board, Square square, SquareSight[] cells, bool grantShadow)
-        {
-            if (!square.IsOnBoard)
-            {
-                return;
-            }
-
-            MarkIdentified(square, cells);
-            if (!grantShadow || board.GetPiece(square) == null)
-            {
-                return;
             }
         }
 

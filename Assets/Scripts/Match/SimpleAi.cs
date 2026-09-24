@@ -125,20 +125,73 @@ namespace ModularChess.Match
             }
             return best;
         }
-        public static void AutopickEmpowered(GameState state, Side side, int count, List<Guid> into)
+        public static void AutopickEmpowered(GameState state, Side side, int budget, List<Guid> into)
         {
-            var pool = new List<Guid>();
+            if (state == null || into == null)
+                return;
+            budget = EmpoweredPowers.ClampBudget(budget);
+            int spent = 0;
+            for (int i = 0; i < into.Count; i++)
+            {
+                Square? square = state.Board.FindSquare(into[i]);
+                if (!square.HasValue)
+                    continue;
+                Piece picked = state.Board.GetPiece(square.Value);
+                if (picked != null)
+                    spent += EmpoweredPowers.Cost(picked.Type);
+            }
+            var pool = new List<Piece>();
             for (int i = 0; i < 64; i++)
             {
                 Piece piece = state.Board.GetPiece(Square.FromIndex(i));
-                if (piece != null && piece.Side == side)
-                    pool.Add(piece.Id);
+                if (piece != null && piece.Side == side && !into.Contains(piece.Id))
+                    pool.Add(piece);
             }
-            while (into.Count < count && pool.Count > 0)
+            Shuffle(pool);
+            if (!FillBudget(pool, budget - spent, into))
             {
-                int index = UnityEngine.Random.Range(0, pool.Count);
-                into.Add(pool[index]);
-                pool.RemoveAt(index);
+                into.Clear();
+                spent = 0;
+                pool.Clear();
+                for (int i = 0; i < 64; i++)
+                {
+                    Piece piece = state.Board.GetPiece(Square.FromIndex(i));
+                    if (piece != null && piece.Side == side)
+                        pool.Add(piece);
+                }
+                Shuffle(pool);
+                FillBudget(pool, budget, into);
+            }
+        }
+        static bool FillBudget(List<Piece> pool, int remaining, List<Guid> into)
+        {
+            if (remaining == 0)
+                return true;
+            if (remaining < 0)
+                return false;
+            for (int i = 0; i < pool.Count; i++)
+            {
+                Piece piece = pool[i];
+                int cost = EmpoweredPowers.Cost(piece.Type);
+                if (cost > remaining)
+                    continue;
+                pool.RemoveAt(i);
+                into.Add(piece.Id);
+                if (FillBudget(pool, remaining - cost, into))
+                    return true;
+                into.RemoveAt(into.Count - 1);
+                pool.Insert(i, piece);
+            }
+            return false;
+        }
+        static void Shuffle(List<Piece> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = UnityEngine.Random.Range(0, i + 1);
+                Piece tmp = list[i];
+                list[i] = list[j];
+                list[j] = tmp;
             }
         }
         #endregion

@@ -504,7 +504,7 @@ namespace ModularChess.Match
                 hostColor,
                 aiStrength,
                 false,
-                _modeSettings.EmpoweredCount,
+                _modeSettings.EmpowerBudget,
                 _modeSettings.MartyrThreshold,
                 _modeSettings.MartyrDraftOptions);
             var rules = new MatchRules(_selectedModes, settings);

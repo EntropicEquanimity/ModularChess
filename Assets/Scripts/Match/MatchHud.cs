@@ -454,21 +454,21 @@ namespace ModularChess.Match
                 setupConfirmButton,
                 opponentReady ? "hud.setupConfirm.ready" : "hud.setupConfirm");
         }
-        public void SetLostMaterial(int? white, int? black, int threshold)
+        public void SetLostMaterial(int? white, int? black, int threshold, int whiteBloodDebt = 0, int blackBloodDebt = 0)
         {
             Wire();
-            if (lostMaterialText == null)
-            {
-                return;
-            }
-
+            if (lostMaterialText == null) return;
             if (white == null || black == null)
             {
                 lostMaterialText.text = string.Empty;
                 return;
             }
-
-            lostMaterialText.text = Loc.Format("match.lost", white.Value, black.Value, threshold);
+            string text = Loc.Format("match.lost", white.Value, black.Value, threshold);
+            if (whiteBloodDebt > 0 || blackBloodDebt > 0)
+            {
+                text += " · " + Loc.Format("martyr.bloodDebt.hud", whiteBloodDebt, blackBloodDebt);
+            }
+            lostMaterialText.text = text;
         }
         public void SetStatusLine(string text)
         {
@@ -1283,6 +1283,28 @@ namespace ModularChess.Match
                     return Loc.Get("martyr.desc.exile");
                 case MartyrPower.Phalanx:
                     return Loc.Get("martyr.desc.phalanx");
+                case MartyrPower.SecondFront:
+                    return Loc.Get("martyr.desc.secondFront");
+                case MartyrPower.IronCurtain:
+                    return Loc.Get("martyr.desc.ironCurtain");
+                case MartyrPower.Turncoat:
+                    return Loc.Get("martyr.desc.turncoat");
+                case MartyrPower.VanishingAct:
+                    return Loc.Get("martyr.desc.vanishingAct");
+                case MartyrPower.BloodDebt:
+                    return Loc.Get("martyr.desc.bloodDebt");
+                case MartyrPower.Rearguard:
+                    return Loc.Get("martyr.desc.rearguard");
+                case MartyrPower.Overload:
+                    return Loc.Get("martyr.desc.overload");
+                case MartyrPower.Landmine:
+                    return Loc.Get("martyr.desc.landmine");
+                case MartyrPower.ReserveCall:
+                    return Loc.Get("martyr.desc.reserveCall");
+                case MartyrPower.FogVision:
+                    return Loc.Get("martyr.desc.fogVision");
+                case MartyrPower.DustCloud:
+                    return Loc.Get("martyr.desc.dustCloud");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(power), power, null);
             }
@@ -1494,6 +1516,28 @@ namespace ModularChess.Match
                     return Loc.Get("martyr.power.exile");
                 case MartyrPower.Phalanx:
                     return Loc.Get("martyr.power.phalanx");
+                case MartyrPower.SecondFront:
+                    return Loc.Get("martyr.power.secondFront");
+                case MartyrPower.IronCurtain:
+                    return Loc.Get("martyr.power.ironCurtain");
+                case MartyrPower.Turncoat:
+                    return Loc.Get("martyr.power.turncoat");
+                case MartyrPower.VanishingAct:
+                    return Loc.Get("martyr.power.vanishingAct");
+                case MartyrPower.BloodDebt:
+                    return Loc.Get("martyr.power.bloodDebt");
+                case MartyrPower.Rearguard:
+                    return Loc.Get("martyr.power.rearguard");
+                case MartyrPower.Overload:
+                    return Loc.Get("martyr.power.overload");
+                case MartyrPower.Landmine:
+                    return Loc.Get("martyr.power.landmine");
+                case MartyrPower.ReserveCall:
+                    return Loc.Get("martyr.power.reserveCall");
+                case MartyrPower.FogVision:
+                    return Loc.Get("martyr.power.fogVision");
+                case MartyrPower.DustCloud:
+                    return Loc.Get("martyr.power.dustCloud");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(power), power, null);
             }

@@ -39,7 +39,6 @@ namespace ModularChess.Presentation
         static readonly Color EnemyAura = new Color(0.9f, 0.18f, 0.18f, 0.55f);
 
         public Guid PieceId { get; private set; }
-        public bool IsShadow { get; private set; }
         public bool IsMoving => _motion != null && _motion.IsActive();
 
         public void Bind(Piece piece, float squareSize, BoardTheme theme)
@@ -48,7 +47,6 @@ namespace ModularChess.Presentation
                 throw new ArgumentNullException(nameof(piece));
 
             PieceId = piece.Id;
-            IsShadow = false;
             name = $"{piece.Side} {piece.Type}";
             EnsureRenderers();
             CacheVisuals();
@@ -60,7 +58,6 @@ namespace ModularChess.Presentation
         public void BindCaptured(Guid id, PieceType type, Side side, BoardTheme theme)
         {
             PieceId = id;
-            IsShadow = false;
             name = $"{side} {type}";
             EnsureRenderers();
             CacheVisuals();
@@ -70,22 +67,9 @@ namespace ModularChess.Presentation
             _glyph.enabled = true;
         }
 
-        public void BindShadow(float squareSize, BoardTheme theme)
-        {
-            EnsureRenderers();
-            CacheVisuals();
-            IsShadow = true;
-            _ghosted = false;
-            name = "Shadow";
-            _outline.enabled = false;
-            _body.enabled = true;
-            _glyph.enabled = false;
-            _body.color = theme.BlackPieceFill;
-        }
-
         public void SetEmpoweredAura(bool show, bool allied)
         {
-            if (_body == null || IsShadow)
+            if (_body == null)
                 return;
 
             if (!show)
@@ -101,7 +85,7 @@ namespace ModularChess.Presentation
 
         public void SetSelectedOutline(bool selected)
         {
-            if (_outline == null || IsShadow)
+            if (_outline == null)
                 return;
             _outline.enabled = selected || _outlineEnabled;
         }

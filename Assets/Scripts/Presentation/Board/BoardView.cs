@@ -26,6 +26,7 @@ namespace ModularChess.Presentation
         readonly List<PieceView> _deferredDestroy = new List<PieceView>();
         readonly HashSet<Guid> _pendingEmpowered = new HashSet<Guid>();
         readonly HashSet<Square> _validTargets = new HashSet<Square>();
+        readonly HashSet<Guid> _dimmedIds = new HashSet<Guid>();
         readonly HashSet<Guid> _banished = new HashSet<Guid>();
 
         Transform _squaresRoot;
@@ -196,14 +197,31 @@ namespace ModularChess.Presentation
             RefreshHighlights();
         }
 
+        public void SetDimmed(IReadOnlyCollection<Guid> pieceIds)
+        {
+            _dimmedIds.Clear();
+            if (pieceIds != null)
+            {
+                foreach (Guid id in pieceIds)
+                    _dimmedIds.Add(id);
+            }
+            if (_built && _state != null)
+                SyncPieces();
+        }
+
         public void ClearTargeting()
         {
-            if (!_targeting)
+            if (!_targeting && _dimmedIds.Count == 0)
                 return;
             _targeting = false;
             _validTargets.Clear();
+            _dimmedIds.Clear();
             if (_built)
+            {
                 RefreshHighlights();
+                if (_state != null)
+                    SyncPieces();
+            }
         }
 
         public void PlayDeflect(Square from, Square toward)
@@ -273,8 +291,28 @@ namespace ModularChess.Presentation
                     break;
                 case MartyrPower.Phalanx:
                     PopSide(side, PieceType.Pawn, 0.22f);
-                    if (PiecesBusy)
-                        HoldMatchChrome();
+                    if (PiecesBusy) HoldMatchChrome();
+                    break;
+                case MartyrPower.SecondFront:
+                case MartyrPower.Turncoat:
+                case MartyrPower.ReserveCall:
+                    if (PiecesBusy) HoldMatchChrome();
+                    break;
+                case MartyrPower.IronCurtain:
+                case MartyrPower.FogVision:
+                case MartyrPower.DustCloud:
+                case MartyrPower.BloodDebt:
+                    BoardCamera.AddTrauma(CaptureTrauma.Pawn);
+                    break;
+                case MartyrPower.VanishingAct:
+                case MartyrPower.Overload:
+                    PlayTargetPop(targetId, 0.18f);
+                    break;
+                case MartyrPower.Rearguard:
+                    PopSide(side, PieceType.Pawn, 0.16f);
+                    break;
+                case MartyrPower.Landmine:
+                    BoardCamera.AddTrauma(CaptureTrauma.Minor);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(power), power, null);
@@ -469,29 +507,19 @@ namespace ModularChess.Presentation
                         created = true;
                     }
 
-                    bool wasShadow = view.IsShadow;
-                    bool shadow = !ReviewVision && sight == SquareSight.Shadow && piece.Side != _viewer;
                     bool identified = ReviewVision || sight == SquareSight.Identified || piece.Side == _viewer;
-                    if (shadow)
-                    {
-                        view.BindShadow(_layout.SquareSize, theme);
-                    }
-                    else
-                    {
-                        view.Bind(piece, _layout.SquareSize, theme);
-                        bool empowered = identified
-                            && (_state.Runtime.IsEmpowered(piece.Id) || _pendingEmpowered.Contains(piece.Id));
-                        view.SetEmpoweredAura(empowered, piece.Side == _viewer);
-                    }
-                    view.SetGhosted(!shadow && _state.Runtime.HasStatus(piece.Id, StatusKind.Stasis));
+                    view.Bind(piece, _layout.SquareSize, theme);
+                    bool empowered = identified
+                        && (_state.Runtime.IsEmpowered(piece.Id) || _pendingEmpowered.Contains(piece.Id));
+                    view.SetEmpoweredAura(empowered, piece.Side == _viewer);
+                    bool dimmed = _dimmedIds.Contains(piece.Id);
+                    view.SetGhosted(dimmed || _state.Runtime.HasStatus(piece.Id, StatusKind.Stasis));
                     Vector3 dest = _layout.SquareCenterLocal(square, _viewer);
                     view.gameObject.SetActive(true);
-                    bool summoned = identified && !shadow && _state.Runtime.IsSummoned(piece.Id);
+                    bool summoned = identified && _state.Runtime.IsSummoned(piece.Id);
                     bool entry = created && summoned && !snapAll && !AnimationPrefs.Instant;
                     bool animate = !snapAll
                         && !created
-                        && !shadow
-                        && !wasShadow
                         && identified
                         && !AnimationPrefs.Instant
                         && (view.transform.localPosition - dest).sqrMagnitude > 0.0001f;
