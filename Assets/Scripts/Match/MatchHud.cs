@@ -466,7 +466,7 @@ namespace ModularChess.Match
             string text = Loc.Format("match.lost", white.Value, black.Value, threshold);
             if (whiteBloodDebt > 0 || blackBloodDebt > 0)
             {
-                text += " · " + Loc.Format("martyr.bloodDebt.hud", whiteBloodDebt, blackBloodDebt);
+                text += " - " + Loc.Format("martyr.bloodDebt.hud", whiteBloodDebt, blackBloodDebt);
             }
             lostMaterialText.text = text;
         }

@@ -74,7 +74,7 @@ namespace ModularChess.Match
         }
         static string Mark(CampaignStarFlags flags, CampaignStarFlags star)
         {
-            return (flags & star) != 0 ? "★" : "☆";
+            return Loc.Get((flags & star) != 0 ? "campaign.star.on" : "campaign.star.off");
         }
         #endregion
     }
