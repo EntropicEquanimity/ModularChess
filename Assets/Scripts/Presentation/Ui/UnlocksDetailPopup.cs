@@ -92,10 +92,9 @@ namespace ModularChess.Presentation
         }
         public void Open(ModeId id, Action onChanged, RectTransform slideFrom)
         {
-            UnlockProduct product = UnlockProduct.ModeFogOfWar;
-            if (id == ModeId.PowerfulPieces) product = UnlockProduct.ModePowerfulPieces;
-            else if (id == ModeId.Martyr) product = UnlockProduct.ModeMartyr;
-            Open(product, onChanged, slideFrom);
+            UnlockProduct? product = MeritUnlocks.FromMode(id);
+            if (product == null) return;
+            Open(product.Value, onChanged, slideFrom);
         }
         public void Close()
         {

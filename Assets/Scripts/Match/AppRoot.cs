@@ -20,6 +20,7 @@ namespace ModularChess.Match
         [SerializeField] GameObject optionsOverlay;
         [SerializeField] GameObject creditsOverlay;
         [SerializeField] GameObject historyOverlay;
+        [SerializeField] GameObject campaignOverlay;
         [SerializeField] GameObject accountCreationOverlay;
         [SerializeField] GameObject feedbackOverlay;
         [SerializeField] MatchController match;
@@ -39,6 +40,7 @@ namespace ModularChess.Match
         JoinOverlay _join;
         CreditsOverlay _credits;
         HistoryOverlay _history;
+        CampaignOverlay _campaign;
         AccountCreationOverlay _account;
         UnlocksView _unlocks;
         LocalLobby _lobby;
@@ -65,7 +67,7 @@ namespace ModularChess.Match
             ResolveReferences();
             if (_match != null)
             {
-                _match.LeftMatch += ShowMainMenu;
+                _match.LeftMatch += OnLeftMatch;
                 _match.RematchRequested += OnRematchRequested;
                 _match.ReplayLeftToHistory += OnReplayLeftToHistory;
             }
@@ -80,7 +82,7 @@ namespace ModularChess.Match
             Loc.Changed -= OnLanguageChanged;
             if (_match != null)
             {
-                _match.LeftMatch -= ShowMainMenu;
+                _match.LeftMatch -= OnLeftMatch;
                 _match.RematchRequested -= OnRematchRequested;
                 _match.ReplayLeftToHistory -= OnReplayLeftToHistory;
             }
@@ -152,6 +154,7 @@ namespace ModularChess.Match
                 optionsOverlay,
                 creditsOverlay,
                 historyOverlay,
+                campaignOverlay,
                 accountCreationOverlay,
                 feedbackOverlay
             };
@@ -181,6 +184,7 @@ namespace ModularChess.Match
                 () => OpenPrep(Activity.VersusAi),
                 () => OpenPrep(Activity.VersusFriend),
                 ShowJoin,
+                ShowCampaign,
                 ShowMainMenu);
             _matchSettings?.Bind(ConfirmPrep, ShowPlay);
             _lobbyView?.Bind(SitAsFriend, StartLobbyMatch, LeaveLobby);
@@ -188,7 +192,10 @@ namespace ModularChess.Match
             _unlocks?.Bind(ShowMainMenu);
             _credits?.Bind(ShowMainMenu);
             EnsureHistoryOverlay();
+            EnsureCampaignOverlay();
+            CacheOverlayViews();
             _history?.Bind(ShowMainMenu, StartHistoryReplay);
+            _campaign?.Bind(ShowPlay, StartCampaignLevel);
             HookOptionsOverlay();
             BindAccountCreation();
             BindMenuLoc();
@@ -210,6 +217,8 @@ namespace ModularChess.Match
                 _credits = creditsOverlay.GetComponent<CreditsOverlay>();
             if (_history == null && historyOverlay != null)
                 _history = historyOverlay.GetComponent<HistoryOverlay>();
+            if (_campaign == null && campaignOverlay != null)
+                _campaign = campaignOverlay.GetComponent<CampaignOverlay>();
             if (_account == null && accountCreationOverlay != null)
                 _account = accountCreationOverlay.GetComponent<AccountCreationOverlay>();
             if (_unlocks == null && unlocksOverlay != null)
@@ -319,6 +328,37 @@ namespace ModularChess.Match
             CacheOverlayViews();
             _play?.ApplyWebGlLimits();
         }
+        void ShowCampaign()
+        {
+            EnsureCampaignOverlay();
+            CacheOverlayViews();
+            _campaign?.Bind(ShowPlay, StartCampaignLevel);
+            ShowOverlay(campaignOverlay);
+            _campaign?.Refresh();
+        }
+        void StartCampaignLevel(int index)
+        {
+            CampaignLevelDefinition level = CampaignCatalog.Get(index);
+            if (level == null || !CampaignProgress.IsUnlocked(index))
+                return;
+            var modes = new List<ModeId>(level.Modes);
+            MatchSettings settings = new MatchSettings(
+                TimeControl.None,
+                level.PlayerSide == Side.White ? HostColor.White : HostColor.Black,
+                level.AiStrength,
+                false,
+                level.EmpowerBudget,
+                MatchSettings.Default.MartyrThreshold,
+                MatchSettings.Default.MartyrDraftOptions);
+            StartMatch(new MatchSession
+            {
+                Activity = Activity.Campaign,
+                Rules = new MatchRules(modes, settings),
+                PlayerSide = level.PlayerSide,
+                Hotseat = false,
+                CampaignLevel = level
+            });
+        }
 
         void ShowUnlocks()
         {
@@ -426,6 +466,16 @@ namespace ModularChess.Match
             GameAudio.PlayMenuMusic();
         }
 
+        void OnLeftMatch()
+        {
+            if (_lastSession != null && _lastSession.Activity == Activity.Campaign)
+            {
+                ShowCampaign();
+                GameAudio.PlayMenuMusic();
+                return;
+            }
+            ShowMainMenu();
+        }
         void OnRematchRequested()
         {
             if (_lastSession == null || _match == null)
@@ -434,6 +484,11 @@ namespace ModularChess.Match
             {
                 ShowMainMenu();
                 OpenPrep(Activity.VersusFriend);
+                return;
+            }
+            if (_lastSession.Activity == Activity.Campaign && _lastSession.CampaignLevel != null)
+            {
+                StartCampaignLevel(_lastSession.CampaignLevel.Index);
                 return;
             }
             MatchSession next = new MatchSession
@@ -649,9 +704,9 @@ namespace ModularChess.Match
                 return;
             }
 
-            if (IsActive(joinOverlay) || IsActive(playOverlay))
+            if (IsActive(joinOverlay) || IsActive(playOverlay) || IsActive(campaignOverlay))
             {
-                if (IsActive(joinOverlay))
+                if (IsActive(joinOverlay) || IsActive(campaignOverlay))
                     ShowPlay();
                 else
                     ShowMainMenu();
@@ -746,6 +801,17 @@ namespace ModularChess.Match
             historyOverlay = Instantiate(prefab, transform);
             historyOverlay.name = "History";
             historyOverlay.SetActive(false);
+        }
+        void EnsureCampaignOverlay()
+        {
+            if (campaignOverlay != null)
+                return;
+            GameObject prefab = RuntimePrefabs.Campaign;
+            if (prefab == null)
+                return;
+            campaignOverlay = Instantiate(prefab, transform);
+            campaignOverlay.name = "Campaign";
+            campaignOverlay.SetActive(false);
         }
 
         TimeControl TimeFromPreset(int timePreset, int incrementPreset)

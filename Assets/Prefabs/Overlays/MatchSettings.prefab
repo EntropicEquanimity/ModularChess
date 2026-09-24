@@ -390,6 +390,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: TimeDropdown
       objectReference: {fileID: 0}
+    - target: {fileID: 5537682778524577243, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5537682778524577243, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -469,6 +477,10 @@ PrefabInstance:
     - target: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316198802958601774, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_Size
+      value: 0.7866667
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -503,6 +515,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: HostColorDropdown
       objectReference: {fileID: 0}
+    - target: {fileID: 5537682778524577243, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5537682778524577243, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -582,6 +602,10 @@ PrefabInstance:
     - target: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316198802958601774, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_Size
+      value: 0.7866667
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -616,6 +640,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: AiDropdown
       objectReference: {fileID: 0}
+    - target: {fileID: 5537682778524577243, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5537682778524577243, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -695,6 +727,10 @@ PrefabInstance:
     - target: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316198802958601774, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_Size
+      value: 0.7866667
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1100,6 +1136,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: ExtraTimeDropdown
       objectReference: {fileID: 0}
+    - target: {fileID: 5537682778524577243, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5537682778524577243, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1179,6 +1223,10 @@ PrefabInstance:
     - target: {fileID: 6132320964966528026, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316198802958601774, guid: c97f531ad2f74e945b237c5c53d99a08, type: 3}
+      propertyPath: m_Size
+      value: 0.7866667
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

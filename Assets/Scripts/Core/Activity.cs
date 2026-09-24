@@ -3,6 +3,7 @@ namespace ModularChess.Core
     public enum Activity
     {
         VersusAi,
-        VersusFriend
+        VersusFriend,
+        Campaign
     }
 }

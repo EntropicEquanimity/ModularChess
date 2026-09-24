@@ -11,17 +11,24 @@ namespace ModularChess.Presentation
         [SerializeField] Button versusAiButton;
         [SerializeField] Button versusFriendButton;
         [SerializeField] Button joinButton;
+        [SerializeField] Button campaignButton;
         [SerializeField] Button backButton;
         [SerializeField] Transform title;
         #endregion
 
         #region Public Methods
-        public void Bind(UnityAction onVersusAi, UnityAction onVersusFriend, UnityAction onJoin, UnityAction onBack)
+        public void Bind(
+            UnityAction onVersusAi,
+            UnityAction onVersusFriend,
+            UnityAction onJoin,
+            UnityAction onCampaign,
+            UnityAction onBack)
         {
             Resolve();
             GameAudio.Bind(versusAiButton, onVersusAi);
             GameAudio.Bind(versusFriendButton, onVersusFriend);
             GameAudio.Bind(joinButton, onJoin);
+            GameAudio.Bind(campaignButton, onCampaign);
             GameAudio.Bind(backButton, onBack);
             RefreshLoc();
         }
@@ -32,6 +39,7 @@ namespace ModularChess.Presentation
             LocalizedText.Bind(versusAiButton, "play.versusAi");
             LocalizedText.Bind(versusFriendButton, "play.versusFriend");
             LocalizedText.Bind(joinButton, "play.join");
+            LocalizedText.Bind(campaignButton, "play.campaign");
             LocalizedText.Bind(backButton, "menu.back");
         }
         public void ApplyWebGlLimits()
@@ -55,6 +63,8 @@ namespace ModularChess.Presentation
                 versusFriendButton = ButtonNamed("VersusFriendButton");
             if (joinButton == null)
                 joinButton = ButtonNamed("JoinButton");
+            if (campaignButton == null)
+                campaignButton = ButtonNamed("CampaignButton");
             if (backButton == null)
                 backButton = ButtonNamed("BackButton");
             if (title == null)

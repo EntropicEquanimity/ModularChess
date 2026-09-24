@@ -154,10 +154,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 8240000002}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 400, y: 300}
+  m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7749630746192943029
 CanvasRenderer:
@@ -187,14 +187,25 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Made by: <color=#00A2FF><u><link=\"https://entropicequanimity.itch.io/modularchess\">Entropy</link></u></color>\nMain
-    Font: <color=#00A2FF><u><link=\"https://www.dafont.com/pixel-operator.font\">Pixel
-    Operator</link></u></color> (created by Jayvee Enaguas) \nChinese Font: <color=#00A2FF><u><link=\"https://takwolf.itch.io/ark-pixel-font\">Ark
-    Pixel Font</link></u></color> (Made by TakWolf)\nArt: <color=#00A2FF><u><link=\"https://skyel13.itch.io/skyel-simple-chess\">Base
-    Chess Set</link></u></color> (Made by Skyel)\nSFX: <color=#00A2FF><u><link=\"https://raylibtech.itch.io/rfxgen\">rFXGen</link></u></color>
-    (Made by Ramon Santamaria)\nSearch Engine: <color=#00A2FF><u><link=\"https://www.google.com/\">Google
-    Gemini</link></u></color> (Made by Google DeepMind)\nFocus Tool: <color=#00A2FF><u><link=\"https://www.youtube.com/@astrasolis\">Astra
-    ASMR</link></u></color> (Made by Astra)\n"
+  m_text: 'Made by: <color=#00A2FF><u><link="https://entropicequanimity.itch.io/modularchess">Entropy</link></u></color>
+
+    Main
+    Font: <color=#00A2FF><u><link="https://takwolf.itch.io/ark-pixel-font">Ark Pixel
+    Font</link></u></color> (Made by TakWolf)
+
+    Art: <color=#00A2FF><u><link="https://skyel13.itch.io/skyel-simple-chess">Base
+    Chess Set</link></u></color> (Made by Skyel)
+
+    SFX: <color=#00A2FF><u><link="https://raylibtech.itch.io/rfxgen">rFXGen</link></u></color>
+    (Made by Ramon Santamaria)
+
+    Search Engine: <color=#00A2FF><u><link="https://www.google.com/">Google
+    Gemini</link></u></color> (Made by Google DeepMind)
+
+    Focus Tool: <color=#00A2FF><u><link="https://www.youtube.com/@astrasolis">Astra
+    ASMR</link></u></color> (Made by Astra)
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
   m_sharedMaterial: {fileID: -7558331651942015714, guid: 0b172ba65f175a94e9eff4093b91db4c, type: 2}
@@ -221,8 +232,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 16
@@ -279,7 +290,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 7691604928983367697}
-  charactersPerSecond: 50
+  charactersPerSecond: 100
   playOnEnable: 1
   unscaledTime: 0
   completeOnClick: 1

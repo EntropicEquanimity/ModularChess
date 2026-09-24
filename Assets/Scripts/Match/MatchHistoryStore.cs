@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using ModularChess.Core;
+using ModularChess.Presentation;
 using UnityEngine;
 
 namespace ModularChess.Match
@@ -71,6 +72,10 @@ namespace ModularChess.Match
         #endregion
 
         #region Public Methods
+        static MatchHistoryStore()
+        {
+            MeritUnlocks.HistoryTierChanged += () => TrimToCap();
+        }
         public static string FilePath => Path.Combine(Application.persistentDataPath, FileName);
         public static void Record(
             MatchSession session,
@@ -125,9 +130,10 @@ namespace ModularChess.Match
         public static void TrimToCap(int cap)
         {
             MatchHistoryFile file = Load();
-            file.records = Trim(file.records, HistoryPrefs.Snap(cap));
+            file.records = Trim(file.records, Math.Max(0, cap));
             Save(file);
         }
+        public static void TrimToCap() => TrimToCap(HistoryPrefs.Cap);
         public static void Delete()
         {
             string path = FilePath;
@@ -286,7 +292,11 @@ namespace ModularChess.Match
                 if (file == null || file.records == null) return new MatchHistoryFile { records = new MatchHistoryRecord[0] };
                 return file;
             }
-            catch (Exception)
+            catch (IOException)
+            {
+                return new MatchHistoryFile { records = new MatchHistoryRecord[0] };
+            }
+            catch (ArgumentException)
             {
                 return new MatchHistoryFile { records = new MatchHistoryRecord[0] };
             }

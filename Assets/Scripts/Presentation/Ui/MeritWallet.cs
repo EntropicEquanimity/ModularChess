@@ -40,11 +40,15 @@ namespace ModularChess.Presentation
             {
                 int grant = 3 - CheckmateGrantsUsed;
                 PlayerPrefs.SetInt(CheckmateGrantsKey, CheckmateGrantsUsed + 1);
-                Add(grant);
+                PlayerPrefs.SetInt(BalanceKey, Balance + grant);
+                PlayerPrefs.Save();
+                Changed?.Invoke();
                 return;
             }
             if (!TryConsumeDailySlot()) return;
-            Add(1);
+            PlayerPrefs.SetInt(BalanceKey, Balance + 1);
+            PlayerPrefs.Save();
+            Changed?.Invoke();
         }
         public static void Clear()
         {
@@ -77,7 +81,6 @@ namespace ModularChess.Presentation
             if (count >= DailyVersusCap) return false;
             PlayerPrefs.SetString(DailyStampKey, stamp);
             PlayerPrefs.SetInt(DailyCountKey, count + 1);
-            PlayerPrefs.Save();
             return true;
         }
         #endregion

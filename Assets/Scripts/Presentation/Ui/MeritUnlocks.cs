@@ -1,6 +1,5 @@
 using System;
 using ModularChess.Core;
-using ModularChess.Match;
 using UnityEngine;
 
 namespace ModularChess.Presentation
@@ -11,6 +10,7 @@ namespace ModularChess.Presentation
         const string ModeKeyPrefix = "OwnedMode_";
         const string HistoryTierKey = "HistoryTier";
         const string NotationKey = "UnlockShowNotation";
+        const int MaxHistoryTier = 4;
         static readonly UnlockProduct[] Catalog =
         {
             UnlockProduct.ModeFogOfWar,
@@ -25,7 +25,9 @@ namespace ModularChess.Presentation
         #endregion
 
         #region Public Methods
+        public static event Action HistoryTierChanged;
         public static UnlockProduct[] All => Catalog;
+        public static int HistoryTier => Mathf.Clamp(PlayerPrefs.GetInt(HistoryTierKey, 0), 0, MaxHistoryTier);
         public static int Cost(UnlockProduct product)
         {
             switch (product)
@@ -43,34 +45,24 @@ namespace ModularChess.Presentation
         }
         public static bool IsOwned(UnlockProduct product)
         {
+            ModeId? mode = AsMode(product);
+            if (mode.HasValue)
+                return IsModeOwned(mode.Value);
             switch (product)
             {
-                case UnlockProduct.ModeFogOfWar:
-                    return IsModeOwned(ModeId.FogOfWar);
-                case UnlockProduct.ModePowerfulPieces:
-                    return IsModeOwned(ModeId.PowerfulPieces);
-                case UnlockProduct.ModeMartyr:
-                    return IsModeOwned(ModeId.Martyr);
-                case UnlockProduct.HistoryTier1:
-                    return HistoryPrefs.Tier >= 1;
-                case UnlockProduct.HistoryTier2:
-                    return HistoryPrefs.Tier >= 2;
-                case UnlockProduct.HistoryTier3:
-                    return HistoryPrefs.Tier >= 3;
-                case UnlockProduct.HistoryTier4:
-                    return HistoryPrefs.Tier >= 4;
-                case UnlockProduct.ShowNotation:
-                    return PlayerPrefs.GetInt(NotationKey, 0) == 1;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(product), product, null);
+                case UnlockProduct.HistoryTier1: return HistoryTier >= 1;
+                case UnlockProduct.HistoryTier2: return HistoryTier >= 2;
+                case UnlockProduct.HistoryTier3: return HistoryTier >= 3;
+                case UnlockProduct.HistoryTier4: return HistoryTier >= 4;
+                case UnlockProduct.ShowNotation: return PlayerPrefs.GetInt(NotationKey, 0) == 1;
+                default: throw new ArgumentOutOfRangeException(nameof(product), product, null);
             }
         }
         public static bool IsModeOwned(ModeId id) => PlayerPrefs.GetInt(ModeKey(id), 0) == 1;
         public static bool ShowNotation => IsOwned(UnlockProduct.ShowNotation);
         public static bool CanPurchase(UnlockProduct product)
         {
-            if (IsOwned(product)) return false;
-            if (!PrerequisiteMet(product)) return false;
+            if (IsOwned(product) || !PrerequisiteMet(product)) return false;
             return MeritWallet.Balance >= Cost(product);
         }
         public static bool TryPurchase(UnlockProduct product)
@@ -90,12 +82,22 @@ namespace ModularChess.Presentation
                 default: return null;
             }
         }
+        public static UnlockProduct? FromMode(ModeId id)
+        {
+            switch (id)
+            {
+                case ModeId.FogOfWar: return UnlockProduct.ModeFogOfWar;
+                case ModeId.PowerfulPieces: return UnlockProduct.ModePowerfulPieces;
+                case ModeId.Martyr: return UnlockProduct.ModeMartyr;
+                default: return null;
+            }
+        }
         public static void UnlockAll()
         {
             ModeDefinition[] modes = ModeCatalog.All;
             for (int i = 0; i < modes.Length; i++)
                 PlayerPrefs.SetInt(ModeKey(modes[i].Id), 1);
-            HistoryPrefs.Tier = 4;
+            SetHistoryTier(MaxHistoryTier);
             PlayerPrefs.SetInt(NotationKey, 1);
             PlayerPrefs.Save();
         }
@@ -104,7 +106,7 @@ namespace ModularChess.Presentation
             ModeDefinition[] modes = ModeCatalog.All;
             for (int i = 0; i < modes.Length; i++)
                 PlayerPrefs.DeleteKey(ModeKey(modes[i].Id));
-            HistoryPrefs.Tier = 0;
+            SetHistoryTier(0);
             PlayerPrefs.DeleteKey(NotationKey);
             PlayerPrefs.Save();
         }
@@ -115,37 +117,27 @@ namespace ModularChess.Presentation
         {
             switch (product)
             {
-                case UnlockProduct.HistoryTier2: return HistoryPrefs.Tier >= 1;
-                case UnlockProduct.HistoryTier3: return HistoryPrefs.Tier >= 2;
-                case UnlockProduct.HistoryTier4: return HistoryPrefs.Tier >= 3;
+                case UnlockProduct.HistoryTier2: return HistoryTier >= 1;
+                case UnlockProduct.HistoryTier3: return HistoryTier >= 2;
+                case UnlockProduct.HistoryTier4: return HistoryTier >= 3;
                 default: return true;
             }
         }
         static void Grant(UnlockProduct product)
         {
+            ModeId? mode = AsMode(product);
+            if (mode.HasValue)
+            {
+                PlayerPrefs.SetInt(ModeKey(mode.Value), 1);
+                PlayerPrefs.Save();
+                return;
+            }
             switch (product)
             {
-                case UnlockProduct.ModeFogOfWar:
-                    PlayerPrefs.SetInt(ModeKey(ModeId.FogOfWar), 1);
-                    break;
-                case UnlockProduct.ModePowerfulPieces:
-                    PlayerPrefs.SetInt(ModeKey(ModeId.PowerfulPieces), 1);
-                    break;
-                case UnlockProduct.ModeMartyr:
-                    PlayerPrefs.SetInt(ModeKey(ModeId.Martyr), 1);
-                    break;
-                case UnlockProduct.HistoryTier1:
-                    HistoryPrefs.Tier = 1;
-                    break;
-                case UnlockProduct.HistoryTier2:
-                    HistoryPrefs.Tier = 2;
-                    break;
-                case UnlockProduct.HistoryTier3:
-                    HistoryPrefs.Tier = 3;
-                    break;
-                case UnlockProduct.HistoryTier4:
-                    HistoryPrefs.Tier = 4;
-                    break;
+                case UnlockProduct.HistoryTier1: SetHistoryTier(1); break;
+                case UnlockProduct.HistoryTier2: SetHistoryTier(2); break;
+                case UnlockProduct.HistoryTier3: SetHistoryTier(3); break;
+                case UnlockProduct.HistoryTier4: SetHistoryTier(4); break;
                 case UnlockProduct.ShowNotation:
                     PlayerPrefs.SetInt(NotationKey, 1);
                     break;
@@ -153,6 +145,13 @@ namespace ModularChess.Presentation
                     throw new ArgumentOutOfRangeException(nameof(product), product, null);
             }
             PlayerPrefs.Save();
+        }
+        static void SetHistoryTier(int tier)
+        {
+            int next = Mathf.Clamp(tier, 0, MaxHistoryTier);
+            if (PlayerPrefs.GetInt(HistoryTierKey, 0) == next) return;
+            PlayerPrefs.SetInt(HistoryTierKey, next);
+            HistoryTierChanged?.Invoke();
         }
         static string ModeKey(ModeId id) => ModeKeyPrefix + (int)id;
         #endregion

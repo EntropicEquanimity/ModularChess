@@ -29,6 +29,8 @@ namespace ModularChess.Match
         readonly List<MatchHistoryEvent> _historyEvents = new List<MatchHistoryEvent>();
         MatchClock _clock;
         bool _historyWritten;
+        int _campaignPlayerTurns;
+        int _campaignPiecesLost;
         bool _draftTiming;
         float _draftRemaining;
         float _aiWait = -1f;
@@ -177,7 +179,10 @@ namespace ModularChess.Match
         {
             _session = session ?? throw new ArgumentNullException(nameof(session));
             Subscribe();
-            _state = GameState.StartingPosition(session.Rules);
+            if (session.IsCampaign)
+                _state = GameState.FromFen(session.CampaignLevel.Fen, session.Rules);
+            else
+                _state = GameState.StartingPosition(session.Rules);
             _pendingPromotions = null;
             ClearSelection();
             _whitePicks.Clear();
@@ -196,6 +201,8 @@ namespace ModularChess.Match
             _historyEvents.Clear();
             _clock = new MatchClock(session.Rules.Settings.Time);
             _historyWritten = false;
+            _campaignPlayerTurns = 0;
+            _campaignPiecesLost = 0;
             _draftTiming = false;
             _draftRemaining = 0f;
             _draftTargeting = null;
@@ -519,10 +526,45 @@ namespace ModularChess.Match
             if (_state.Status == GameStatus.InProgress || _state.Status == GameStatus.Aborted)
                 return;
             _historyWritten = true;
+            if (_session.Activity == Activity.Campaign)
+            {
+                AwardCampaignStars();
+                return;
+            }
             int seconds = _clock != null ? Mathf.FloorToInt(_clock.ElapsedSeconds) : 0;
             MatchHistoryStore.Record(_session, _state, seconds, _historyEvents);
             bool checkmate = _state.Status == GameStatus.Checkmate;
             MeritWallet.GrantVersusFinish(checkmate);
+        }
+        void AwardCampaignStars()
+        {
+            if (!_session.IsCampaign) return;
+            bool won = PlayerWonCampaign();
+            CampaignStarFlags earned = CampaignStarEval.Evaluate(
+                _session.CampaignLevel,
+                won,
+                _campaignPlayerTurns,
+                _campaignPiecesLost);
+            CampaignProgress.Award(_session.CampaignLevel.Index, earned);
+        }
+        bool PlayerWonCampaign()
+        {
+            if (_state.Status != GameStatus.Checkmate) return false;
+            Side winner = _state.SideToMove.Opponent();
+            return winner == _session.PlayerSide;
+        }
+        void NoteCampaignProgress(Side moved, Piece victim, bool bounce)
+        {
+            if (_session == null || !_session.IsCampaign) return;
+            if (victim != null && !bounce && victim.Side == _session.PlayerSide)
+                _campaignPiecesLost++;
+            NoteCampaignTurnEnd(moved);
+        }
+        void NoteCampaignTurnEnd(Side ended)
+        {
+            if (_session == null || !_session.IsCampaign) return;
+            if (_state.SideToMove != ended && ended == _session.PlayerSide)
+                _campaignPlayerTurns++;
         }
 
         public void TogglePause()
@@ -556,6 +598,7 @@ namespace ModularChess.Match
                 return;
             Side ended = _state.SideToMove;
             _state = _state.EndTurn();
+            NoteCampaignTurnEnd(ended);
             _clock?.AddIncrement(ended);
             ClearSelection();
             RefreshPresentation();
@@ -869,9 +912,10 @@ namespace ModularChess.Match
             _pendingPromotions = null;
             ClearSelection();
             promotionPicker?.Hide();
+            bool bounce = victim != null && _state.Runtime.ExtraLifeSpent(victim.Id);
+            NoteCampaignProgress(moved, victim, bounce);
             if (_state.SideToMove != moved)
                 _clock?.AddIncrement(moved);
-            bool bounce = victim != null && _state.Runtime.ExtraLifeSpent(victim.Id);
             PlayMoveSfx(move, moved, bounce);
             if (bounce)
                 BoardCamera.AddTrauma(CaptureTrauma.Deflect);
@@ -987,6 +1031,7 @@ namespace ModularChess.Match
                 return;
             Side ended = _state.SideToMove;
             _state = _state.EndTurn();
+            NoteCampaignTurnEnd(ended);
             _clock?.AddIncrement(ended);
             ClearSelection();
             RefreshPresentation();
