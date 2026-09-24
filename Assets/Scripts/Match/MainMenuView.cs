@@ -41,9 +41,16 @@ namespace ModularChess.Match
             GameAudio.Bind(exitButton, onExit);
             if (customizeButton != null)
                 customizeButton.interactable = false;
+            RefreshHistoryGate();
             OverlayMotion.Ensure(gameObject);
             _bound = true;
             RefreshLoc();
+        }
+        public void RefreshHistoryGate()
+        {
+            Resolve();
+            if (historyButton != null)
+                historyButton.interactable = HistoryPrefs.Unlocked;
         }
         public void RefreshLoc()
         {

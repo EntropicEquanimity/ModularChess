@@ -191,6 +191,56 @@ namespace ModularChess.Presentation
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
         }
+
+        public static string UnlockName(UnlockProduct product)
+        {
+            switch (product)
+            {
+                case UnlockProduct.ModeFogOfWar:
+                    return ModeName(ModeId.FogOfWar);
+                case UnlockProduct.ModePowerfulPieces:
+                    return ModeName(ModeId.PowerfulPieces);
+                case UnlockProduct.ModeMartyr:
+                    return ModeName(ModeId.Martyr);
+                case UnlockProduct.HistoryTier1:
+                    return Get("unlocks.history.tier1");
+                case UnlockProduct.HistoryTier2:
+                    return Get("unlocks.history.tier2");
+                case UnlockProduct.HistoryTier3:
+                    return Get("unlocks.history.tier3");
+                case UnlockProduct.HistoryTier4:
+                    return Get("unlocks.history.tier4");
+                case UnlockProduct.ShowNotation:
+                    return Get("unlocks.notation");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(product), product, null);
+            }
+        }
+
+        public static string UnlockSummary(UnlockProduct product)
+        {
+            switch (product)
+            {
+                case UnlockProduct.ModeFogOfWar:
+                    return ModeSummary(ModeId.FogOfWar);
+                case UnlockProduct.ModePowerfulPieces:
+                    return ModeSummary(ModeId.PowerfulPieces);
+                case UnlockProduct.ModeMartyr:
+                    return ModeSummary(ModeId.Martyr);
+                case UnlockProduct.HistoryTier1:
+                    return Get("unlocks.history.tier1.summary");
+                case UnlockProduct.HistoryTier2:
+                    return Get("unlocks.history.tier2.summary");
+                case UnlockProduct.HistoryTier3:
+                    return Get("unlocks.history.tier3.summary");
+                case UnlockProduct.HistoryTier4:
+                    return Get("unlocks.history.tier4.summary");
+                case UnlockProduct.ShowNotation:
+                    return Get("unlocks.notation.summary");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(product), product, null);
+            }
+        }
         #endregion
 
         #region Private Methods

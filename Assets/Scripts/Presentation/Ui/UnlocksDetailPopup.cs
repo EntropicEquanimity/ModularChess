@@ -21,6 +21,7 @@ namespace ModularChess.Presentation
         bool _open;
         bool _wired;
         ModeId _id;
+        UnlockProduct _product;
         Action _onChanged;
         public bool IsOpen => _open;
         #endregion
@@ -57,10 +58,13 @@ namespace ModularChess.Presentation
             go.SetActive(false);
             return go.GetComponent<UnlocksDetailPopup>();
         }
-        public void Open(ModeId id, Action onChanged, RectTransform slideFrom)
+        public void Open(UnlockProduct product, Action onChanged, RectTransform slideFrom)
         {
             Wire();
-            _id = id;
+            _product = product;
+            ModeId? mode = MeritUnlocks.AsMode(product);
+            if (mode.HasValue)
+                _id = mode.Value;
             _onChanged = onChanged;
             Loc.Changed -= OnLanguageChanged;
             Loc.Changed += OnLanguageChanged;
@@ -85,6 +89,13 @@ namespace ModularChess.Presentation
                 .SetEase(Ease.OutCubic)
                 .SetUpdate(true)
                 .SetTarget(this);
+        }
+        public void Open(ModeId id, Action onChanged, RectTransform slideFrom)
+        {
+            UnlockProduct product = UnlockProduct.ModeFogOfWar;
+            if (id == ModeId.PowerfulPieces) product = UnlockProduct.ModePowerfulPieces;
+            else if (id == ModeId.Martyr) product = UnlockProduct.ModeMartyr;
+            Open(product, onChanged, slideFrom);
         }
         public void Close()
         {
@@ -195,23 +206,33 @@ namespace ModularChess.Presentation
         void Fill()
         {
             if (title != null)
-                title.text = Loc.ModeName(_id);
+                title.text = Loc.UnlockName(_product);
             if (summary != null)
-                summary.text = Loc.ModeSummary(_id);
-            bool owned = ModeDlc.IsOwned(_id);
+            {
+                string costLine = Loc.Format("unlocks.cost", MeritUnlocks.Cost(_product), MeritWallet.Balance);
+                summary.text = Loc.UnlockSummary(_product) + "\n" + costLine;
+            }
+            bool owned = MeritUnlocks.IsOwned(_product);
+            bool canBuy = MeritUnlocks.CanPurchase(_product);
             if (buyButton != null)
             {
-                buyButton.interactable = !owned;
+                buyButton.interactable = canBuy;
                 TMP_Text label = buyButton.GetComponentInChildren<TMP_Text>();
                 if (label != null)
-                    label.text = owned ? Loc.Get("unlocks.unlocked") : Loc.Get("unlocks.buy");
+                {
+                    if (owned)
+                        label.text = Loc.Get("unlocks.unlocked");
+                    else if (!MeritUnlocks.CanPurchase(_product) && MeritWallet.Balance < MeritUnlocks.Cost(_product))
+                        label.text = Loc.Get("unlocks.needMerit");
+                    else
+                        label.text = Loc.Get("unlocks.buy");
+                }
             }
         }
         void Buy()
         {
-            if (ModeDlc.IsOwned(_id))
+            if (!MeritUnlocks.TryPurchase(_product))
                 return;
-            ModeDlc.Purchase(_id);
             Fill();
             _onChanged?.Invoke();
         }

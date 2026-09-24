@@ -295,6 +295,7 @@ namespace ModularChess.Match
 
             HideBoard();
             DismissScreens(mainMenu);
+            _mainMenu?.RefreshHistoryGate();
             OverlayMotion.Ensure(mainMenu)?.PlayEnter();
             GameAudio.PlayMenuMusic();
         }
@@ -396,6 +397,8 @@ namespace ModularChess.Match
 
         void ShowHistory()
         {
+            if (!HistoryPrefs.Unlocked)
+                return;
             EnsureHistoryOverlay();
             CacheOverlayViews();
             ShowOverlay(historyOverlay);
@@ -522,6 +525,8 @@ namespace ModularChess.Match
 
             _lobby = new LocalLobby(LocalLobby.CreateCode(), rules, settings);
             _openLobby = _lobby;
+            var transport = new LocalHotseatTransport();
+            transport.Host(_lobby.Code);
             ShowLobby();
         }
 
@@ -557,6 +562,7 @@ namespace ModularChess.Match
 
         void LeaveLobby()
         {
+            LocalHotseatTransport.OpenHost?.Close();
             _openLobby = null;
             _lobby = null;
             ShowPlay();
@@ -572,6 +578,15 @@ namespace ModularChess.Match
             CacheOverlayViews();
             if (_openLobby == null || _join == null || _join.Code != _openLobby.Code)
                 return;
+            try
+            {
+                var guest = new LocalHotseatTransport();
+                guest.Join(_openLobby.Code);
+            }
+            catch (System.InvalidOperationException)
+            {
+                return;
+            }
             _openLobby.FriendSeated = true;
             _lobby = _openLobby;
             ShowLobby();
@@ -661,9 +676,11 @@ namespace ModularChess.Match
 
         void DebugUnlockAll()
         {
-            ModeDlc.UnlockAll();
+            MeritWallet.DebugFill(999);
+            MeritUnlocks.UnlockAll();
             CacheOverlayViews();
             _unlocks?.Refresh();
+            _mainMenu?.RefreshHistoryGate();
             if (matchSettingsOverlay != null && matchSettingsOverlay.activeSelf)
                 ShowPrep();
         }

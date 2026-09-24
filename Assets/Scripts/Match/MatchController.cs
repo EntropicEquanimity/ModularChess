@@ -521,6 +521,8 @@ namespace ModularChess.Match
             _historyWritten = true;
             int seconds = _clock != null ? Mathf.FloorToInt(_clock.ElapsedSeconds) : 0;
             MatchHistoryStore.Record(_session, _state, seconds, _historyEvents);
+            bool checkmate = _state.Status == GameStatus.Checkmate;
+            MeritWallet.GrantVersusFinish(checkmate);
         }
 
         public void TogglePause()

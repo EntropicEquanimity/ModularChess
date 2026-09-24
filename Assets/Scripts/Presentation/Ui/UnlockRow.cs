@@ -8,58 +8,57 @@ namespace ModularChess.Presentation
 {
     public sealed class UnlockRow : MonoBehaviour
     {
+        #region Fields
         [SerializeField] TMP_Text nameLabel;
         [SerializeField] Image statusIcon;
         [SerializeField] Sprite lockedSprite;
         [SerializeField] Sprite unlockedSprite;
-
-        ModeId _id;
+        UnlockProduct _product;
         Button _rowButton;
+        #endregion
 
-        public void Bind(ModeDefinition definition, UnityAction<ModeId> opened)
+        #region Public Methods
+        public void Bind(UnlockProduct product, UnityAction<UnlockProduct> opened)
         {
-            _id = definition.Id;
+            _product = product;
             if (nameLabel != null)
             {
-                nameLabel.text = Loc.ModeName(definition.Id);
+                nameLabel.text = Loc.UnlockName(product);
                 nameLabel.raycastTarget = false;
             }
-
             if (statusIcon != null)
                 statusIcon.raycastTarget = false;
-
             EnsureRowButton(opened);
             Refresh();
         }
-
         public void Refresh()
         {
             if (statusIcon == null)
                 return;
-
-            Sprite sprite = ModeDlc.IsOwned(_id) ? unlockedSprite : lockedSprite;
+            Sprite sprite = MeritUnlocks.IsOwned(_product) ? unlockedSprite : lockedSprite;
             if (sprite != null)
                 statusIcon.sprite = sprite;
         }
+        #endregion
 
-        void EnsureRowButton(UnityAction<ModeId> opened)
+        #region Private Methods
+        void EnsureRowButton(UnityAction<UnlockProduct> opened)
         {
             _rowButton = GetComponent<Button>();
             if (_rowButton == null)
                 _rowButton = gameObject.AddComponent<Button>();
-
             Image hit = GetComponent<Image>();
             if (hit == null)
             {
                 hit = gameObject.AddComponent<Image>();
                 hit.color = new Color(1f, 1f, 1f, 0f);
             }
-
             hit.raycastTarget = true;
             _rowButton.targetGraphic = hit;
             _rowButton.transition = Selectable.Transition.None;
-            ModeId captured = _id;
+            UnlockProduct captured = _product;
             GameAudio.Bind(_rowButton, () => opened?.Invoke(captured));
         }
+        #endregion
     }
 }

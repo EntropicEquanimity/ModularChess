@@ -11,7 +11,6 @@ namespace ModularChess.Match
     public sealed class OptionsOverlay : MonoBehaviour
     {
         #region Fields
-        const string ShowNotationKey = "ShowNotation";
         [SerializeField] Button backButton;
         [SerializeField] Toggle notationToggle;
         [SerializeField] TMP_Text nameLabel;
@@ -200,28 +199,14 @@ namespace ModularChess.Match
                 AudioPrefs.Sfx,
                 v => AudioPrefs.Sfx = Mathf.RoundToInt(v),
                 () => Loc.Format("options.volume", AudioPrefs.Sfx));
-            historySlider = BindSlider(
-                historySlider,
-                Loc.Get("options.history"),
-                HistoryPrefs.MinUnits,
-                HistoryPrefs.MaxUnits,
-                HistoryPrefs.SliderUnits,
-                v => HistoryPrefs.SliderUnits = Mathf.RoundToInt(v),
-                () => Loc.Format("options.history.size", HistoryPrefs.Cap));
+            if (historySlider != null)
+                historySlider.gameObject.SetActive(false);
         }
         void BindNotation()
         {
             if (notationToggle == null)
                 return;
-            notationToggle.onValueChanged.RemoveAllListeners();
-            notationToggle.isOn = PlayerPrefs.GetInt(ShowNotationKey, 1) == 1;
-            notationToggle.onValueChanged.AddListener(on =>
-            {
-                GameAudio.PlayUi();
-                PlayerPrefs.SetInt(ShowNotationKey, on ? 1 : 0);
-                PlayerPrefs.Save();
-            });
-            LocalizedText.Bind(notationToggle, "options.notation");
+            notationToggle.gameObject.SetActive(false);
         }
         void BindLanguage()
         {

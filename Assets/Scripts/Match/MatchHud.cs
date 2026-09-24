@@ -126,7 +126,7 @@ namespace ModularChess.Match
             _inCheck = !_replayMode && inProgress && state.IsInCheck;
             ApplyStatus();
 
-            bool showMoves = PlayerPrefs.GetInt("ShowNotation", 1) == 1;
+            bool showMoves = MeritUnlocks.ShowNotation;
             SetMoveList(showMoves ? FormatMoveList(moves) : string.Empty);
 
             string result = _replayMode ? string.Empty : FormatResult(state);

@@ -1,3 +1,4 @@
+using ModularChess.Presentation;
 using UnityEngine;
 
 namespace ModularChess.Match
@@ -5,37 +6,35 @@ namespace ModularChess.Match
     public static class HistoryPrefs
     {
         #region Fields
-        const string Key = "HistoryCap";
-        public const int Min = 5;
-        public const int Max = 50;
-        public const int Step = 5;
-        public const int Default = 10;
+        const string TierKey = "HistoryTier";
+        static readonly int[] Caps = { 0, 5, 10, 20, 50 };
+        public const int MaxTier = 4;
         #endregion
 
         #region Public Methods
-        public static int Cap
+        public static int Tier
         {
-            get => Snap(PlayerPrefs.GetInt(Key, Default));
+            get => Mathf.Clamp(PlayerPrefs.GetInt(TierKey, 0), 0, MaxTier);
             set
             {
-                int next = Snap(value);
-                if (PlayerPrefs.GetInt(Key, Default) == next) return;
-                PlayerPrefs.SetInt(Key, next);
+                int next = Mathf.Clamp(value, 0, MaxTier);
+                if (PlayerPrefs.GetInt(TierKey, 0) == next) return;
+                PlayerPrefs.SetInt(TierKey, next);
                 PlayerPrefs.Save();
-                MatchHistoryStore.TrimToCap(next);
+                MatchHistoryStore.TrimToCap(Cap);
             }
         }
-        public static int SliderUnits
-        {
-            get => Cap / Step;
-            set => Cap = value * Step;
-        }
-        public static int MinUnits => Min / Step;
-        public static int MaxUnits => Max / Step;
+        public static int Cap => Caps[Tier];
+        public static bool Unlocked => Tier > 0;
         public static int Snap(int value)
         {
-            int clamped = Mathf.Clamp(value, Min, Max);
-            return Mathf.RoundToInt(clamped / (float)Step) * Step;
+            int best = Caps[0];
+            for (int i = 0; i < Caps.Length; i++)
+            {
+                if (Caps[i] <= value)
+                    best = Caps[i];
+            }
+            return best;
         }
         #endregion
     }

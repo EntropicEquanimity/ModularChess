@@ -1,39 +1,27 @@
 using ModularChess.Core;
-using UnityEngine;
 
 namespace ModularChess.Presentation
 {
     public static class ModeDlc
     {
-        const string KeyPrefix = "OwnedMode_";
-
-        public static bool IsOwned(ModeId id)
-        {
-            return PlayerPrefs.GetInt(Key(id), 0) == 1;
-        }
-
+        public static bool IsOwned(ModeId id) => MeritUnlocks.IsModeOwned(id);
         public static void Purchase(ModeId id)
         {
-            PlayerPrefs.SetInt(Key(id), 1);
-            PlayerPrefs.Save();
+            UnlockProduct? product = ProductFor(id);
+            if (product == null) return;
+            MeritUnlocks.TryPurchase(product.Value);
         }
-
-        public static void UnlockAll()
+        public static void UnlockAll() => MeritUnlocks.UnlockAll();
+        public static void ClearAll() => MeritUnlocks.ClearAll();
+        static UnlockProduct? ProductFor(ModeId id)
         {
-            ModeDefinition[] modes = ModeCatalog.All;
-            for (int i = 0; i < modes.Length; i++)
-                PlayerPrefs.SetInt(Key(modes[i].Id), 1);
-            PlayerPrefs.Save();
+            switch (id)
+            {
+                case ModeId.FogOfWar: return UnlockProduct.ModeFogOfWar;
+                case ModeId.PowerfulPieces: return UnlockProduct.ModePowerfulPieces;
+                case ModeId.Martyr: return UnlockProduct.ModeMartyr;
+                default: return null;
+            }
         }
-
-        public static void ClearAll()
-        {
-            ModeDefinition[] modes = ModeCatalog.All;
-            for (int i = 0; i < modes.Length; i++)
-                PlayerPrefs.DeleteKey(Key(modes[i].Id));
-            PlayerPrefs.Save();
-        }
-
-        static string Key(ModeId id) => KeyPrefix + (int)id;
     }
 }

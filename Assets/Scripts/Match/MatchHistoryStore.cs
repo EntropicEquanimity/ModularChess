@@ -266,7 +266,8 @@ namespace ModularChess.Match
         static MatchHistoryRecord[] Trim(MatchHistoryRecord[] records, int cap)
         {
             if (records == null) return new MatchHistoryRecord[0];
-            int keep = Math.Max(HistoryPrefs.Min, Math.Min(HistoryPrefs.Max, cap));
+            int keep = Math.Max(0, cap);
+            if (keep == 0) return new MatchHistoryRecord[0];
             if (records.Length <= keep) return records;
             var trimmed = new MatchHistoryRecord[keep];
             int start = records.Length - keep;

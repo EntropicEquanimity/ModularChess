@@ -180,6 +180,10 @@ _Avoid_: client-side, mod, skin pack, free Customize in EA
 On Steam builds, the visible name in Versus AI and Versus Friend is the player’s Steam persona. Not a local account stem.
 _Avoid_: account creation name as the Steam-facing label
 
+**Type scale**:
+UI uses a 12-pixel-based pixel font. Font sizes are multiples of 12 only. Default body size is 24. Default button and panel chrome for text backgrounds is 200×32. Author prefabs to that grid; do not invent off-grid sizes in new UI.
+_Avoid_: arbitrary point sizes, non-multiple-of-12 fonts, freeform button heights
+
 **Piece**:
 A specific occupant of the Board: identity, Side, and current PieceType. Two knights of the same Side are two Pieces.
 _Avoid_: unit, token, PieceType

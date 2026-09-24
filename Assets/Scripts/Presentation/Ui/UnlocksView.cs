@@ -50,12 +50,12 @@ namespace ModularChess.Presentation
                 return;
             for (int i = content.childCount - 1; i >= 0; i--)
                 Destroy(content.GetChild(i).gameObject);
-            ModeDefinition[] modes = ModeCatalog.All;
-            for (int i = 0; i < modes.Length; i++)
+                UnlockProduct[] catalog = MeritUnlocks.All;
+            for (int i = 0; i < catalog.Length; i++)
             {
                 UnlockRow row = Instantiate(rowPrefab, content);
                 row.gameObject.SetActive(true);
-                row.Bind(modes[i], OpenDetail);
+                row.Bind(catalog[i], OpenDetail);
             }
         }
         public bool CloseDetailIfOpen()
@@ -119,12 +119,12 @@ namespace ModularChess.Presentation
             }
             return null;
         }
-        void OpenDetail(ModeId id)
+        void OpenDetail(UnlockProduct product)
         {
             Wire();
             if (detail == null)
                 return;
-            detail.Open(id, RefreshLocks, slideFrom);
+            detail.Open(product, RefreshLocks, slideFrom);
         }
         void RefreshLocks()
         {

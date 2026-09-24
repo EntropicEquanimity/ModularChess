@@ -5,7 +5,8 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "ModularChess.Core",
-        "ModularChess.Match"
+        "ModularChess.Match",
+        "ModularChess.Presentation"
     ],
     "includePlatforms": [
         "Editor"
