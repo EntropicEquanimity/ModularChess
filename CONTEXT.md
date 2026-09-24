@@ -117,8 +117,12 @@ Grey, Blue, or Gold on a Boon. Offer odds are a designer AnimationCurve. Stage 1
 _Avoid_: tier, quality, rank, moving weight off Grey, Claude-authored odds
 
 **Gold**:
-In-Run currency. A Capture pays that PieceType's value (Pawn 1, Knight/Bishop 3, Rook 5, Queen 9, King 5) unless a Boon changes pay. Knocking off a remaining enemy King also pays King Gold. Sell pays value minus 1. Carries across Stages with no cap. Not Unlocks.
+In-Run currency. Starts at StartingGold (default 5; tweak `RoguelikeBalance.StartingGold`). A Capture pays that PieceType's value (Pawn 1, Knight/Bishop 3, Rook 5, Queen 9, King 5) unless a Boon changes pay. Knocking off a remaining enemy King also pays King Gold. Sell pays value minus 1. Carries across Stages with no cap. Not Unlocks.
 _Avoid_: Unlocks, Buy, money, coin
+
+**Stage turn limit**:
+Each Stage gives the player a fixed number of turns (default 20; tweak `RoguelikeBalance.StageTurnLimit`). Only player turns count. End Turn passes without moving and still spends a turn. Hitting 0 without clearing the Stage loses the Run (out of time). HUD shows `{n} turns left`.
+_Avoid_: counting enemy turns, Match clocks
 
 **Shop**:
 A purchase-only overlay after the Boon offer on cleared Stages 4, 8, and 12. Five items priced 3–5× a PieceType value; reroll costs 2 Gold; shop items have no sell-back. Skippable. Hide/show Board is preview only while it is open. Not Unlocks.

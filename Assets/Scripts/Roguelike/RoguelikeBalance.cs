@@ -13,6 +13,8 @@ namespace ModularChess.Core
         public const int EnemyBudgetBase = 1;
         public const int EnemyBudgetPerStage = 2;
         public const int KingCaptureGold = 5;
+        public const int StartingGold = 5;
+        public const int StageTurnLimit = 20;
         public const int ShopSlotCount = 5;
         public const int ShopRerollCost = 2;
         public const int ShopPriceMinMult = 3;

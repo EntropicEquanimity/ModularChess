@@ -104,19 +104,39 @@ namespace ModularChess.Presentation
             if (_anchor == null || _rect == null)
                 return;
             Canvas canvas = GetComponentInParent<Canvas>();
-            Camera cam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
-                ? canvas.worldCamera
-                : null;
+            Camera worldCam = BoardCamera.ActiveCamera;
+            if (worldCam == null)
+                worldCam = Camera.main;
             Vector3 world = _anchor.position;
-            Vector2 screen = RectTransformUtility.WorldToScreenPoint(cam != null ? cam : Camera.main, world);
+            Vector2 screen = RectTransformUtility.WorldToScreenPoint(worldCam, world);
             RectTransform parent = _rect.parent as RectTransform;
             if (parent == null)
                 return;
             Camera overlayCam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
                 ? canvas.worldCamera
                 : null;
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, screen, overlayCam, out Vector2 local))
-                _rect.anchoredPosition = local + new Vector2(16f, 0f);
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, screen, overlayCam, out Vector2 local))
+                return;
+            float pad = 24f;
+            float halfW = _rect.rect.width * 0.5f;
+            float halfH = _rect.rect.height * 0.5f;
+            if (halfW < 1f)
+                halfW = 80f;
+            if (halfH < 1f)
+                halfH = 40f;
+            Vector2 parentSize = parent.rect.size;
+            Vector2 desired = local + new Vector2(halfW + pad, halfH + pad);
+            float minX = -parentSize.x * 0.5f + halfW + 8f;
+            float maxX = parentSize.x * 0.5f - halfW - 8f;
+            float minY = -parentSize.y * 0.5f + halfH + 8f;
+            float maxY = parentSize.y * 0.5f - halfH - 8f;
+            if (desired.x > maxX)
+                desired.x = local.x - halfW - pad;
+            if (desired.y > maxY)
+                desired.y = local.y - halfH - pad;
+            desired.x = Mathf.Clamp(desired.x, minX, maxX);
+            desired.y = Mathf.Clamp(desired.y, minY, maxY);
+            _rect.anchoredPosition = desired;
         }
         void ApplyAlpha()
         {

@@ -67,7 +67,24 @@ namespace ModularChess.Presentation
         }
         public void Bind(DetailsPopup popup)
         {
-            popup?.PresentPiece(_piece, _state);
+            if (popup == null)
+                return;
+            Piece piece = ResolveLivePiece();
+            popup.PresentPiece(piece, _state);
+        }
+        Piece ResolveLivePiece()
+        {
+            if (_state != null && PieceId != Guid.Empty)
+            {
+                Square? square = _state.Board.FindSquare(PieceId);
+                if (square != null)
+                {
+                    Piece live = _state.Board.GetPiece(square.Value);
+                    if (live != null)
+                        return live;
+                }
+            }
+            return _piece;
         }
         public void BindCaptured(Guid id, PieceType type, Side side, BoardTheme theme)
         {

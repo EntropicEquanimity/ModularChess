@@ -49,5 +49,34 @@ namespace ModularChess.Core.Tests
             Assert.AreEqual(0, state.LegalMoves.Count);
             Assert.IsFalse(RunSession.ChooseEnemyMove(state, new Random(3)).HasValue);
         }
+        [Test]
+        public void RunStartsWithStartingGold()
+        {
+            var run = new RoguelikeRunState(Side.White);
+            Assert.AreEqual(RoguelikeBalance.StartingGold, run.Gold);
+        }
+        [Test]
+        public void BeginStage_ResetsTurnLimit()
+        {
+            var session = new RunSession(new Random(4));
+            session.Start(new RoguelikeRunSettings { PlayerColor = HostColor.White });
+            session.BeginStage(null);
+            Assert.AreEqual(RoguelikeBalance.StageTurnLimit, session.TurnsRemaining);
+            Assert.IsTrue(session.TryPassPlayerTurn(out bool timedOut));
+            Assert.IsFalse(timedOut);
+            Assert.AreEqual(RoguelikeBalance.StageTurnLimit - 1, session.TurnsRemaining);
+        }
+        [Test]
+        public void ExhaustingPlayerTurns_TimesOut()
+        {
+            var session = new RunSession(new Random(5));
+            session.Start(new RoguelikeRunSettings { PlayerColor = HostColor.White });
+            session.BeginStage(null);
+            bool timedOut = false;
+            for (int i = 0; i < RoguelikeBalance.StageTurnLimit; i++)
+                timedOut = session.ConsumePlayerTurn();
+            Assert.IsTrue(timedOut);
+            Assert.AreEqual(0, session.TurnsRemaining);
+        }
     }
 }

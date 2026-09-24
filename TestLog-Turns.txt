@@ -1,0 +1,46 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.4/staging' branch; Version is '6000.4.4f1 (360f97ecca93) revision 3542935'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 10  (10.0.19045) 64bit Core' Language: 'en' Physical Memory: 16298 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-joshu" at "2026-09-23T17:34:33.1746347Z"
+Process architecture: x64
+Date: 2026-09-23T17:34:33Z
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 32324, path: "C:/Program Files/Unity Hub/UnityLicensingClient_V1/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              c3c761bc24364462978c97abfc02a87f
+  Correlation Id:          4b832fe1b70fb196b98d4a7fb6355413
+  External correlation Id: 2271119516621611910
+  Machine Id:              exqjBiv5N5CM6KTaLJEw2tr+QKA=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-joshu" (connect: 0.00s, validation: 0.00s, handshake: 0.04s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-joshu-notifications" at "2026-09-23T17:34:33.2116352Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: ewogICJzdWJzR3JvdXAiIDogInVuaXR5IGVkaXRvciIsCiAgIm5hbWVzcGFjZSIgOiAidW5pdHlfZWRpdG9yIiwKICAidHlwZSIgOiAiRURJVE9SIiwKICAidGFnIiA6ICJVbml0eVBlcnNvbmFsXXXX
+  Product: Unity Personal Version
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Module] Licensing Background thread has ended after 0.04s
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.4.4f1\Editor\Unity.exe
+-batchmode
+-nographics
+-projectPath
+C:\Users\joshu\Desktop\GameDev\Unity\ModularChess
+-runTests
+-testPlatform
+EditMode
+-testFilter
+ModularChess.Core.Tests.RunSessionTests|ModularChess.Core.Tests.RoguelikeStageFactoryTests
+-testResults
+C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\TestResults-Turns.xml
+-logFile
+C:\Users\joshu\Desktop\GameDev\Unity\ModularChess\TestLog-Turns.txt
+Successfully changed project path to: C:\Users\joshu\Desktop\GameDev\Unity\ModularChess
+C:/Users/joshu/Desktop/GameDev/Unity/ModularChess
+Exiting without the bug reporter. Application will terminate with return code 1

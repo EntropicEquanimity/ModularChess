@@ -16,11 +16,13 @@ namespace ModularChess.Match
         [SerializeField] TMP_Text armyLabel;
         [SerializeField] TMP_Text enemyBoonLabel;
         [SerializeField] TMP_Text statusLabel;
+        [SerializeField] TMP_Text turnsLabel;
         [SerializeField] Button leaveButton;
         [SerializeField] Button nextStageButton;
         [SerializeField] Button rematchButton;
         [SerializeField] Button optionsButton;
         [SerializeField] Button giveUpButton;
+        [SerializeField] Button endTurnButton;
         [SerializeField] GameObject rearrangePanel;
         [SerializeField] GameObject resultsPanel;
         [SerializeField] TMP_Text resultsLabel;
@@ -75,6 +77,11 @@ namespace ModularChess.Match
                 giveUpButton.onClick.RemoveAllListeners();
                 GameAudio.Bind(giveUpButton, () => _onGiveUp?.Invoke());
             }
+            if (endTurnButton != null)
+            {
+                endTurnButton.onClick.RemoveAllListeners();
+                GameAudio.Bind(endTurnButton, () => _controller?.RequestEndTurn());
+            }
             if (boonOffer != null)
                 boonOffer.Bind(def => _controller?.PickBoon(def));
         }
@@ -93,7 +100,7 @@ namespace ModularChess.Match
             HideBoonOffer();
             OverlayMotion.Ensure(gameObject)?.PlayExit();
         }
-        public void Refresh(RoguelikeRunState run, GameState state)
+        public void Refresh(RoguelikeRunState run, GameState state, int turnsRemaining = -1)
         {
             Resolve();
             if (run == null)
@@ -104,13 +111,38 @@ namespace ModularChess.Match
                 goldLabel.text = Loc.Format("roguelike.gold", run.Gold);
             if (armyLabel != null)
                 armyLabel.text = Loc.Format("roguelike.army", CountArmy(state, run.PlayerSide), run.ArmySizeCap);
+            if (turnsLabel != null)
+            {
+                int turns = turnsRemaining >= 0 ? turnsRemaining : RoguelikeBalance.StageTurnLimit;
+                turnsLabel.text = Loc.Format("roguelike.turnsLeft", turns);
+            }
+            bool playerTurn = state != null
+                && state.Status == GameStatus.InProgress
+                && state.SideToMove == run.PlayerSide;
+            bool blocked = (rearrangePanel != null && rearrangePanel.activeSelf)
+                || (resultsPanel != null && resultsPanel.activeSelf)
+                || (boonOffer != null && boonOffer.gameObject.activeInHierarchy);
+            if (endTurnButton != null)
+                endTurnButton.gameObject.SetActive(playerTurn && !blocked);
             if (statusLabel != null && state != null)
             {
                 if (state.Status == GameStatus.InProgress)
-                    statusLabel.text = state.SideToMove == run.PlayerSide
+                    statusLabel.text = playerTurn
                         ? Loc.Get("roguelike.yourTurn")
                         : Loc.Get("roguelike.enemyTurn");
             }
+        }
+        public void ShowWin()
+        {
+            ShowResults(Loc.Get("roguelike.win"));
+        }
+        public void ShowLose()
+        {
+            ShowResults(Loc.Get("roguelike.lose"));
+        }
+        public void ShowLoseOutOfTime()
+        {
+            ShowResults(Loc.Get("roguelike.lose.time"));
         }
         public void AnnounceEnemyBoon(EnemyBoonId? boon)
         {
@@ -142,14 +174,8 @@ namespace ModularChess.Match
                 nextStageButton.gameObject.SetActive(on);
             if (statusLabel != null && on)
                 statusLabel.text = Loc.Get("roguelike.rearrange");
-        }
-        public void ShowWin()
-        {
-            ShowResults(Loc.Get("roguelike.win"));
-        }
-        public void ShowLose()
-        {
-            ShowResults(Loc.Get("roguelike.lose"));
+            if (endTurnButton != null && on)
+                endTurnButton.gameObject.SetActive(false);
         }
         #endregion
 
@@ -159,6 +185,8 @@ namespace ModularChess.Match
             Resolve();
             HideBoonOffer();
             SetRearrange(false);
+            if (endTurnButton != null)
+                endTurnButton.gameObject.SetActive(false);
             if (resultsPanel != null)
                 resultsPanel.SetActive(true);
             if (resultsLabel != null)
@@ -188,6 +216,8 @@ namespace ModularChess.Match
                 enemyBoonLabel = FindTmp("EnemyBoonLabel");
             if (statusLabel == null)
                 statusLabel = FindTmp("StatusLabel");
+            if (turnsLabel == null)
+                turnsLabel = FindTmp("TurnsLabel");
             if (leaveButton == null)
                 leaveButton = FindButton("LeaveButton");
             if (nextStageButton == null)
@@ -198,6 +228,8 @@ namespace ModularChess.Match
                 optionsButton = FindButton("Options");
             if (giveUpButton == null)
                 giveUpButton = FindButton("Give Up");
+            if (endTurnButton == null)
+                endTurnButton = FindButton("EndTurn");
             if (rearrangePanel == null)
             {
                 Transform t = FindNamed("RearrangePanel");

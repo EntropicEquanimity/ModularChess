@@ -171,12 +171,18 @@ namespace ModularChess.Core
             out Guid id)
         {
             id = Guid.Empty;
-            var empties = new List<Square>(32);
-            for (int i = 0; i < 64; i++)
+            int back = player == Side.White ? 0 : 7;
+            int forward = player == Side.White ? 1 : -1;
+            var empties = new List<Square>(16);
+            for (int depth = 0; depth < 2; depth++)
             {
-                Square square = Square.FromIndex(i);
-                if (board.CanPlace(square))
-                    empties.Add(square);
+                int rank = back + forward * depth;
+                for (int file = 0; file < Square.BoardSize; file++)
+                {
+                    Square square = new Square(file, rank);
+                    if (board.CanPlace(square))
+                        empties.Add(square);
+                }
             }
             if (empties.Count == 0)
                 return false;

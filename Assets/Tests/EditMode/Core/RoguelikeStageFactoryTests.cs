@@ -15,6 +15,9 @@ namespace ModularChess.Core.Tests
             Assert.IsNotNull(spawn.State.Board.GetPiece(new Square(4, 0)));
             Assert.AreEqual(PieceType.King, spawn.State.Board.GetPiece(new Square(4, 0)).Type);
             Assert.IsTrue(spawn.StartingPieceId.HasValue);
+            Square? startSquare = spawn.State.Board.FindSquare(spawn.StartingPieceId.Value);
+            Assert.IsTrue(startSquare.HasValue);
+            Assert.LessOrEqual(startSquare.Value.Rank, 1);
             Assert.Greater(spawn.EnemyPieceIds.Count, 0);
             Assert.AreEqual(PieceType.King, spawn.State.Board.GetPiece(new Square(4, 7)).Type);
         }

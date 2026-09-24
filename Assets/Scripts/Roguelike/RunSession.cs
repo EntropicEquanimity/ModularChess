@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("ModularChess.Core.Tests")]
 
 namespace ModularChess.Core
 {
@@ -8,13 +11,15 @@ namespace ModularChess.Core
         #region Fields
         public GameStatus Status { get; }
         public int GoldGained { get; }
+        public bool TimedOut { get; }
         #endregion
 
         #region Public Methods
-        public RunMoveResult(GameStatus status, int goldGained)
+        public RunMoveResult(GameStatus status, int goldGained, bool timedOut = false)
         {
             Status = status;
             GoldGained = goldGained;
+            TimedOut = timedOut;
         }
         #endregion
     }
@@ -31,6 +36,7 @@ namespace ModularChess.Core
         public RoguelikeStageSpawn LastSpawn { get; private set; }
         public IReadOnlyList<ShopItem> ShopItems => _shopItems;
         public IReadOnlyDictionary<Guid, Square> StageHomes => _stageHomes;
+        public int TurnsRemaining { get; private set; }
         public bool IsActive => Run != null && State != null;
         #endregion
 
@@ -46,6 +52,7 @@ namespace ModularChess.Core
             Run = new RoguelikeRunState(player);
             State = null;
             LastSpawn = null;
+            TurnsRemaining = RoguelikeBalance.StageTurnLimit;
             _shopItems = new List<ShopItem>();
             _stageHomes.Clear();
         }
@@ -54,6 +61,7 @@ namespace ModularChess.Core
             Run = null;
             State = null;
             LastSpawn = null;
+            TurnsRemaining = 0;
             _shopItems = new List<ShopItem>();
             _stageHomes.Clear();
         }
@@ -66,6 +74,7 @@ namespace ModularChess.Core
             Run.SetEnemyBoon(RoguelikeBalance.EnemyBoonForStage(Run.StageNumber));
             LastSpawn = RoguelikeStageFactory.Create(Run, _rng, _settings, carriedArmy);
             State = LastSpawn.State;
+            TurnsRemaining = RoguelikeBalance.StageTurnLimit;
             CaptureStageHomes();
             return LastSpawn;
         }
@@ -106,7 +115,45 @@ namespace ModularChess.Core
                 gold = RoguelikeBalance.CaptureGold(captured.Value);
                 Run.AddGold(gold);
             }
-            return new RunMoveResult(State.Status, gold);
+            bool timedOut = false;
+            if (mover == Run.PlayerSide && State.Status == GameStatus.InProgress && State.SideToMove != mover)
+                timedOut = ConsumePlayerTurn();
+            return new RunMoveResult(State.Status, gold, timedOut);
+        }
+        public bool TryPassPlayerTurn(out bool timedOut)
+        {
+            timedOut = false;
+            if (State == null || Run == null || State.Status != GameStatus.InProgress)
+                return false;
+            if (State.SideToMove != Run.PlayerSide)
+                return false;
+            State = State.WithSideToMove(Run.PlayerSide.Opponent());
+            timedOut = ConsumePlayerTurn();
+            return true;
+        }
+        public bool TrySkipEmptyTurn()
+        {
+            return TrySkipEmptyTurn(out _);
+        }
+        public bool TrySkipEmptyTurn(out bool timedOut)
+        {
+            timedOut = false;
+            if (State == null || State.LegalMoves.Count > 0)
+            {
+                return false;
+            }
+            Side before = State.SideToMove;
+            State = State.WithSideToMove(State.SideToMove.Opponent());
+            if (Run != null && before == Run.PlayerSide && State.Status == GameStatus.InProgress)
+                timedOut = ConsumePlayerTurn();
+            return true;
+        }
+        internal bool ConsumePlayerTurn()
+        {
+            if (TurnsRemaining <= 0)
+                return true;
+            TurnsRemaining--;
+            return TurnsRemaining <= 0;
         }
         public Move? ChooseEnemyMove()
         {
@@ -127,15 +174,6 @@ namespace ModularChess.Core
                 }
             }
             return state.LegalMoves[rng.Next(state.LegalMoves.Count)];
-        }
-        public bool TrySkipEmptyTurn()
-        {
-            if (State == null || State.LegalMoves.Count > 0)
-            {
-                return false;
-            }
-            State = State.WithSideToMove(State.SideToMove.Opponent());
-            return true;
         }
         public void OpenShop()
         {

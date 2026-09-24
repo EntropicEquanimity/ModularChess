@@ -147,8 +147,8 @@ namespace ModularChess.Presentation
                 return;
             HideQuestion();
             popup.ConfigureFade(trigger.PopupFadeIn, trigger.PopupFadeAway);
-            trigger.Fill(popup);
             popup.AnchorTo(trigger.transform);
+            trigger.Fill(popup);
             _shown = trigger;
             _popupOpen = true;
             _hoverTime = trigger.HoverDurationToTrigger;
@@ -181,40 +181,42 @@ namespace ModularChess.Presentation
         }
         PopupTrigger FindTrigger(Vector2 screen)
         {
-            EventSystem eventSystem = EventSystem.current;
-            if (eventSystem != null)
+            Camera worldCam = BoardCamera.ActiveCamera;
+            if (worldCam == null)
+                worldCam = Camera.main;
+            if (worldCam != null)
             {
-                var data = new PointerEventData(eventSystem) { position = screen };
-                Hits.Clear();
-                eventSystem.RaycastAll(data, Hits);
-                for (int i = 0; i < Hits.Count; i++)
+                Ray ray = worldCam.ScreenPointToRay(screen);
+                RaycastHit2D hit2d = Physics2D.GetRayIntersection(ray, 1000f);
+                if (hit2d.collider != null)
                 {
-                    GameObject hit = Hits[i].gameObject;
-                    if (hit == null)
-                        continue;
-                    if (questionMark != null && hit.transform.IsChildOf(questionMark))
-                        continue;
-                    if (popup != null && hit.transform.IsChildOf(popup.transform))
-                        continue;
-                    PopupTrigger trigger = hit.GetComponentInParent<PopupTrigger>();
+                    PopupTrigger trigger = hit2d.collider.GetComponentInParent<PopupTrigger>();
+                    if (trigger != null && trigger.isActiveAndEnabled)
+                        return trigger;
+                }
+                if (Physics.Raycast(ray, out RaycastHit hit3d, 1000f))
+                {
+                    PopupTrigger trigger = hit3d.collider.GetComponentInParent<PopupTrigger>();
                     if (trigger != null && trigger.isActiveAndEnabled)
                         return trigger;
                 }
             }
-            Camera camera = Camera.main;
-            if (camera == null)
+            EventSystem eventSystem = EventSystem.current;
+            if (eventSystem == null)
                 return null;
-            Ray ray = camera.ScreenPointToRay(screen);
-            RaycastHit2D hit2d = Physics2D.GetRayIntersection(ray);
-            if (hit2d.collider != null)
+            var data = new PointerEventData(eventSystem) { position = screen };
+            Hits.Clear();
+            eventSystem.RaycastAll(data, Hits);
+            for (int i = 0; i < Hits.Count; i++)
             {
-                PopupTrigger trigger = hit2d.collider.GetComponentInParent<PopupTrigger>();
-                if (trigger != null && trigger.isActiveAndEnabled)
-                    return trigger;
-            }
-            if (Physics.Raycast(ray, out RaycastHit hit3d, 1000f))
-            {
-                PopupTrigger trigger = hit3d.collider.GetComponentInParent<PopupTrigger>();
+                GameObject hit = Hits[i].gameObject;
+                if (hit == null)
+                    continue;
+                if (questionMark != null && hit.transform.IsChildOf(questionMark))
+                    continue;
+                if (popup != null && hit.transform.IsChildOf(popup.transform))
+                    continue;
+                PopupTrigger trigger = hit.GetComponentInParent<PopupTrigger>();
                 if (trigger != null && trigger.isActiveAndEnabled)
                     return trigger;
             }

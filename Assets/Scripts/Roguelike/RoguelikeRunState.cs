@@ -26,7 +26,7 @@ namespace ModularChess.Core
         {
             PlayerSide = playerSide;
             StageNumber = 1;
-            Gold = 0;
+            Gold = RoguelikeBalance.StartingGold;
             ArmySizeCap = DefaultArmySize;
         }
         public void AddGold(int amount)

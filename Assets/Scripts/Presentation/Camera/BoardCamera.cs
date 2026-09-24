@@ -65,6 +65,17 @@ namespace ModularChess.Presentation
         #endregion
 
         #region Public Methods
+        public static Camera ActiveCamera
+        {
+            get
+            {
+                if (_active == null)
+                    return Camera.main;
+                if (_active._camera == null)
+                    _active._camera = _active.GetComponent<Camera>();
+                return _active._camera;
+            }
+        }
         public static void AddTrauma(float amount)
         {
             if (_active == null)

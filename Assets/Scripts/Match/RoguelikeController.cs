@@ -50,9 +50,11 @@ namespace ModularChess.Match
             {
                 if (_stalledEmptyTurns)
                     return;
-                _session.TrySkipEmptyTurn();
+                _session.TrySkipEmptyTurn(out bool timedOut);
                 _stalledEmptyTurns = _session.State.LegalMoves.Count == 0;
-                hud?.Refresh(_session.Run, _session.State);
+                RefreshHud();
+                if (timedOut)
+                    LoseOutOfTime();
                 return;
             }
             _stalledEmptyTurns = false;
@@ -172,7 +174,7 @@ namespace ModularChess.Match
             if (!_session.TryBuyShopItem(index))
                 return;
             RefreshBoard();
-            hud?.Refresh(_session.Run, _session.State);
+            hud?.Refresh(_session.Run, _session.State, _session.TurnsRemaining);
             shop?.Present(_session.ShopItems, _session.Run, _session.State, BuyShopItem, RerollShop, CloseShop);
         }
         public void RerollShop()
@@ -181,7 +183,7 @@ namespace ModularChess.Match
                 return;
             if (!_session.TryRerollShop())
                 return;
-            hud?.Refresh(_session.Run, _session.State);
+            hud?.Refresh(_session.Run, _session.State, _session.TurnsRemaining);
             shop?.Present(_session.ShopItems, _session.Run, _session.State, BuyShopItem, RerollShop, CloseShop);
         }
         public void CloseShop()
@@ -192,9 +194,37 @@ namespace ModularChess.Match
             shop?.Dismiss();
             EnterRearrange();
         }
+        public void RequestEndTurn()
+        {
+            if (!_session.IsActive || _paused || _offering || _rearranging || _spawning || _clearing || _shopping)
+                return;
+            if (_session.State.Status != GameStatus.InProgress)
+                return;
+            if (_session.State.SideToMove != _session.Run.PlayerSide)
+                return;
+            if (boardView != null && boardView.PiecesBusy)
+                return;
+            if (!_session.TryPassPlayerTurn(out bool timedOut))
+                return;
+            ClearSelection();
+            RefreshBoard();
+            RefreshHud();
+            if (timedOut)
+                LoseOutOfTime();
+        }
         #endregion
 
         #region Private Methods
+        void RefreshHud()
+        {
+            hud?.Refresh(_session.Run, _session.State, _session.TurnsRemaining);
+        }
+        void LoseOutOfTime()
+        {
+            _paused = true;
+            shop?.Dismiss();
+            hud?.ShowLoseOutOfTime();
+        }
         void BeginStage(IReadOnlyList<CarriedPiece> carriedArmy)
         {
             _shopping = false;
@@ -206,7 +236,7 @@ namespace ModularChess.Match
             _spawning = true;
             _clearing = false;
             hud?.AnnounceEnemyBoon(_session.Run.ActiveEnemyBoon);
-            hud?.Refresh(_session.Run, _session.State);
+            hud?.Refresh(_session.Run, _session.State, _session.TurnsRemaining);
             if (boardView == null)
             {
                 _spawning = false;
@@ -246,14 +276,14 @@ namespace ModularChess.Match
         {
             _spawning = false;
             _session.CaptureStageHomes();
-            hud?.Refresh(_session.Run, _session.State);
+            hud?.Refresh(_session.Run, _session.State, _session.TurnsRemaining);
         }
         void EnterRearrange()
         {
             _rearranging = true;
             _dragRearrange = false;
             hud?.SetRearrange(true);
-            hud?.Refresh(_session.Run, _session.State);
+            hud?.Refresh(_session.Run, _session.State, _session.TurnsRemaining);
         }
         void AfterBoon()
         {
@@ -268,7 +298,7 @@ namespace ModularChess.Match
         {
             _shopping = true;
             _session.OpenShop();
-            hud?.Refresh(_session.Run, _session.State);
+            hud?.Refresh(_session.Run, _session.State, _session.TurnsRemaining);
             shop.Present(_session.ShopItems, _session.Run, _session.State, BuyShopItem, RerollShop, CloseShop);
         }
         void Subscribe()
@@ -387,14 +417,19 @@ namespace ModularChess.Match
             RunMoveResult result = _session.ApplyMove(move);
             ClearSelection();
             RefreshBoard();
-            hud?.Refresh(_session.Run, _session.State);
+            RefreshHud();
             if (result.Status == GameStatus.StageCleared)
             {
                 OnStageCleared();
                 return;
             }
             if (result.Status == GameStatus.RunLost)
+            {
                 hud?.ShowLose();
+                return;
+            }
+            if (result.TimedOut)
+                LoseOutOfTime();
         }
         void OnStageCleared()
         {
@@ -403,7 +438,7 @@ namespace ModularChess.Match
             _shopping = false;
             _rearranging = false;
             _session.AwardKnockedOffKingGold();
-            hud?.Refresh(_session.Run, _session.State);
+            hud?.Refresh(_session.Run, _session.State, _session.TurnsRemaining);
             Side enemy = _session.Run.PlayerSide.Opponent();
             if (boardView == null)
             {
@@ -453,8 +488,10 @@ namespace ModularChess.Match
             Move? best = _session.ChooseEnemyMove();
             if (best == null)
             {
-                _session.TrySkipEmptyTurn();
-                hud?.Refresh(_session.Run, _session.State);
+                _session.TrySkipEmptyTurn(out bool timedOut);
+                RefreshHud();
+                if (timedOut)
+                    LoseOutOfTime();
                 return;
             }
             ApplyMove(best.Value);
