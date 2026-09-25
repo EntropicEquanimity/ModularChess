@@ -1,0 +1,715 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c3e91a04b2e4f6a9d1c5e8b0a4f7263, type: 3}
+  m_Name: CampaignLevels
+  m_EditorClassIdentifier: ModularChess.Match::ModularChess.Match.CampaignLevelSet
+  levels:
+  - titleKey: campaign.level.1
+    fen: 6k1/5ppp/8/8/8/8/5PPP/4Q1K1 w - - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 1
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 1
+    specialCount: 0
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 0
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.2
+    fen: 6k1/8/8/8/8/8/8/R3K2R w KQ - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 2
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 1
+    specialCount: 0
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 0
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.3
+    fen: 6k1/8/6B1/8/8/2B2K2/4R3/8 w - - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 2
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 1
+    specialCount: 0
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 0
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.4
+    fen: 3k1r2/8/8/1b6/8/7n/4QPP1/4RK2 b - - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 2
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 1
+    specialCount: 0
+    specialPiece: 0
+    playerSide: 1
+    aiStrength: 0
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.5
+    fen: 3r1k2/2N1pppp/3n4/B7/8/2R5/PPP1n3/RK6 b - - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 8
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 1
+    specialCount: 0
+    specialPiece: 0
+    playerSide: 1
+    aiStrength: 0
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.6
+    fen: 4k3/8/8/8/8/8/4Q3/4K3 w - - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 8
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 1
+    specialCount: 0
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 0
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.7
+    fen: r1bq1rk1/p1p1b1pp/1pnppn2/5p2/2PP1B2/1QN2NP1/PP2PPBP/R4RK1 w - - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 20
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 4
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 0
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.8
+    fen: r3rk2/1p2pppp/2b4b/4q3/8/5P2/PPPQ2PP/2KR2NR b - - 0 1
+    modes: 01000000
+    timeKind: 0
+    timeLimit: 3
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 4
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 0
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.9
+    fen: rn1qkb1r/pppb1p1p/4pnp1/3pP1B1/1QPP4/3B1N2/PP3PPP/RN3RK1 b kq - 0 1
+    modes: 02000000
+    timeKind: 0
+    timeLimit: 30
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 3
+    playerSide: 0
+    aiStrength: 0
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.10
+    fen: n1NnkN1n/8/2n2n1n/1N1N2N1/8/2N2N2/4N3/N3K2N b - - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 20
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 4
+    specialCount: 5
+    specialPiece: 5
+    playerSide: 0
+    aiStrength: 0
+    empowerBudget: 3
+    martyrThreshold: 6
+  - titleKey: campaign.level.11
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 40
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 5
+    specialPiece: 4
+    playerSide: 1
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.12
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 40
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.13
+    fen: rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/1QN5/PP2PPPP/R1B1KBNR b KQkq - 0 1
+    modes: 01000000
+    timeKind: 0
+    timeLimit: 40
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 10
+    martyrThreshold: 6
+  - titleKey: campaign.level.14
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 02000000
+    timeKind: 0
+    timeLimit: 40
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 3
+  - titleKey: campaign.level.15
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0000000002000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 7
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.16
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0100000002000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 7
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.17
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.18
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.19
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 01000000
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.20
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 02000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.21
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0000000002000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 7
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.22
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0100000002000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 7
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.23
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.24
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.25
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 01000000
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.26
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 02000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.27
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0000000002000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 7
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.28
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0100000002000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 7
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.29
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.30
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.31
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 01000000
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.32
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 02000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.33
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0000000002000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 7
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.34
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0100000002000000
+    timeKind: 0
+    timeLimit: 55
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 7
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.35
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 
+    timeKind: 0
+    timeLimit: 50
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 6
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.36
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 60
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.37
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 01000000
+    timeKind: 0
+    timeLimit: 60
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 5
+    martyrThreshold: 6
+  - titleKey: campaign.level.38
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 02000000
+    timeKind: 0
+    timeLimit: 65
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 10
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.39
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0000000001000000
+    timeKind: 0
+    timeLimit: 65
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 9
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 5
+    martyrThreshold: 6
+  - titleKey: campaign.level.40
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 000000000100000002000000
+    timeKind: 0
+    timeLimit: 70
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 10
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 5
+    martyrThreshold: 6
+  - titleKey: campaign.level.41
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 60
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.42
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 01000000
+    timeKind: 0
+    timeLimit: 60
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 5
+    martyrThreshold: 6
+  - titleKey: campaign.level.43
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 02000000
+    timeKind: 0
+    timeLimit: 65
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 10
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.44
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0000000001000000
+    timeKind: 0
+    timeLimit: 65
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 9
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 5
+    martyrThreshold: 6
+  - titleKey: campaign.level.45
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 000000000100000002000000
+    timeKind: 0
+    timeLimit: 70
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 10
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 5
+    martyrThreshold: 6
+  - titleKey: campaign.level.46
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 00000000
+    timeKind: 0
+    timeLimit: 60
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.47
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 01000000
+    timeKind: 0
+    timeLimit: 60
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 8
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 5
+    martyrThreshold: 6
+  - titleKey: campaign.level.48
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 02000000
+    timeKind: 0
+    timeLimit: 65
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 10
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 4
+    martyrThreshold: 6
+  - titleKey: campaign.level.49
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 0000000001000000
+    timeKind: 0
+    timeLimit: 65
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 9
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 5
+    martyrThreshold: 6
+  - titleKey: campaign.level.50
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    modes: 000000000100000002000000
+    timeKind: 0
+    timeLimit: 70
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 10
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 2
+    empowerBudget: 5
+    martyrThreshold: 6

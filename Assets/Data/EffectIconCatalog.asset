@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 954d24797e07a88438ff8cf9421600aa, type: 3}
+  m_Name: EffectIconCatalog
+  m_EditorClassIdentifier: 
+  effectIconPrefab: {fileID: 2210636602061645740, guid: 1bf64d09e0ef4ad438a04e6f9dab8bb8, type: 3}
+  ironCurtain: {fileID: 21300000, guid: 0057a8167540563488670b0cd14eda0f, type: 3}
+  bloodDebt: {fileID: 21300000, guid: 2803be7fe98c34a41ae8024c7c7bf9fc, type: 3}
+  fogVision: {fileID: 21300000, guid: 3fb119f84fb9a64419c721919d1db742, type: 3}
+  dustCloud: {fileID: 21300000, guid: 89542cd49c98a2d4bad646f73d371b66, type: 3}
+  reserveCall: {fileID: 21300000, guid: f3d4002b1a5422b418acbe72f8e8716a, type: 3}
+  fleetPawns: {fileID: 21300000, guid: ca732a50bbc66fb47a9a082ea4e5e061, type: 3}
+  landmine: {fileID: 21300000, guid: 2e44adce15d3ce7449f6ea1c0568898c, type: 3}
+  overload: {fileID: 21300000, guid: bd7504cbfaa14e24aba0383a7deabbd9, type: 3}
+  reinforcements: {fileID: 21300000, guid: 77a8e9f168ce40542b8a6c855086640d, type: 3}
+  untouchableKing: {fileID: 21300000, guid: 20ef0eb3f2084764a87c623a2664e568, type: 3}
+  stasisField: {fileID: 21300000, guid: 4eedd6e87d4d8de468f4725cea1a68c0, type: 3}
+  knightAscension: {fileID: 21300000, guid: 51035a8b03e3011498e9bf6db0eb784c, type: 3}
+  battlefieldPromotion: {fileID: 21300000, guid: 2caf4750605da134885e995cf48af492, type: 3}
+  rally: {fileID: 21300000, guid: 678282eeec8ee9441b0349de12925a85, type: 3}
+  revival: {fileID: 21300000, guid: 4adbf4f0f4f6fd24eb231f70ea5afc06, type: 3}
+  exile: {fileID: 21300000, guid: c3aef82f0c4289a46b0cb6c9cbdaacfd, type: 3}
+  secondFront: {fileID: 21300000, guid: 6ce96af26da364840b5f49c0ea6c1f79, type: 3}
+  turncoat: {fileID: 21300000, guid: 4c23e68e38254aa45a74ae94544b37f0, type: 3}
+  vanishingAct: {fileID: 21300000, guid: 8d168acc96375aa4b892c0ca5ab5111f, type: 3}
+  rearguard: {fileID: 21300000, guid: 70c5864979550a9429be7c4eb1a45f02, type: 3}

@@ -275,6 +275,6 @@ MonoBehaviour:
   hoverPadX: 40
   hoverPadY: 6
   duration: 0.2
-  openMinHeight: 12
+  openMinHeight: 16
   openPop: 4
   openDuration: 0.15

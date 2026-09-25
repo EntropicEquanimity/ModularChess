@@ -9,6 +9,7 @@ namespace ModularChess.Presentation
         SpriteRenderer _overlay;
         SpriteRenderer _marker;
         SpriteRenderer _cover;
+        SpriteRenderer _landmine;
         BoxCollider2D _collider;
         BoardTheme _theme;
         Color _squareColor;
@@ -51,7 +52,8 @@ namespace ModularChess.Presentation
             _cover.sortingOrder = BoardRenderOrder.Cover;
             if (_cover.color.a <= 0f)
                 _cover.color = new Color(0f, 0f, 0f, 0.7f);
-
+            _landmine = FindRenderer("Landmine") ?? CreateRenderer("Landmine", BoardRenderOrder.Legal);
+            _landmine.enabled = false;
             _collider = gameObject.GetComponent<BoxCollider2D>();
             if (_collider == null)
                 _collider = gameObject.AddComponent<BoxCollider2D>();
@@ -101,6 +103,23 @@ namespace ModularChess.Presentation
                 return;
             _covered = value;
             ApplyCover();
+        }
+        public void SetLandmine(Sprite sprite, bool visible)
+        {
+            if (_landmine == null)
+                return;
+            _landmine.sprite = sprite;
+            if (!visible || sprite == null)
+            {
+                _landmine.enabled = false;
+                return;
+            }
+            float size = _base != null ? _base.transform.localScale.x : 1f;
+            float world = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+            float scale = world > 0.001f ? size * 0.72f / world : size * 0.55f;
+            _landmine.transform.localScale = new Vector3(scale, scale, 1f);
+            _landmine.color = new Color(1f, 1f, 1f, 0.4f);
+            _landmine.enabled = true;
         }
 
         SpriteRenderer FindRenderer(string childName)

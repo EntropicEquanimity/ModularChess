@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1518263582743904274}
   - component: {fileID: 8883363075823960686}
   - component: {fileID: 6584581945390245194}
+  - component: {fileID: 1813506138812279580}
   m_Layer: 5
   m_Name: Merit
   m_TagString: Untagged
@@ -37,7 +38,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -8, y: -8}
-  m_SizeDelta: {x: 72, y: 36}
+  m_SizeDelta: {x: 74, y: 36}
   m_Pivot: {x: 1, y: 1}
 --- !u!222 &8883363075823960686
 CanvasRenderer:
@@ -77,6 +78,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1813506138812279580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1813506138812279578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b8e4d2a9c1f4e70b3a5d8c0e1f27496, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  amount: {fileID: 5811772330777138881}
 --- !u!1 &2019399524750599962
 GameObject:
   m_ObjectHideFlags: 0
@@ -186,8 +200,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 17, y: 0}
-  m_SizeDelta: {x: -34, y: 0}
+  m_AnchoredPosition: {x: 18, y: 0}
+  m_SizeDelta: {x: -36, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3147361712448620076
 CanvasRenderer:
@@ -416,7 +430,6 @@ MonoBehaviour:
   exitButton: {fileID: 2414839556613262153}
   customizeButton: {fileID: 6268693236222922744}
   title: {fileID: 8304180341165876284}
-  meritText: {fileID: 5811772330777138881}
 --- !u!1 &8287411134773379241
 GameObject:
   m_ObjectHideFlags: 0

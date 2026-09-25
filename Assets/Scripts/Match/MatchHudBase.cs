@@ -1,0 +1,1731 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using DG.Tweening;
+using ModularChess.Core;
+using ModularChess.Presentation;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace ModularChess.Match
+{
+    public abstract class MatchHudBase : MonoBehaviour
+    {
+        #region Fields
+        const float OptionsDuration = 0.28f;
+        const float StatusFadeIn = 0.28f;
+        const float StatusFadeOut = 0.5f;
+        const float GameOverFade = 2.5f;
+        static readonly Color CheckColor = new Color(0.7f, 0.1f, 0.1f, 1f);
+        [SerializeField] TMP_Text turnText;
+        [SerializeField] TMP_Text moveListText;
+        [SerializeField] TMP_Text gameOverText;
+        [SerializeField] GameObject gameOverBanner;
+        [SerializeField] TMP_Text statusLine;
+        [SerializeField] TMP_Text clockText;
+        [SerializeField] TMP_Text opponentClock;
+        [SerializeField] TMP_Text lostMaterialText;
+        [SerializeField] protected TMP_Text playerName;
+        [SerializeField] protected TMP_Text opponentName;
+        [SerializeField] Button endTurnButton;
+        [SerializeField] Button pauseButton;
+        [SerializeField] Button resignButton;
+        [SerializeField] Button leaveButton;
+        [SerializeField] Button gameOverLeaveButton;
+        [SerializeField] Button replayLeaveButton;
+        [SerializeField] protected Button rematchButton;
+        [SerializeField] protected Button replayButton;
+        [SerializeField] Button setupConfirmButton;
+        [SerializeField] Button optionsButton;
+        [SerializeField] Button settingsButton;
+        [SerializeField] Button replayAutoButton;
+        [SerializeField] TMP_Dropdown replaySpeedDropdown;
+        [SerializeField] Button replayNextButton;
+        [SerializeField] Button replayLastButton;
+        [SerializeField] Button replayRestartButton;
+        [SerializeField] RectTransform buttonGroup;
+        [SerializeField] protected RectTransform replayControls;
+        static readonly float[] ReplaySpeeds = { 0.5f, 1f, 2f, 3f, 5f };
+        [SerializeField] Transform draftRow;
+        [SerializeField] RectTransform draftDescription;
+        [SerializeField] PieceDetailsPanel pieceDetails;
+        [SerializeField] GameObject statusRoot;
+        [SerializeField] GameObject matchChrome;
+        [SerializeField] Transform playerEffectsIconList;
+        [SerializeField] Transform opponentEffectsIconList;
+        [SerializeField] EffectIconCatalog effectIcons;
+        readonly List<EffectIconView> _playerEffectIcons = new List<EffectIconView>();
+        readonly List<EffectIconView> _opponentEffectIcons = new List<EffectIconView>();
+        Tween _optionsTween;
+        Tween _statusTween;
+        Tween _gameOverTween;
+        Tween _endTurnTween;
+        bool _endTurnShown;
+        Vector2 _endTurnRest = new Vector2(-8f, 8f);
+        Action<MartyrPower> _onDraft;
+        bool _draftOpen;
+        bool _wired;
+        bool _optionsOpen;
+        bool _statusVisible;
+        bool _inCheck;
+        bool _gameOverShown;
+        bool _deferGameOver;
+        bool _replayMode;
+        string _replayHeadline = string.Empty;
+        string _statusOverride = string.Empty;
+        Color _statusColor = Color.white;
+        CanvasGroup _statusGroup;
+        CanvasGroup _gameOverGroup;
+        ScrollRect _moveListScroll;
+        LayoutElement _moveListLayout;
+        float _optionsRestY;
+        public bool OptionsOpen => _optionsOpen;
+        public bool DraftOpen => _draftOpen;
+        public bool BlocksBoardInput => _draftOpen;
+        protected virtual string RematchLocKey => "hud.rematch";
+        #endregion
+
+        #region Unity
+        protected virtual void Awake()
+        {
+            Wire();
+        }
+        protected virtual void OnEnable()
+        {
+            Wire();
+            HideTransient();
+        }
+        protected virtual void OnDisable()
+        {
+            KillTweens();
+            HideOptionsImmediate();
+        }
+        protected virtual void OnDestroy()
+        {
+            KillTweens();
+        }
+        #endregion
+
+        #region Public Methods
+        public void Bind(GameState state, IReadOnlyList<Move> moves, Side viewer = Side.White)
+        {
+            Wire();
+            if (state == null)
+            {
+                return;
+            }
+
+            bool inProgress = state.Status == GameStatus.InProgress;
+            if (turnText != null)
+            {
+                if (_replayMode && _replayHeadline.Length > 0)
+                    turnText.text = _replayHeadline;
+                else
+                    turnText.text = TurnLabel(state, inProgress);
+            }
+
+            _inCheck = !_replayMode && inProgress && state.IsInCheck;
+            ApplyStatus();
+
+            bool showMoves = MeritUnlocks.ShowNotation;
+            SetMoveList(showMoves ? FormatMoveList(moves, state, viewer) : string.Empty);
+
+            string result = _replayMode ? string.Empty : FormatResult(state);
+            if (result.Length > 0)
+            {
+                if (gameOverText != null)
+                {
+                    gameOverText.text = result;
+                }
+
+                if (!_deferGameOver)
+                {
+                    ShowGameOver();
+                }
+            }
+            else
+            {
+                HideGameOverImmediate();
+            }
+
+            RefreshEffectIcons(state, viewer);
+            OnBound(state, viewer);
+        }
+        protected virtual string TurnLabel(GameState state, bool inProgress)
+        {
+            if (!inProgress)
+                return Loc.Get("match.over");
+            return Loc.Format("match.turnNumber", state.FullmoveNumber);
+        }
+        protected virtual void OnBound(GameState state, Side viewer)
+        {
+        }
+        public virtual void PresentSession(MatchSession session)
+        {
+        }
+        public virtual void BindActions(MatchController controller)
+        {
+            Wire();
+            BindClick(endTurnButton, controller.RequestEndTurn);
+            BindClick(pauseButton, controller.TogglePause);
+            BindClick(resignButton, controller.Resign);
+            BindClick(leaveButton, controller.LeaveToMenu);
+            BindClick(gameOverLeaveButton, controller.LeaveToMenu);
+            BindClick(replayLeaveButton, controller.LeaveToMenu);
+            BindClick(rematchButton, controller.RequestRematch);
+            BindClick(replayButton, controller.RequestReplay);
+            BindClick(setupConfirmButton, controller.ConfirmSetup);
+            if (optionsButton == null)
+                optionsButton = FindButton("OptionsButton");
+            if (settingsButton == null || settingsButton == optionsButton)
+            {
+                Button settings = FindButtonUnder("PopoutMenu", "Options");
+                if (settings != null)
+                    settingsButton = settings;
+            }
+            BindClick(optionsButton, ToggleOptions);
+            BindClick(settingsButton, controller.OpenSettings);
+            RefreshResultButtons(controller);
+        }
+        public void BindReplay(MatchController controller)
+        {
+            Wire();
+            BindClick(replayAutoButton, controller.ToggleReplayAuto);
+            BindClick(replayNextButton, controller.ReplayNext);
+            BindClick(replayLastButton, controller.ReplayLast);
+            BindClick(replayRestartButton, controller.ReplayRestart);
+            BindClick(replayLeaveButton, controller.LeaveToMenu);
+            BindClick(leaveButton, controller.LeaveToMenu);
+            if (replaySpeedDropdown != null)
+            {
+                replaySpeedDropdown.onValueChanged.RemoveAllListeners();
+                replaySpeedDropdown.onValueChanged.AddListener(index =>
+                {
+                    if (index >= 0 && index < ReplaySpeeds.Length)
+                        controller.SetReplaySpeed(ReplaySpeeds[index]);
+                });
+            }
+        }
+        public void SetReplayMode(bool enabled)
+        {
+            Wire();
+            _replayMode = enabled;
+            if (!enabled)
+                _replayHeadline = string.Empty;
+            if (replayControls != null)
+                replayControls.gameObject.SetActive(enabled);
+            SetReplayButtonsActive(enabled);
+            if (rematchButton != null)
+                rematchButton.gameObject.SetActive(false);
+            if (replayButton != null)
+                replayButton.gameObject.SetActive(false);
+            if (endTurnButton != null && enabled)
+                endTurnButton.gameObject.SetActive(false);
+            ApplyReplayPopout();
+            if (enabled)
+                HideGameOverImmediate();
+        }
+        public void SetReplayHeadline(MatchHistoryRecord record)
+        {
+            Wire();
+            _replayHeadline = FormatReplayHeadline(record);
+            if (turnText != null)
+                turnText.text = _replayHeadline;
+        }
+        public void SetReplayAuto(bool auto, float speed)
+        {
+            Wire();
+            if (replayAutoButton != null)
+            {
+                TMP_Text label = replayAutoButton.GetComponentInChildren<TMP_Text>(true);
+                if (label != null)
+                    label.text = auto ? Loc.Get("replay.auto.on") : Loc.Get("replay.auto");
+            }
+            if (replaySpeedDropdown != null)
+            {
+                replaySpeedDropdown.gameObject.SetActive(auto);
+                int index = SpeedIndex(speed);
+                if (replaySpeedDropdown.value != index)
+                    replaySpeedDropdown.SetValueWithoutNotify(index);
+            }
+        }
+        protected virtual void RefreshResultButtons(MatchController controller)
+        {
+            bool over = controller != null
+                && controller.State != null
+                && controller.State.Status != GameStatus.InProgress
+                && !controller.IsReplaying;
+            if (rematchButton != null)
+                rematchButton.gameObject.SetActive(over);
+            if (replayButton != null)
+            {
+                MatchHistoryRecord latest = MatchHistoryStore.Latest();
+                replayButton.gameObject.SetActive(over);
+                replayButton.interactable = latest != null && latest.Replayable;
+            }
+        }
+        protected virtual void ApplyGameOverButtons()
+        {
+            if (rematchButton != null)
+                rematchButton.gameObject.SetActive(true);
+            if (replayButton != null)
+            {
+                replayButton.gameObject.SetActive(true);
+                MatchHistoryRecord latest = MatchHistoryStore.Latest();
+                replayButton.interactable = latest != null && latest.Replayable;
+            }
+        }
+        void SetReplayButtonsActive(bool enabled)
+        {
+            SetActive(replayAutoButton, enabled);
+            if (replaySpeedDropdown != null)
+                replaySpeedDropdown.gameObject.SetActive(enabled && replaySpeedDropdown.gameObject.activeSelf);
+            SetActive(replayNextButton, enabled);
+            SetActive(replayLastButton, enabled);
+            SetActive(replayRestartButton, enabled);
+            SetActive(replayLeaveButton, enabled);
+        }
+        void ApplyReplayPopout()
+        {
+            if (!_replayMode) return;
+            SetActive(pauseButton, false);
+            SetActive(resignButton, false);
+        }
+        static int SpeedIndex(float speed)
+        {
+            for (int i = 0; i < ReplaySpeeds.Length; i++)
+            {
+                if (Mathf.Approximately(ReplaySpeeds[i], speed))
+                    return i;
+            }
+            return 1;
+        }
+        static void SetActive(Button button, bool enabled)
+        {
+            if (button != null)
+                button.gameObject.SetActive(enabled);
+        }
+        static string FormatReplayHeadline(MatchHistoryRecord record)
+        {
+            if (record == null) return Loc.Get("replay.headline");
+            string date = FormatEndedAt(record.endedAtUnix);
+            string activity = record.activity == (int)Activity.VersusFriend
+                ? Loc.Get("play.versusFriend")
+                : Loc.Get("play.versusAi");
+            string modes = FormatModeNames(record.modes);
+            if (string.IsNullOrEmpty(modes))
+                return Loc.Format("replay.headline.short", date, activity);
+            return Loc.Format("replay.headline.full", date, activity, modes);
+        }
+        static string FormatEndedAt(long unix)
+        {
+            if (unix <= 0) return string.Empty;
+            try
+            {
+                return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("g");
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return string.Empty;
+            }
+        }
+        static string FormatModeNames(int[] modes)
+        {
+            if (modes == null || modes.Length == 0) return string.Empty;
+            var names = new List<string>(modes.Length);
+            for (int i = 0; i < modes.Length; i++)
+                names.Add(Loc.ModeName((ModeId)modes[i]));
+            return string.Join(", ", names);
+        }
+        public void ToggleOptions()
+        {
+            if (_optionsOpen)
+            {
+                CloseOptions();
+            }
+            else
+            {
+                OpenOptions();
+            }
+        }
+        public bool CloseOptionsIfOpen()
+        {
+            if (!_optionsOpen)
+            {
+                return false;
+            }
+
+            CloseOptions();
+            return true;
+        }
+        public virtual void SetClock(MatchClock clock, Side playerSide)
+        {
+            Wire();
+            bool timed = clock != null && !clock.IsNone;
+            string player = timed ? clock.Format(playerSide) : string.Empty;
+            string opponent = timed ? clock.Format(playerSide.Opponent()) : string.Empty;
+            ApplyClock(clockText, player, timed);
+            ApplyClock(opponentClock, opponent, timed);
+        }
+        public virtual void RefreshObjectives(CampaignObjectiveLive live)
+        {
+        }
+        public virtual void SetNames(MatchSession session)
+        {
+            Wire();
+            if (playerName != null)
+            {
+                playerName.text = PlayerIdentity.DisplayName;
+            }
+
+            if (opponentName != null)
+            {
+                opponentName.text = OpponentLabel(session);
+            }
+        }
+        public virtual void SetMatchChromeVisible(bool visible)
+        {
+            Wire();
+            if (matchChrome != null)
+            {
+                matchChrome.SetActive(visible);
+                return;
+            }
+            if (playerName != null && playerName.transform.parent != null)
+            {
+                playerName.transform.parent.gameObject.SetActive(visible);
+                return;
+            }
+            if (playerName != null)
+            {
+                playerName.gameObject.SetActive(visible);
+            }
+            if (opponentName != null)
+            {
+                opponentName.gameObject.SetActive(visible);
+            }
+        }
+        public void SetDeferGameOver(bool defer)
+        {
+            _deferGameOver = defer;
+            if (!defer)
+            {
+                return;
+            }
+            HideGameOverImmediate();
+        }
+        public void RevealGameOver()
+        {
+            _deferGameOver = false;
+            ShowGameOver();
+        }
+        public void SetEndTurnVisible(bool visible)
+        {
+            Wire();
+            if (endTurnButton == null) return;
+            PlaceEndTurn();
+            if (visible == _endTurnShown && endTurnButton.gameObject.activeSelf == visible) return;
+            _endTurnTween?.Kill();
+            RectTransform rect = endTurnButton.transform as RectTransform;
+            _endTurnShown = visible;
+            if (visible)
+            {
+                endTurnButton.gameObject.SetActive(true);
+                endTurnButton.transform.SetAsLastSibling();
+                if (rect != null)
+                {
+                    rect.anchoredPosition = HiddenEndTurnPos();
+                    _endTurnTween = DOTween.To(
+                            () => rect.anchoredPosition,
+                            v => rect.anchoredPosition = v,
+                            _endTurnRest,
+                            UiTime(OptionsDuration))
+                        .SetEase(Ease.OutCubic)
+                        .SetUpdate(true)
+                        .SetTarget(endTurnButton);
+                }
+                return;
+            }
+            if (rect == null || !endTurnButton.gameObject.activeSelf)
+            {
+                HideEndTurnImmediate();
+                return;
+            }
+            _endTurnTween = DOTween.To(
+                    () => rect.anchoredPosition,
+                    v => rect.anchoredPosition = v,
+                    HiddenEndTurnPos(),
+                    UiTime(OptionsDuration))
+                .SetEase(Ease.InCubic)
+                .SetUpdate(true)
+                .SetTarget(endTurnButton)
+                .OnComplete(HideEndTurnImmediate);
+        }
+        public void SetPauseVisible(bool visible)
+        {
+            if (_replayMode)
+                visible = false;
+            SetActive(pauseButton, visible);
+        }
+        public void SetResignVisible(bool visible)
+        {
+            if (_replayMode)
+                visible = false;
+            SetActive(resignButton, visible);
+        }
+        public void SetSetupConfirm(bool visible, bool interactable, bool opponentReady)
+        {
+            Wire();
+            if (setupConfirmButton == null) return;
+            PlaceSetupConfirm();
+            SetActive(setupConfirmButton, visible);
+            setupConfirmButton.interactable = visible && interactable;
+            LocalizedText.Bind(
+                setupConfirmButton,
+                opponentReady ? "hud.setupConfirm.ready" : "hud.setupConfirm");
+        }
+        public void SetLostMaterial(int? white, int? black, int threshold, int whiteBloodDebt = 0, int blackBloodDebt = 0)
+        {
+            Wire();
+            if (lostMaterialText == null) return;
+            if (white == null || black == null)
+            {
+                lostMaterialText.text = string.Empty;
+                return;
+            }
+            string text = Loc.Format("match.lost", white.Value, black.Value, threshold);
+            if (whiteBloodDebt > 0 || blackBloodDebt > 0)
+            {
+                text += " - " + Loc.Format("martyr.bloodDebt.hud", whiteBloodDebt, blackBloodDebt);
+            }
+            lostMaterialText.text = text;
+        }
+        public void SetStatusLine(string text)
+        {
+            Wire();
+            _statusOverride = text ?? string.Empty;
+            ApplyStatus();
+        }
+        public void ShowDraft(GameState state, Action<MartyrPower> onPick)
+        {
+            Wire();
+            _onDraft = onPick;
+            if (state?.Runtime.PendingDraft == null)
+            {
+                return;
+            }
+
+            if (draftDescription != null)
+            {
+                draftDescription.gameObject.SetActive(false);
+            }
+
+            if (!EnsureDraftRowInstance())
+            {
+                return;
+            }
+
+            if (_draftOpen)
+            {
+                return;
+            }
+
+            _draftOpen = true;
+            DraftOffer offer = state.Runtime.PendingDraft.Value;
+            PieceType? battlefield = state.Runtime.PendingBattlefieldType ?? offer.BattlefieldType;
+            var powers = new MartyrPower[offer.Count];
+            var choices = new List<DraftChoice>(offer.Count);
+            for (int i = 0; i < offer.Count; i++)
+            {
+                powers[i] = offer.At(i);
+                choices.Add(new DraftChoice(FormatPower(powers[i]), DescribePower(powers[i], battlefield)));
+            }
+
+            DraftRow row = EnsureDraft();
+            if (row == null)
+            {
+                _draftOpen = false;
+                return;
+            }
+
+            row.Present(choices, index =>
+            {
+                if (index < 0 || index >= powers.Length)
+                {
+                    return;
+                }
+
+                _onDraft?.Invoke(powers[index]);
+            });
+        }
+        public void HideDraft()
+        {
+            _draftOpen = false;
+            if (draftRow != null)
+            {
+                DraftRow row = draftRow.GetComponent<DraftRow>();
+                if (row != null)
+                {
+                    row.Dismiss();
+                }
+                else
+                {
+                    draftRow.gameObject.SetActive(false);
+                }
+            }
+
+            if (draftDescription != null)
+            {
+                draftDescription.gameObject.SetActive(false);
+            }
+        }
+        public void ShowPieceDetails(Piece piece, GameState state, IReadOnlyCollection<Guid> pendingEmpowered)
+        {
+            Wire();
+            if (pieceDetails == null)
+            {
+                return;
+            }
+
+            pieceDetails.Show(piece, state, pendingEmpowered);
+        }
+        public void HidePieceDetails()
+        {
+            pieceDetails?.Hide();
+        }
+        #endregion
+
+        #region Private Methods
+        void RefreshEffectIcons(GameState state, Side viewer)
+        {
+            EffectIconCatalog catalog = EffectIcons();
+            if (catalog == null || catalog.EffectIconPrefab == null)
+                return;
+            int playerUsed = BindEffectIcons(_playerEffectIcons, playerEffectsIconList, state, viewer);
+            HideUnusedEffectIcons(_playerEffectIcons, playerUsed);
+            int opponentUsed = BindEffectIcons(
+                _opponentEffectIcons,
+                opponentEffectsIconList,
+                state,
+                viewer.Opponent());
+            HideUnusedEffectIcons(_opponentEffectIcons, opponentUsed);
+        }
+        int BindEffectIcons(List<EffectIconView> pool, Transform parent, GameState state, Side side)
+        {
+            if (parent == null)
+                return 0;
+            EffectIconCatalog catalog = EffectIcons();
+            if (catalog == null)
+                return 0;
+            int used = 0;
+            IReadOnlyCollection<MartyrPower> unlocks = state.Runtime.Unlocks(side);
+            if (unlocks == null || unlocks.Count == 0)
+                return 0;
+            var ordered = new List<MartyrPower>(unlocks.Count);
+            foreach (MartyrPower power in unlocks)
+                ordered.Add(power);
+            ordered.Sort((a, b) => ((int)a).CompareTo((int)b));
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                if (catalog.SpriteFor(ordered[i]) == null)
+                    continue;
+                BindEffectIcon(pool, parent, ref used, catalog, ordered[i]);
+            }
+            return used;
+        }
+        void BindEffectIcon(
+            List<EffectIconView> pool,
+            Transform parent,
+            ref int used,
+            EffectIconCatalog catalog,
+            MartyrPower power)
+        {
+            EffectIconView view = EffectIconAt(pool, parent, used, catalog);
+            view.Bind(catalog.SpriteFor(power), FormatPower(power), DescribePower(power, null), pieceDetails);
+            used++;
+        }
+        EffectIconView EffectIconAt(List<EffectIconView> pool, Transform parent, int index, EffectIconCatalog catalog)
+        {
+            while (pool.Count <= index)
+            {
+                GameObject go = Instantiate(catalog.EffectIconPrefab, parent);
+                go.name = "EffectIcon";
+                EffectIconView view = go.GetComponent<EffectIconView>();
+                if (view == null)
+                    view = go.AddComponent<EffectIconView>();
+                pool.Add(view);
+            }
+            return pool[index];
+        }
+        EffectIconCatalog EffectIcons()
+        {
+            if (effectIcons == null)
+                effectIcons = EffectIconCatalog.Load();
+            return effectIcons;
+        }
+        static void HideUnusedEffectIcons(List<EffectIconView> pool, int used)
+        {
+            for (int i = used; i < pool.Count; i++)
+            {
+                if (pool[i] != null)
+                    pool[i].gameObject.SetActive(false);
+            }
+        }
+        protected void Wire()
+        {
+            if (_wired)
+            {
+                return;
+            }
+
+            _wired = true;
+            if (turnText == null)
+            {
+                turnText = FindLabel("TurnLabel");
+            }
+
+            Transform check = FindChild(transform, "CheckLabel");
+            if (check != null)
+            {
+                check.gameObject.SetActive(false);
+            }
+
+            if (moveListText == null)
+            {
+                moveListText = FindLabel("MoveList");
+            }
+
+            if (gameOverBanner == null)
+            {
+                Transform banner = FindChild(transform, "GameOverBanner");
+                if (banner != null)
+                {
+                    gameOverBanner = banner.gameObject;
+                }
+            }
+
+            if (gameOverText == null && gameOverBanner != null)
+            {
+                gameOverText = gameOverBanner.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            if (statusLine == null)
+            {
+                statusLine = FindLabel("StatusLine");
+            }
+
+            if (statusLine != null)
+            {
+                _statusColor = statusLine.color;
+            }
+
+            if (statusRoot == null)
+            {
+                Transform status = FindChild(transform, "Status");
+                if (status != null)
+                {
+                    statusRoot = status.gameObject;
+                }
+                else if (statusLine != null)
+                {
+                    statusRoot = statusLine.transform.parent != null
+                        ? statusLine.transform.parent.gameObject
+                        : statusLine.gameObject;
+                }
+            }
+
+            if (clockText == null)
+            {
+                clockText = FindClockIn("PlayerName");
+            }
+
+            if (opponentClock == null)
+            {
+                opponentClock = FindClockIn("OpponentName");
+            }
+
+            if (lostMaterialText == null)
+            {
+                lostMaterialText = FindLabel("LostMaterial");
+            }
+
+            if (playerName == null)
+            {
+                playerName = FindLabelIn("PlayerName");
+            }
+
+            if (opponentName == null)
+            {
+                opponentName = FindLabelIn("OpponentName");
+            }
+
+            if (endTurnButton == null)
+            {
+                endTurnButton = FindButton("End Turn");
+            }
+
+            if (pauseButton == null)
+            {
+                pauseButton = FindButton("Pause");
+            }
+
+            if (resignButton == null)
+            {
+                resignButton = FindButton("Resign");
+            }
+
+            if (buttonGroup == null)
+            {
+                Transform popout = FindChild(transform, "PopoutMenu");
+                if (popout != null)
+                    buttonGroup = popout as RectTransform;
+                else
+                {
+                    Transform group = FindChild(transform, "ButtonGroup");
+                    if (group != null)
+                        buttonGroup = group as RectTransform;
+                }
+            }
+            if (leaveButton == null)
+                leaveButton = FindButtonUnder("PopoutMenu", "Leave");
+            if (gameOverLeaveButton == null)
+                gameOverLeaveButton = FindButtonUnder("GameOverBanner", "Leave");
+            if (replayLeaveButton == null)
+                replayLeaveButton = FindButtonUnder("ReplayHUD", "Leave");
+            if (rematchButton == null)
+                rematchButton = FindButtonUnder("GameOverBanner", "Rematch");
+            if (replayButton == null)
+                replayButton = FindButtonUnder("GameOverBanner", "Replay");
+            if (replayControls == null)
+            {
+                Transform found = FindChild(transform, "ReplayHUD");
+                if (found != null)
+                    replayControls = found as RectTransform;
+            }
+            if (replayAutoButton == null)
+                replayAutoButton = FindButtonUnder("ReplayHUD", "ReplayAuto");
+            if (replaySpeedDropdown == null)
+            {
+                Transform speed = FindChild(FindChild(transform, "ReplayHUD"), "ReplaySpeed");
+                if (speed != null)
+                    replaySpeedDropdown = speed.GetComponent<TMP_Dropdown>();
+            }
+            if (replayNextButton == null)
+                replayNextButton = FindButtonUnder("ReplayHUD", "Next");
+            if (replayLastButton == null)
+                replayLastButton = FindButtonUnder("ReplayHUD", "Last");
+            if (replayRestartButton == null)
+                replayRestartButton = FindButtonUnder("ReplayHUD", "Restart");
+
+            if (setupConfirmButton == null)
+            {
+                setupConfirmButton = FindButton("Confirm Setup");
+            }
+
+            if (optionsButton == null)
+            {
+                optionsButton = FindButton("OptionsButton");
+            }
+
+            if (settingsButton == null || settingsButton == optionsButton)
+            {
+                Button settings = FindButton("Options");
+                if (settings != null && settings != optionsButton)
+                {
+                    settingsButton = settings;
+                }
+            }
+
+            if (draftRow == null)
+            {
+                Transform found = FindChild(transform, "DraftRow");
+                if (found != null && found.gameObject.scene.IsValid())
+                {
+                    draftRow = found;
+                }
+            }
+
+            if (draftDescription == null)
+            {
+                Transform box = FindChild(transform, "DescriptionBox");
+                if (box != null)
+                {
+                    draftDescription = box as RectTransform;
+                }
+            }
+
+            if (draftDescription != null)
+            {
+                draftDescription.gameObject.SetActive(false);
+            }
+
+            if (pieceDetails == null)
+            {
+                pieceDetails = GetComponentInChildren<PieceDetailsPanel>(true);
+            }
+
+            if (matchChrome == null)
+            {
+                Transform names = FindChild(transform, "PlayerNames");
+                if (names != null)
+                {
+                    matchChrome = names.gameObject;
+                }
+            }
+
+            if (buttonGroup != null)
+            {
+                _optionsRestY = buttonGroup.anchoredPosition.y;
+            }
+
+            if (statusRoot != null)
+            {
+                _statusGroup = statusRoot.GetComponent<CanvasGroup>();
+                if (_statusGroup == null)
+                {
+                    _statusGroup = statusRoot.AddComponent<CanvasGroup>();
+                }
+
+                _statusGroup.blocksRaycasts = false;
+                _statusGroup.interactable = false;
+            }
+
+            if (gameOverBanner != null)
+            {
+                _gameOverGroup = gameOverBanner.GetComponent<CanvasGroup>();
+                if (_gameOverGroup == null)
+                {
+                    _gameOverGroup = gameOverBanner.AddComponent<CanvasGroup>();
+                }
+            }
+
+            WrapMoveList();
+            if (moveListText != null)
+            {
+                moveListText.overflowMode = TextOverflowModes.Overflow;
+                moveListText.extraPadding = false;
+            }
+
+            BindHudLabels();
+        }
+        void BindHudLabels()
+        {
+            LocalizedText.Bind(endTurnButton, "hud.endTurn");
+            LocalizedText.Bind(pauseButton, "hud.pause");
+            LocalizedText.Bind(resignButton, "hud.resign");
+            LocalizedText.Bind(leaveButton, "hud.leave");
+            LocalizedText.Bind(gameOverLeaveButton, "hud.leave");
+            LocalizedText.Bind(replayLeaveButton, "hud.leave");
+            LocalizedText.Bind(rematchButton, RematchLocKey);
+            LocalizedText.Bind(replayButton, "hud.replay");
+            LocalizedText.Bind(setupConfirmButton, "hud.setupConfirm");
+            LocalizedText.Bind(settingsButton, "menu.options");
+            LocalizedText.Bind(FindButtonUnder("PopoutMenu", "Options"), "menu.options");
+            LocalizedText.Bind(replayAutoButton, "replay.auto");
+            LocalizedText.Bind(replayNextButton, "replay.next");
+            LocalizedText.Bind(replayLastButton, "replay.last");
+            LocalizedText.Bind(replayRestartButton, "replay.restart");
+        }
+        void HideTransient()
+        {
+            HideOptionsImmediate();
+            HideDraft();
+            HidePieceDetails();
+            _deferGameOver = false;
+            HideGameOverImmediate();
+            SetMatchChromeVisible(true);
+            SetSetupConfirm(false, false, false);
+            HideEndTurnImmediate();
+            _inCheck = false;
+            _statusOverride = string.Empty;
+            if (statusRoot != null)
+            {
+                SetGroupAlpha(_statusGroup, 0f);
+                statusRoot.SetActive(false);
+            }
+
+            _statusVisible = false;
+            if (statusLine != null)
+            {
+                statusLine.text = string.Empty;
+            }
+        }
+        void WrapMoveList()
+        {
+            if (moveListText == null || _moveListScroll != null)
+            {
+                return;
+            }
+
+            GameObject prefab = RuntimePrefabs.ScrollView;
+            if (prefab == null)
+            {
+                return;
+            }
+
+            RectTransform listRect = moveListText.rectTransform;
+            Transform parent = listRect.parent;
+            int sibling = listRect.GetSiblingIndex();
+            GameObject scrollGo = Instantiate(prefab, parent);
+            scrollGo.name = "MoveListScroll";
+            var scrollRect = scrollGo.GetComponent<RectTransform>();
+            CopyRect(listRect, scrollRect);
+            scrollGo.transform.SetSiblingIndex(sibling);
+
+            _moveListScroll = scrollGo.GetComponent<ScrollRect>();
+            if (_moveListScroll != null)
+            {
+                _moveListScroll.horizontal = false;
+                _moveListScroll.vertical = true;
+            }
+
+            var backdrop = scrollGo.GetComponent<Image>();
+            if (backdrop != null)
+            {
+                Color color = backdrop.color;
+                color.a = 0f;
+                backdrop.color = color;
+            }
+
+            Transform content = FindChild(scrollGo.transform, "Content");
+            if (content == null && _moveListScroll != null)
+            {
+                content = _moveListScroll.content;
+            }
+
+            if (content == null)
+            {
+                return;
+            }
+
+            var layout = content.GetComponent<VerticalLayoutGroup>();
+            if (layout != null)
+            {
+                layout.enabled = false;
+            }
+
+            var fitter = content.GetComponent<ContentSizeFitter>();
+            if (fitter != null)
+            {
+                fitter.enabled = false;
+            }
+
+            listRect.SetParent(content, false);
+            listRect.anchorMin = new Vector2(0f, 1f);
+            listRect.anchorMax = new Vector2(1f, 1f);
+            listRect.pivot = new Vector2(0.5f, 1f);
+            listRect.anchoredPosition = Vector2.zero;
+            listRect.sizeDelta = new Vector2(0f, 0f);
+            moveListText.overflowMode = TextOverflowModes.Overflow;
+            moveListText.extraPadding = false;
+            moveListText.raycastTarget = false;
+            _moveListLayout = listRect.GetComponent<LayoutElement>();
+            if (_moveListLayout == null)
+            {
+                _moveListLayout = listRect.gameObject.AddComponent<LayoutElement>();
+            }
+        }
+        void SetMoveList(string text)
+        {
+            if (moveListText == null)
+            {
+                return;
+            }
+
+            bool show = !string.IsNullOrEmpty(text);
+            if (_moveListScroll != null)
+            {
+                _moveListScroll.gameObject.SetActive(show);
+            }
+            else
+            {
+                moveListText.gameObject.SetActive(show);
+            }
+
+            moveListText.text = text ?? string.Empty;
+            if (!show)
+            {
+                return;
+            }
+
+            moveListText.overflowMode = TextOverflowModes.Overflow;
+            moveListText.ForceMeshUpdate();
+            float height = Mathf.Max(moveListText.preferredHeight, moveListText.fontSize);
+            if (_moveListLayout != null)
+            {
+                _moveListLayout.minHeight = height;
+                _moveListLayout.preferredHeight = height;
+            }
+
+            RectTransform listRect = moveListText.rectTransform;
+            listRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            if (_moveListScroll != null && _moveListScroll.content != null)
+            {
+                RectTransform content = _moveListScroll.content;
+                content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+                _moveListScroll.verticalNormalizedPosition = 0f;
+            }
+        }
+        void OpenOptions()
+        {
+            Wire();
+            if (buttonGroup == null)
+            {
+                return;
+            }
+
+            _optionsTween?.Kill();
+            _optionsOpen = true;
+            buttonGroup.anchoredPosition = HiddenOptionsPos();
+            buttonGroup.gameObject.SetActive(true);
+            RaiseOptionsChrome();
+            _optionsTween = DOTween.To(
+                    () => buttonGroup.anchoredPosition,
+                    v => buttonGroup.anchoredPosition = v,
+                    ShownOptionsPos(),
+                    UiTime(OptionsDuration))
+                .SetEase(Ease.OutCubic)
+                .SetUpdate(true)
+                .SetTarget(buttonGroup);
+        }
+        void CloseOptions()
+        {
+            if (buttonGroup == null)
+            {
+                _optionsOpen = false;
+                return;
+            }
+
+            _optionsOpen = false;
+            _optionsTween?.Kill();
+            _optionsTween = DOTween.To(
+                    () => buttonGroup.anchoredPosition,
+                    v => buttonGroup.anchoredPosition = v,
+                    HiddenOptionsPos(),
+                    UiTime(OptionsDuration))
+                .SetEase(Ease.InCubic)
+                .SetUpdate(true)
+                .SetTarget(buttonGroup)
+                .OnComplete(() =>
+                {
+                    if (!_optionsOpen && buttonGroup != null)
+                    {
+                        buttonGroup.gameObject.SetActive(false);
+                    }
+                });
+        }
+        void HideOptionsImmediate()
+        {
+            _optionsTween?.Kill();
+            _optionsOpen = false;
+            if (buttonGroup == null)
+            {
+                return;
+            }
+
+            buttonGroup.anchoredPosition = HiddenOptionsPos();
+            buttonGroup.gameObject.SetActive(false);
+        }
+        void RaiseOptionsChrome()
+        {
+            if (buttonGroup != null)
+            {
+                buttonGroup.SetAsLastSibling();
+            }
+
+            if (optionsButton != null)
+            {
+                optionsButton.transform.SetAsLastSibling();
+            }
+        }
+        Vector2 ShownOptionsPos()
+        {
+            return new Vector2(0f, _optionsRestY);
+        }
+        Vector2 HiddenOptionsPos()
+        {
+            float width = 200f;
+            if (buttonGroup != null)
+            {
+                width = Mathf.Max(buttonGroup.sizeDelta.x, 200f);
+            }
+
+            return new Vector2(width, _optionsRestY);
+        }
+        void ApplyStatus()
+        {
+            if (statusLine == null)
+            {
+                return;
+            }
+
+            if (_statusOverride.Length > 0)
+            {
+                statusLine.color = _statusColor;
+                statusLine.text = _statusOverride;
+                ShowStatus();
+                return;
+            }
+
+            if (_inCheck)
+            {
+                statusLine.color = CheckColor;
+                statusLine.text = Loc.Get("match.check");
+                ShowStatus();
+                return;
+            }
+
+            statusLine.color = _statusColor;
+            statusLine.text = string.Empty;
+            HideStatus();
+        }
+        void ShowStatus()
+        {
+            if (statusRoot == null)
+            {
+                return;
+            }
+
+            statusRoot.SetActive(true);
+            if (_statusVisible)
+            {
+                return;
+            }
+
+            _statusVisible = true;
+            _statusTween?.Kill();
+            _statusTween = DOTween.To(
+                    () => GroupAlpha(_statusGroup),
+                    a => SetGroupAlpha(_statusGroup, a),
+                    1f,
+                    UiTime(StatusFadeIn))
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true)
+                .SetTarget(statusRoot);
+        }
+        void HideStatus()
+        {
+            if (!_statusVisible && (statusRoot == null || !statusRoot.activeSelf))
+            {
+                return;
+            }
+
+            _statusVisible = false;
+            if (statusRoot == null)
+            {
+                return;
+            }
+
+            _statusTween?.Kill();
+            _statusTween = DOTween.To(
+                    () => GroupAlpha(_statusGroup),
+                    a => SetGroupAlpha(_statusGroup, a),
+                    0f,
+                    UiTime(StatusFadeOut))
+                .SetEase(Ease.InQuad)
+                .SetUpdate(true)
+                .SetTarget(statusRoot)
+                .OnComplete(() =>
+                {
+                    if (statusRoot != null)
+                    {
+                        statusRoot.SetActive(false);
+                    }
+                });
+        }
+        void ShowGameOver()
+        {
+            if (gameOverBanner == null)
+            {
+                return;
+            }
+
+            if (_gameOverShown)
+            {
+                return;
+            }
+
+            _gameOverShown = true;
+            gameOverBanner.SetActive(true);
+            gameOverBanner.transform.SetAsLastSibling();
+            ApplyGameOverButtons();
+            _gameOverTween?.Kill();
+            if (_gameOverGroup != null)
+            {
+                _gameOverGroup.alpha = 0f;
+                _gameOverGroup.blocksRaycasts = true;
+                _gameOverGroup.interactable = true;
+            }
+
+            _gameOverTween = DOTween.To(
+                    () => GroupAlpha(_gameOverGroup),
+                    a =>
+                    {
+                        if (_gameOverGroup != null)
+                        {
+                            _gameOverGroup.alpha = a;
+                        }
+                    },
+                    1f,
+                    UiTime(GameOverFade))
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true)
+                .SetTarget(gameOverBanner);
+        }
+        void HideGameOverImmediate()
+        {
+            _gameOverTween?.Kill();
+            _gameOverShown = false;
+            if (_gameOverGroup != null)
+            {
+                _gameOverGroup.alpha = 0f;
+                _gameOverGroup.blocksRaycasts = false;
+                _gameOverGroup.interactable = false;
+            }
+
+            if (gameOverBanner != null)
+            {
+                gameOverBanner.SetActive(false);
+            }
+        }
+        DraftRow EnsureDraft()
+        {
+            if (!EnsureDraftRowInstance())
+            {
+                return null;
+            }
+
+            DraftRow row = draftRow.GetComponent<DraftRow>();
+            if (row == null)
+            {
+                row = draftRow.gameObject.AddComponent<DraftRow>();
+            }
+
+            return row;
+        }
+        bool EnsureDraftRowInstance()
+        {
+            if (draftRow != null && draftRow.gameObject.scene.IsValid())
+            {
+                return true;
+            }
+
+            GameObject source = draftRow != null ? draftRow.gameObject : RuntimePrefabs.DraftRow;
+            if (source == null)
+            {
+                Transform found = FindChild(transform, "DraftRow");
+                if (found != null && found.gameObject.scene.IsValid())
+                {
+                    draftRow = found;
+                    return true;
+                }
+
+                return false;
+            }
+
+            GameObject instance = Instantiate(source, transform);
+            instance.name = "DraftRow";
+            draftRow = instance.transform;
+            IgnoreLayout(draftRow);
+            draftRow.gameObject.SetActive(false);
+            return true;
+        }
+        static void IgnoreLayout(Transform target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var element = target.GetComponent<LayoutElement>();
+            if (element == null)
+            {
+                element = target.gameObject.AddComponent<LayoutElement>();
+            }
+
+            element.ignoreLayout = true;
+        }
+        static string DescribePower(MartyrPower power, PieceType? battlefield)
+        {
+            switch (power)
+            {
+                case MartyrPower.Reinforcements:
+                    return Loc.Get("martyr.desc.reinforcements");
+                case MartyrPower.FleetPawns:
+                    return Loc.Get("martyr.desc.fleet");
+                case MartyrPower.Bombard:
+                    return Loc.Get("martyr.desc.bombard");
+                case MartyrPower.UntouchableKing:
+                    return Loc.Get("martyr.desc.untouchable");
+                case MartyrPower.StasisField:
+                    return Loc.Get("martyr.desc.stasis");
+                case MartyrPower.KnightAscension:
+                    return Loc.Get("martyr.desc.ascension");
+                case MartyrPower.BattlefieldPromotion:
+                    return Loc.Format("martyr.desc.battlefield", Loc.PieceName(battlefield ?? PieceType.Knight));
+                case MartyrPower.Rally:
+                    return Loc.Get("martyr.desc.rally");
+                case MartyrPower.Revival:
+                    return Loc.Get("martyr.desc.revival");
+                case MartyrPower.Exile:
+                    return Loc.Get("martyr.desc.exile");
+                case MartyrPower.Phalanx:
+                    return Loc.Get("martyr.desc.phalanx");
+                case MartyrPower.SecondFront:
+                    return Loc.Get("martyr.desc.secondFront");
+                case MartyrPower.IronCurtain:
+                    return Loc.Get("martyr.desc.ironCurtain");
+                case MartyrPower.Turncoat:
+                    return Loc.Get("martyr.desc.turncoat");
+                case MartyrPower.VanishingAct:
+                    return Loc.Get("martyr.desc.vanishingAct");
+                case MartyrPower.BloodDebt:
+                    return Loc.Get("martyr.desc.bloodDebt");
+                case MartyrPower.Rearguard:
+                    return Loc.Get("martyr.desc.rearguard");
+                case MartyrPower.Overload:
+                    return Loc.Get("martyr.desc.overload");
+                case MartyrPower.Landmine:
+                    return Loc.Get("martyr.desc.landmine");
+                case MartyrPower.ReserveCall:
+                    return Loc.Get("martyr.desc.reserveCall");
+                case MartyrPower.FogVision:
+                    return Loc.Get("martyr.desc.fogVision");
+                case MartyrPower.DustCloud:
+                    return Loc.Get("martyr.desc.dustCloud");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(power), power, null);
+            }
+        }
+        void KillTweens()
+        {
+            _optionsTween?.Kill();
+            _statusTween?.Kill();
+            _gameOverTween?.Kill();
+            _endTurnTween?.Kill();
+        }
+        TMP_Text FindClockIn(string rowName)
+        {
+            Transform row = FindChild(transform, rowName);
+            if (row == null)
+            {
+                return null;
+            }
+
+            Transform labeled = FindChild(row, "ClockText");
+            if (labeled != null)
+            {
+                TMP_Text tmp = labeled.GetComponent<TMP_Text>();
+                if (tmp != null)
+                {
+                    return tmp;
+                }
+            }
+
+            return null;
+        }
+        static void ApplyClock(TMP_Text label, string text, bool visible)
+        {
+            if (label == null) return;
+            label.text = text;
+            label.gameObject.SetActive(visible);
+        }
+        TMP_Text FindLabel(string name)
+        {
+            Transform child = FindChild(transform, name);
+            return child != null ? child.GetComponent<TMP_Text>() : null;
+        }
+        TMP_Text FindLabelIn(string name)
+        {
+            Transform child = FindChild(transform, name);
+            if (child == null)
+            {
+                return null;
+            }
+
+            TMP_Text tmp = child.GetComponent<TMP_Text>();
+            return tmp != null ? tmp : child.GetComponentInChildren<TMP_Text>(true);
+        }
+        static string OpponentLabel(MatchSession session)
+        {
+            if (session == null || !session.IsAi || session.Rules == null)
+            {
+                return Loc.Get("hud.friend");
+            }
+
+            string difficulty;
+            switch (session.Rules.Settings.AiStrength)
+            {
+                case AiStrength.Easy:
+                    difficulty = Loc.Get("settings.ai.easy");
+                    break;
+                case AiStrength.Hard:
+                    difficulty = Loc.Get("settings.ai.hard");
+                    break;
+                default:
+                    difficulty = Loc.Get("settings.ai.medium");
+                    break;
+            }
+
+            return Loc.Format("hud.bot", difficulty);
+        }
+        Button FindButton(string name)
+        {
+            Transform child = FindChild(transform, name);
+            return child != null ? child.GetComponent<Button>() : null;
+        }
+        Button FindButtonUnder(string parentName, string buttonName)
+        {
+            Transform parent = FindChild(transform, parentName);
+            if (parent == null) return null;
+            Transform child = FindChild(parent, buttonName);
+            return child != null ? child.GetComponent<Button>() : null;
+        }
+        protected static void BindClick(Button button, UnityEngine.Events.UnityAction action)
+        {
+            GameAudio.Bind(button, action);
+        }
+        void PlaceSetupConfirm()
+        {
+            RectTransform rect = setupConfirmButton.transform as RectTransform;
+            if (rect == null) return;
+            if (rect.parent != transform)
+            {
+                rect.SetParent(transform, false);
+            }
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-8f, -70f);
+            rect.sizeDelta = new Vector2(220f, 32f);
+            rect.SetAsLastSibling();
+        }
+        void PlaceEndTurn()
+        {
+            RectTransform rect = endTurnButton.transform as RectTransform;
+            if (rect == null) return;
+            if (rect.parent != transform)
+            {
+                rect.SetParent(transform, false);
+            }
+            rect.anchorMin = new Vector2(1f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(1f, 0f);
+            rect.sizeDelta = new Vector2(200f, 32f);
+            _endTurnRest = new Vector2(-8f, 8f);
+        }
+        Vector2 HiddenEndTurnPos()
+        {
+            return new Vector2(_endTurnRest.x + 220f, _endTurnRest.y);
+        }
+        void HideEndTurnImmediate()
+        {
+            _endTurnTween?.Kill();
+            _endTurnShown = false;
+            if (endTurnButton != null)
+            {
+                endTurnButton.gameObject.SetActive(false);
+            }
+        }
+        static void CopyRect(RectTransform from, RectTransform to)
+        {
+            if (from == null || to == null)
+            {
+                return;
+            }
+
+            to.anchorMin = from.anchorMin;
+            to.anchorMax = from.anchorMax;
+            to.pivot = from.pivot;
+            to.anchoredPosition = from.anchoredPosition;
+            to.sizeDelta = from.sizeDelta;
+        }
+        static float UiTime(float baseSeconds)
+        {
+            return UiAnimPrefs.MoveDuration(baseSeconds);
+        }
+        static float GroupAlpha(CanvasGroup group)
+        {
+            return group != null ? group.alpha : 1f;
+        }
+        static void SetGroupAlpha(CanvasGroup group, float alpha)
+        {
+            if (group != null)
+            {
+                group.alpha = alpha;
+            }
+        }
+        protected static Transform FindChild(Transform root, string name)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            if (root.name == name)
+            {
+                return root;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindChild(root.GetChild(i), name);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+        static string FormatPower(MartyrPower power)
+        {
+            switch (power)
+            {
+                case MartyrPower.Reinforcements:
+                    return Loc.Get("martyr.power.reinforcements");
+                case MartyrPower.FleetPawns:
+                    return Loc.Get("martyr.power.fleet");
+                case MartyrPower.Bombard:
+                    return Loc.Get("martyr.power.bombard");
+                case MartyrPower.UntouchableKing:
+                    return Loc.Get("martyr.power.untouchable");
+                case MartyrPower.StasisField:
+                    return Loc.Get("martyr.power.stasis");
+                case MartyrPower.KnightAscension:
+                    return Loc.Get("martyr.power.ascension");
+                case MartyrPower.BattlefieldPromotion:
+                    return Loc.Get("martyr.power.battlefield");
+                case MartyrPower.Rally:
+                    return Loc.Get("martyr.power.rally");
+                case MartyrPower.Revival:
+                    return Loc.Get("martyr.power.revival");
+                case MartyrPower.Exile:
+                    return Loc.Get("martyr.power.exile");
+                case MartyrPower.Phalanx:
+                    return Loc.Get("martyr.power.phalanx");
+                case MartyrPower.SecondFront:
+                    return Loc.Get("martyr.power.secondFront");
+                case MartyrPower.IronCurtain:
+                    return Loc.Get("martyr.power.ironCurtain");
+                case MartyrPower.Turncoat:
+                    return Loc.Get("martyr.power.turncoat");
+                case MartyrPower.VanishingAct:
+                    return Loc.Get("martyr.power.vanishingAct");
+                case MartyrPower.BloodDebt:
+                    return Loc.Get("martyr.power.bloodDebt");
+                case MartyrPower.Rearguard:
+                    return Loc.Get("martyr.power.rearguard");
+                case MartyrPower.Overload:
+                    return Loc.Get("martyr.power.overload");
+                case MartyrPower.Landmine:
+                    return Loc.Get("martyr.power.landmine");
+                case MartyrPower.ReserveCall:
+                    return Loc.Get("martyr.power.reserveCall");
+                case MartyrPower.FogVision:
+                    return Loc.Get("martyr.power.fogVision");
+                case MartyrPower.DustCloud:
+                    return Loc.Get("martyr.power.dustCloud");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(power), power, null);
+            }
+        }
+        static string FormatResult(GameState state)
+        {
+            switch (state.Status)
+            {
+                case GameStatus.InProgress:
+                    return string.Empty;
+                case GameStatus.Checkmate:
+                    Side winner = state.SideToMove == Side.White ? Side.Black : Side.White;
+                    return Loc.Format("result.checkmate", Loc.SideName(winner));
+                case GameStatus.Stalemate:
+                    return Loc.Get("result.stalemate");
+                case GameStatus.Draw:
+                    return Loc.Get("result.draw");
+                case GameStatus.Timeout:
+                    return Loc.Format("result.timeout", Loc.SideName(state.SideToMove));
+                case GameStatus.Resign:
+                    return Loc.Format("result.resign", Loc.SideName(state.SideToMove));
+                case GameStatus.Aborted:
+                    return Loc.Get("result.aborted");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(state), state.Status, null);
+            }
+        }
+        static string FormatMoveList(IReadOnlyList<Move> moves, GameState state, Side viewer)
+        {
+            if (moves == null || moves.Count == 0)
+                return string.Empty;
+            bool hideOpponent = state != null && state.Rules != null && state.Rules.Has(ModeId.FogOfWar);
+            var builder = new StringBuilder();
+            for (int i = 0; i < moves.Count; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    if (i > 0)
+                        builder.Append('\n');
+                    builder.Append((i / 2) + 1);
+                    builder.Append(". ");
+                }
+                else
+                    builder.Append("  ");
+                Side mover = i % 2 == 0 ? Side.White : Side.Black;
+                if (hideOpponent && mover != viewer)
+                    builder.Append("-----");
+                else
+                    builder.Append(FormatMove(moves[i]));
+            }
+            return builder.ToString();
+        }
+        static string FormatMove(Move move)
+        {
+            switch (move.Kind)
+            {
+                case MoveKind.CastleKingSide:
+                    return "O-O";
+                case MoveKind.CastleQueenSide:
+                    return "O-O-O";
+                case MoveKind.Quiet:
+                case MoveKind.Capture:
+                case MoveKind.EnPassant:
+                case MoveKind.Promotion:
+                case MoveKind.Swap:
+                case MoveKind.Bombard:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(move), move.Kind, null);
+            }
+
+            string text = $"{move.From}-{move.To}";
+            if (move.PromotionType is PieceType promotion)
+            {
+                text += $"={PromotionLetter(promotion)}";
+            }
+
+            return text;
+        }
+        static string PromotionLetter(PieceType type)
+        {
+            switch (type)
+            {
+                case PieceType.Queen:
+                    return "Q";
+                case PieceType.Rook:
+                    return "R";
+                case PieceType.Bishop:
+                    return "B";
+                case PieceType.Knight:
+                    return "N";
+                case PieceType.Pawn:
+                case PieceType.King:
+                    return type.ToString();
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
+        #endregion
+    }
+}

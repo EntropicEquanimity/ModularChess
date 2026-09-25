@@ -207,10 +207,7 @@ namespace ModularChess.Presentation
             if (title != null)
                 title.text = Loc.UnlockName(_product);
             if (summary != null)
-            {
-                string costLine = Loc.Format("unlocks.cost", MeritUnlocks.Cost(_product), MeritWallet.Balance);
-                summary.text = Loc.UnlockSummary(_product) + "\n" + costLine;
-            }
+                summary.text = Loc.UnlockSummary(_product);
             bool owned = MeritUnlocks.IsOwned(_product);
             bool canBuy = MeritUnlocks.CanPurchase(_product);
             if (buyButton != null)

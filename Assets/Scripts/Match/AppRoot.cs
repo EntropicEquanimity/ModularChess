@@ -26,10 +26,12 @@ namespace ModularChess.Match
         [SerializeField] MatchController match;
         [SerializeField] BoardView board;
         [SerializeField] MatchHud hud;
+        [SerializeField] CampaignHud campaignHud;
+        [SerializeField] CampaignLevelSet campaignLevels;
 
         MatchController _match;
         BoardView _board;
-        MatchHud _hud;
+        MatchHudBase _activeHud;
         MainMenuView _mainMenu;
         readonly List<ModeId> _selectedModes = new List<ModeId>();
         readonly HostModeSettings _modeSettings = new HostModeSettings();
@@ -69,6 +71,7 @@ namespace ModularChess.Match
             {
                 _match.LeftMatch += OnLeftMatch;
                 _match.RematchRequested += OnRematchRequested;
+                _match.NextCampaignRequested += OnNextCampaignRequested;
                 _match.ReplayLeftToHistory += OnReplayLeftToHistory;
             }
             BindMainMenu();
@@ -84,6 +87,7 @@ namespace ModularChess.Match
             {
                 _match.LeftMatch -= OnLeftMatch;
                 _match.RematchRequested -= OnRematchRequested;
+                _match.NextCampaignRequested -= OnNextCampaignRequested;
                 _match.ReplayLeftToHistory -= OnReplayLeftToHistory;
             }
             UnhookOptionsOverlay();
@@ -126,14 +130,22 @@ namespace ModularChess.Match
         {
             _match = match != null ? match : FindAnyObjectByType<MatchController>();
             _board = board != null ? board : FindAnyObjectByType<BoardView>();
-            _hud = hud != null ? hud : FindAnyObjectByType<MatchHud>();
+            if (hud == null)
+                hud = FindAnyObjectByType<MatchHud>(FindObjectsInactive.Include);
+            if (campaignHud == null)
+                campaignHud = FindAnyObjectByType<CampaignHud>(FindObjectsInactive.Include);
+            if (campaignLevels == null)
+                campaignLevels = CampaignLevelSet.Load();
+            CampaignCatalog.Bind(campaignLevels != null
+                ? campaignLevels.ToDefinitions()
+                : System.Array.Empty<CampaignLevelDefinition>());
+            _activeHud = hud != null ? hud : (MatchHudBase)campaignHud;
             if (mainMenu == null)
             {
                 Transform found = transform.Find("MainMenu");
                 if (found != null)
                     mainMenu = found.gameObject;
             }
-
             if (accountCreationOverlay == null)
             {
                 Transform found = transform.Find("AccountCreation");
@@ -271,8 +283,10 @@ namespace ModularChess.Match
         {
             if (_board != null)
                 _board.gameObject.SetActive(false);
-            if (_hud != null)
-                _hud.gameObject.SetActive(false);
+            if (hud != null)
+                hud.gameObject.SetActive(false);
+            if (campaignHud != null)
+                campaignHud.gameObject.SetActive(false);
         }
 
         void ShowBoard()
@@ -280,8 +294,19 @@ namespace ModularChess.Match
             HideOverlays();
             if (_board != null)
                 _board.gameObject.SetActive(true);
-            if (_hud != null)
-                _hud.gameObject.SetActive(true);
+            if (_activeHud != null)
+                _activeHud.gameObject.SetActive(true);
+        }
+
+        void SelectHud(MatchSession session)
+        {
+            bool campaign = session != null && session.Activity == Activity.Campaign;
+            if (hud != null)
+                hud.gameObject.SetActive(!campaign);
+            if (campaignHud != null)
+                campaignHud.gameObject.SetActive(campaign);
+            _activeHud = campaign && campaignHud != null ? campaignHud : (MatchHudBase)hud;
+            _match?.SetHud(_activeHud);
         }
 
         void EnterApp()
@@ -305,7 +330,6 @@ namespace ModularChess.Match
             HideBoard();
             DismissScreens(mainMenu);
             _mainMenu?.RefreshHistoryGate();
-            _mainMenu?.RefreshMerit();
             OverlayMotion.Ensure(mainMenu)?.PlayEnter();
             GameAudio.PlayMenuMusic();
         }
@@ -343,13 +367,21 @@ namespace ModularChess.Match
             if (level == null || !CampaignProgress.IsUnlocked(index))
                 return;
             var modes = new List<ModeId>(level.Modes);
+            TimeControl time = level.ShowsClock ? level.Clock : TimeControl.None;
+            int martyrThreshold = MatchSettings.Default.MartyrThreshold;
+            for (int i = 0; i < modes.Count; i++)
+            {
+                if (modes[i] != ModeId.Martyr) continue;
+                martyrThreshold = level.MartyrThreshold;
+                break;
+            }
             MatchSettings settings = new MatchSettings(
-                TimeControl.None,
+                time,
                 level.PlayerSide == Side.White ? HostColor.White : HostColor.Black,
                 level.AiStrength,
                 false,
                 level.EmpowerBudget,
-                MatchSettings.Default.MartyrThreshold,
+                martyrThreshold,
                 MatchSettings.Default.MartyrDraftOptions);
             StartMatch(new MatchSession
             {
@@ -416,7 +448,7 @@ namespace ModularChess.Match
         }
         void OnOptionsOpeningFromMatch()
         {
-            _hud?.CloseOptionsIfOpen();
+            _activeHud?.CloseOptionsIfOpen();
             if (_match != null && !_match.IsPaused)
             {
                 _pausedForOptions = true;
@@ -456,7 +488,9 @@ namespace ModularChess.Match
             if (record == null || !record.Replayable || _match == null)
                 return;
             _historyReturnIndex = _history != null ? _history.SelectedIndex : -1;
+            SelectHud(null);
             ShowBoard();
+            _match.SetHud(_activeHud);
             _match.LaunchReplay(record, fromHistory: true);
             GameAudio.PlayMatchMusic();
         }
@@ -476,6 +510,12 @@ namespace ModularChess.Match
                 return;
             }
             ShowMainMenu();
+        }
+        void OnNextCampaignRequested()
+        {
+            if (_lastSession == null || _lastSession.CampaignLevel == null)
+                return;
+            StartCampaignLevel(_lastSession.CampaignLevel.Index + 1);
         }
         void OnRematchRequested()
         {
@@ -682,14 +722,14 @@ namespace ModularChess.Match
                 return;
             }
 
-            if (_match != null && _match.IsPlaying && _board != null && _board.gameObject.activeSelf)
+            if (_match != null && _board != null && _board.gameObject.activeSelf)
             {
                 if (_match.IsReplaying)
                 {
                     _match.LeaveToMenu();
                     return;
                 }
-                _hud?.ToggleOptions();
+                _activeHud?.ToggleOptions();
                 return;
             }
 
@@ -737,7 +777,6 @@ namespace ModularChess.Match
             CacheOverlayViews();
             _unlocks?.Refresh();
             _mainMenu?.RefreshHistoryGate();
-            _mainMenu?.RefreshMerit();
             if (matchSettingsOverlay != null && matchSettingsOverlay.activeSelf)
                 ShowPrep();
         }
@@ -786,9 +825,11 @@ namespace ModularChess.Match
         void StartMatch(MatchSession session)
         {
             _lastSession = session;
+            SelectHud(session);
             ShowBoard();
             if (_match == null)
                 _match = FindAnyObjectByType<MatchController>();
+            _match?.SetHud(_activeHud);
             _match.Launch(session);
             GameAudio.PlayMatchMusic();
         }

@@ -320,7 +320,8 @@ namespace ModularChess.Core
                 if (targetSquare != null)
                 {
                     Piece piece = state.Board.GetPiece(targetSquare.Value);
-                    if (piece != null && piece.Side != state.SideToMove && piece.Type == PieceType.Pawn)
+                    if (piece != null && piece.Side != state.SideToMove && piece.Type == PieceType.Pawn
+                        && IsOwnHalf(targetSquare.Value, state.SideToMove))
                     {
                         target = piece;
                     }
@@ -332,15 +333,17 @@ namespace ModularChess.Core
                 {
                     Square square = Square.FromIndex(i);
                     Piece piece = state.Board.GetPiece(square);
-                    if (piece == null || piece.Side == state.SideToMove || piece.Type != PieceType.Pawn) continue;
+                    if (piece == null || piece.Side == state.SideToMove || piece.Type != PieceType.Pawn)
+                        continue;
+                    if (!IsOwnHalf(square, state.SideToMove)) continue;
                     if (target != null) return state.Board;
                     target = piece;
                     targetSquare = square;
                 }
             }
             if (target == null || targetSquare == null) return state.Board;
-            Piece converted = new Piece(PieceType.Pawn, state.SideToMove, true);
-            nextRuntime = runtime.AddSummoned(converted.Id);
+            if (!IsOwnHalf(targetSquare.Value, state.SideToMove)) return state.Board;
+            Piece converted = new Piece(PieceType.Pawn, state.SideToMove, true, target.Id);
             return state.Board.WithPiece(targetSquare.Value, converted);
         }
         static Board ApplyVanishingAct(GameState state, Guid? targetId, Square[] destinations)
@@ -511,7 +514,7 @@ namespace ModularChess.Core
                 case MartyrPower.SecondFront:
                     return CountEmptyBackTwo(board, side) > 0;
                 case MartyrPower.Turncoat:
-                    return HasPiece(board, side.Opponent(), PieceType.Pawn);
+                    return HasEnemyPawnOnOwnHalf(board, side);
                 case MartyrPower.Rearguard:
                     return CountPawnsOnBackTwo(board, side) >= 1;
                 case MartyrPower.Landmine:
@@ -600,6 +603,22 @@ namespace ModularChess.Core
             int? value = PieceValues.Get(piece.Type);
             if (value == null || value.Value <= 1) return false;
             return AttackMap.IsAttacked(board, square, piece.Side.Opponent(), rules, runtime);
+        }
+        static bool HasEnemyPawnOnOwnHalf(Board board, Side side)
+        {
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = Square.FromIndex(i);
+                Piece piece = board.GetPiece(square);
+                if (piece != null
+                    && piece.Side != side
+                    && piece.Type == PieceType.Pawn
+                    && IsOwnHalf(square, side))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
         static bool HasPiece(Board board, Side side, PieceType type)
         {

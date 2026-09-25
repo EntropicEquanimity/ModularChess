@@ -9,12 +9,15 @@ namespace ModularChess.Presentation
     public sealed class UnlockRow : MonoBehaviour
     {
         #region Fields
+        static readonly Color Affordable = Color.black;
+        static readonly Color Unaffordable = new Color(0.75f, 0.08f, 0.08f, 1f);
         [SerializeField] TMP_Text nameLabel;
         [SerializeField] Image statusIcon;
         [SerializeField] Sprite lockedSprite;
         [SerializeField] Sprite unlockedSprite;
+        [SerializeField] TMP_Text priceLabel;
+        [SerializeField] GameObject priceIcon;
         UnlockProduct _product;
-        Button _rowButton;
         #endregion
 
         #region Public Methods
@@ -28,36 +31,33 @@ namespace ModularChess.Presentation
             }
             if (statusIcon != null)
                 statusIcon.raycastTarget = false;
-            EnsureRowButton(opened);
+            if (priceLabel != null)
+                priceLabel.raycastTarget = false;
+            UnlockProduct captured = product;
+            GameAudio.Bind(GetComponent<Button>(), () => opened?.Invoke(captured));
             Refresh();
         }
         public void Refresh()
         {
-            if (statusIcon == null)
-                return;
-            Sprite sprite = MeritUnlocks.IsOwned(_product) ? unlockedSprite : lockedSprite;
-            if (sprite != null)
-                statusIcon.sprite = sprite;
-        }
-        #endregion
-
-        #region Private Methods
-        void EnsureRowButton(UnityAction<UnlockProduct> opened)
-        {
-            _rowButton = GetComponent<Button>();
-            if (_rowButton == null)
-                _rowButton = gameObject.AddComponent<Button>();
-            Image hit = GetComponent<Image>();
-            if (hit == null)
+            bool owned = MeritUnlocks.IsOwned(_product);
+            if (statusIcon != null)
             {
-                hit = gameObject.AddComponent<Image>();
-                hit.color = new Color(1f, 1f, 1f, 0f);
+                Sprite sprite = owned ? unlockedSprite : lockedSprite;
+                if (sprite != null)
+                    statusIcon.sprite = sprite;
             }
-            hit.raycastTarget = true;
-            _rowButton.targetGraphic = hit;
-            _rowButton.transition = Selectable.Transition.None;
-            UnlockProduct captured = _product;
-            GameAudio.Bind(_rowButton, () => opened?.Invoke(captured));
+            if (priceLabel != null)
+            {
+                priceLabel.gameObject.SetActive(!owned);
+                if (!owned)
+                {
+                    int cost = MeritUnlocks.Cost(_product);
+                    priceLabel.text = cost.ToString();
+                    priceLabel.color = MeritWallet.Balance >= cost ? Affordable : Unaffordable;
+                }
+            }
+            if (priceIcon != null)
+                priceIcon.SetActive(!owned);
         }
         #endregion
     }

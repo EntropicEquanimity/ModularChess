@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using ModularChess.Core;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace ModularChess.Presentation
 {
@@ -53,7 +55,9 @@ namespace ModularChess.Presentation
 
             if (!pointer.press.wasPressedThisFrame)
                 return;
-            if (IsPromotionOpen() || uiBlocked)
+            if (IsPromotionOpen())
+                return;
+            if (uiBlocked)
                 return;
 
             Camera camera = pickCamera != null ? pickCamera : Camera.main;
@@ -122,14 +126,25 @@ namespace ModularChess.Presentation
                 GameObject hit = hits[i].gameObject;
                 if (hit == null)
                     continue;
-                if (hit.GetComponentInParent<Canvas>() == null)
-                    continue;
                 if (hit.GetComponentInParent<BoardView>() != null)
+                    continue;
+                if (!BlocksBoardClick(hit))
                     continue;
                 return true;
             }
 
             return false;
+        }
+
+        static bool BlocksBoardClick(GameObject hit)
+        {
+            if (hit.GetComponentInParent<Canvas>() == null)
+                return false;
+            if (hit.GetComponentInParent<Selectable>() != null)
+                return true;
+            if (hit.GetComponentInParent<ScrollRect>() != null)
+                return true;
+            return hit.GetComponentInParent<TMP_InputField>() != null;
         }
     }
 }

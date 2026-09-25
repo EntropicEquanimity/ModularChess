@@ -22,7 +22,8 @@ namespace ModularChess.Presentation
         const string UnlocksDetailPopupPath = "Assets/Prefabs/Popup/UnlocksDetailPopup.prefab";
         const string SettingsControlPath = "Assets/Prefabs/UI/SettingsControl.prefab";
         const string OptionSliderPath = "Assets/Prefabs/UI/Components/OptionSlider.prefab";
-        const string PromotionPopupPath = "Assets/Prefabs/Overlays/PromotionPopup.prefab";
+        const string PromotionPopupPath = "Assets/Prefabs/Popup/PromotionPopup.prefab";
+        const string CampaignHudPath = "Assets/Prefabs/Overlays/CampaignHud.prefab";
         const string MatchHudPath = "Assets/Prefabs/Overlays/MatchHud.prefab";
         const string ScrollViewPath = "Assets/Prefabs/UI/Components/Scroll View.prefab";
         const string AccountCreationPath = "Assets/Prefabs/Overlays/AccountCreation.prefab";
@@ -30,7 +31,7 @@ namespace ModularChess.Presentation
         const string OverlayDialogsPath = "Assets/Prefabs/Overlays/OverlayDialogs.prefab";
         const string DebugMenuPath = "Assets/Prefabs/Popup/DebugMenu.prefab";
         const string HistoryPath = "Assets/Prefabs/Overlays/History.prefab";
-        const string CampaignPath = "Assets/Prefabs/Overlays/Campaign.prefab";
+        const string CampaignPath = "Assets/Prefabs/Overlays/CampaignSelect.prefab";
 
         public static GameObject Canvas => Load(CanvasPath);
         public static GameObject TextButton => Load(ButtonPath);
@@ -52,6 +53,7 @@ namespace ModularChess.Presentation
         public static GameObject OptionSlider => Load(OptionSliderPath);
         public static GameObject PromotionPopup => Load(PromotionPopupPath);
         public static GameObject MatchHud => Load(MatchHudPath);
+        public static GameObject CampaignHud => Load(CampaignHudPath);
         public static GameObject ScrollView => Load(ScrollViewPath);
         public static GameObject AccountCreation => Load(AccountCreationPath);
         public static GameObject FeedbackSurvey => Load(FeedbackSurveyPath);
@@ -70,6 +72,13 @@ namespace ModularChess.Presentation
             {
                 string legacy = assetPath.Replace("/Components/", "/");
                 editor = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(legacy);
+                if (editor != null)
+                    return editor;
+            }
+            if (assetPath.Contains("/Overlays/"))
+            {
+                string popup = assetPath.Replace("/Overlays/", "/Popup/");
+                editor = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(popup);
                 if (editor != null)
                     return editor;
             }

@@ -50,7 +50,7 @@ namespace ModularChess.Presentation
                 return;
             for (int i = content.childCount - 1; i >= 0; i--)
                 Destroy(content.GetChild(i).gameObject);
-                UnlockProduct[] catalog = MeritUnlocks.All;
+            UnlockProduct[] catalog = MeritUnlocks.VisibleShopItems();
             for (int i = 0; i < catalog.Length; i++)
             {
                 UnlockRow row = Instantiate(rowPrefab, content);

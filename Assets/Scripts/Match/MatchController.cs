@@ -11,7 +11,7 @@ namespace ModularChess.Match
     {
         [SerializeField] private BoardView boardView;
         [SerializeField] private PromotionPicker promotionPicker;
-        [SerializeField] private MatchHud hud;
+        [SerializeField] private MatchHudBase hud;
 
         MatchSession _session;
         GameState _state;
@@ -31,6 +31,8 @@ namespace ModularChess.Match
         bool _historyWritten;
         int _campaignPlayerTurns;
         int _campaignPiecesLost;
+        bool _campaignSpecialMet;
+        bool _campaignSpecialFailed;
         bool _draftTiming;
         float _draftRemaining;
         float _aiWait = -1f;
@@ -54,6 +56,7 @@ namespace ModularChess.Match
         const float ReplayTurnWait = 2f;
         public event Action LeftMatch;
         public event Action RematchRequested;
+        public event Action NextCampaignRequested;
         public event Action ReplayRequested;
         public event Action ReplayLeftToHistory;
 
@@ -63,7 +66,11 @@ namespace ModularChess.Match
         public bool ReplayFromHistory => _replayFromHistory;
         public MatchHistoryRecord ReplayRecord => _replayRecord;
 
-        public void Configure(BoardView view, PromotionPicker picker, MatchHud matchHud)
+        public void SetHud(MatchHudBase matchHud)
+        {
+            hud = matchHud;
+        }
+        public void Configure(BoardView view, PromotionPicker picker, MatchHudBase matchHud)
         {
             Unsubscribe();
             boardView = view;
@@ -86,7 +93,7 @@ namespace ModularChess.Match
             if (promotionPicker == null)
                 promotionPicker = FindAnyObjectByType<PromotionPicker>();
             if (hud == null)
-                hud = FindAnyObjectByType<MatchHud>();
+                hud = FindAnyObjectByType<MatchHudBase>();
             Subscribe();
             HookLanguage();
         }
@@ -143,6 +150,8 @@ namespace ModularChess.Match
                     if (flagged != null)
                     {
                         _state = _state.WithTerminal(GameStatus.Timeout);
+                        if (_session.IsCampaign)
+                            hud?.RefreshObjectives(BuildCampaignLive());
                         RefreshPresentation();
                         return;
                     }
@@ -203,6 +212,8 @@ namespace ModularChess.Match
             _historyWritten = false;
             _campaignPlayerTurns = 0;
             _campaignPiecesLost = 0;
+            _campaignSpecialMet = false;
+            _campaignSpecialFailed = false;
             _draftTiming = false;
             _draftRemaining = 0f;
             _draftTargeting = null;
@@ -221,6 +232,7 @@ namespace ModularChess.Match
             hud?.SetMatchChromeVisible(true);
             hud?.SetReplayMode(false);
             hud?.BindActions(this);
+            hud?.PresentSession(session);
             if (promotionPicker != null)
                 promotionPicker.Hide();
 
@@ -284,6 +296,12 @@ namespace ModularChess.Match
             if (_replaying || _session == null)
                 return;
             RematchRequested?.Invoke();
+        }
+        public void RequestNextCampaignLevel()
+        {
+            if (_replaying || _session == null || !_session.IsCampaign)
+                return;
+            NextCampaignRequested?.Invoke();
         }
 
         public void RequestReplay()
@@ -543,22 +561,55 @@ namespace ModularChess.Match
             CampaignStarFlags earned = CampaignStarEval.Evaluate(
                 _session.CampaignLevel,
                 won,
-                _campaignPlayerTurns,
-                _campaignPiecesLost);
+                BuildCampaignLive());
             CampaignProgress.Award(_session.CampaignLevel.Index, earned);
         }
-        bool PlayerWonCampaign()
+        public bool PlayerWonCampaign()
         {
+            if (_session == null || _state == null || !_session.IsCampaign) return false;
             if (_state.Status != GameStatus.Checkmate) return false;
             Side winner = _state.SideToMove.Opponent();
             return winner == _session.PlayerSide;
         }
-        void NoteCampaignProgress(Side moved, Piece victim, bool bounce)
+        CampaignObjectiveLive BuildCampaignLive()
+        {
+            bool playerTimedOut = _state != null
+                && _state.Status == GameStatus.Timeout
+                && _state.SideToMove == _session.PlayerSide;
+            return CampaignStarEval.BuildLive(
+                _session.CampaignLevel,
+                _campaignPlayerTurns,
+                _campaignPiecesLost,
+                _campaignSpecialMet,
+                _campaignSpecialFailed,
+                playerTimedOut);
+        }
+        void NoteCampaignProgress(Side moved, Move move, Piece mover, Piece victim, bool bounce)
         {
             if (_session == null || !_session.IsCampaign) return;
+            CampaignLevelDefinition level = _session.CampaignLevel;
             if (victim != null && !bounce && victim.Side == _session.PlayerSide)
                 _campaignPiecesLost++;
+            if (moved == _session.PlayerSide && level != null)
+            {
+                switch (level.SpecialKind)
+                {
+                    case CampaignSpecialObjectiveKind.CapturePiece:
+                        if (victim != null && !bounce && victim.Type == level.SpecialPiece)
+                            _campaignSpecialMet = true;
+                        break;
+                    case CampaignSpecialObjectiveKind.DoNotMovePiece:
+                        if (mover != null && mover.Type == level.SpecialPiece)
+                            _campaignSpecialFailed = true;
+                        break;
+                    case CampaignSpecialObjectiveKind.PromotePawn:
+                        if (move.Kind == MoveKind.Promotion)
+                            _campaignSpecialMet = true;
+                        break;
+                }
+            }
             NoteCampaignTurnEnd(moved);
+            hud?.RefreshObjectives(BuildCampaignLive());
         }
         void NoteCampaignTurnEnd(Side ended)
         {
@@ -898,14 +949,32 @@ namespace ModularChess.Match
 
         private void BeginPromotion(List<Move> promotions)
         {
-            _pendingPromotions = promotions;
+            if (promotions == null || promotions.Count == 0)
+                return;
             if (promotionPicker != null)
+            {
+                _pendingPromotions = promotions;
                 promotionPicker.Show(_state.SideToMove);
+                if (promotionPicker.IsOpen)
+                    return;
+                _pendingPromotions = null;
+            }
+            Move fallback = promotions[0];
+            for (int i = 0; i < promotions.Count; i++)
+            {
+                if (promotions[i].PromotionType == PieceType.Queen)
+                {
+                    fallback = promotions[i];
+                    break;
+                }
+            }
+            Commit(fallback);
         }
 
         private void Commit(Move move)
         {
             Side moved = _state.SideToMove;
+            Piece mover = _state.Board.GetPiece(move.From);
             Piece victim = FindVictim(_state, move);
             _historyEvents.Add(MatchHistoryStore.MoveEvent(move.From, move.To, move.Kind, move.PromotionType));
             _state = _state.Apply(move);
@@ -913,7 +982,7 @@ namespace ModularChess.Match
             ClearSelection();
             promotionPicker?.Hide();
             bool bounce = victim != null && _state.Runtime.ExtraLifeSpent(victim.Id);
-            NoteCampaignProgress(moved, victim, bounce);
+            NoteCampaignProgress(moved, move, mover, victim, bounce);
             if (_state.SideToMove != moved)
                 _clock?.AddIncrement(moved);
             PlayMoveSfx(move, moved, bounce);
@@ -1242,7 +1311,9 @@ namespace ModularChess.Match
             }
             if (power == MartyrPower.Turncoat)
             {
-                if (piece.Side == _state.SideToMove || piece.Type != PieceType.Pawn)
+                if (piece.Side == _state.SideToMove
+                    || piece.Type != PieceType.Pawn
+                    || !GameState.IsOwnHalf(square, _state.SideToMove))
                 {
                     GameAudio.PlayIllegal();
                     return;
@@ -1454,7 +1525,18 @@ namespace ModularChess.Match
                     }
                     break;
                 case MartyrPower.Turncoat:
-                    CollectPieces(side.Opponent(), PieceType.Pawn);
+                    for (int i = 0; i < 64; i++)
+                    {
+                        Square square = Square.FromIndex(i);
+                        Piece piece = _state.Board.GetPiece(square);
+                        if (piece != null
+                            && piece.Side == side.Opponent()
+                            && piece.Type == PieceType.Pawn
+                            && GameState.IsOwnHalf(square, side))
+                        {
+                            _draftTargets.Add(square);
+                        }
+                    }
                     break;
                 case MartyrPower.VanishingAct:
                     if (_vanishingPieceId == null)

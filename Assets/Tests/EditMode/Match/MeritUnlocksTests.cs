@@ -58,5 +58,22 @@ namespace ModularChess.Match.Tests
             MeritWallet.GrantVersusFinish(checkmate: true);
             Assert.AreEqual(6, MeritWallet.Balance);
         }
+
+        [Test]
+        public void VisibleShopItems_ShowsOneHistoryTierAtATime()
+        {
+            UnlockProduct[] start = MeritUnlocks.VisibleShopItems();
+            Assert.Contains(UnlockProduct.HistoryTier1, start);
+            Assert.IsFalse(System.Array.IndexOf(start, UnlockProduct.HistoryTier2) >= 0);
+            MeritWallet.DebugFill(20);
+            Assert.IsTrue(MeritUnlocks.TryPurchase(UnlockProduct.HistoryTier1));
+            UnlockProduct[] after = MeritUnlocks.VisibleShopItems();
+            Assert.Contains(UnlockProduct.HistoryTier1, after);
+            Assert.Contains(UnlockProduct.HistoryTier2, after);
+            Assert.IsFalse(System.Array.IndexOf(after, UnlockProduct.HistoryTier3) >= 0);
+            Assert.Less(
+                System.Array.IndexOf(after, UnlockProduct.HistoryTier2),
+                System.Array.IndexOf(after, UnlockProduct.HistoryTier1));
+        }
     }
 }

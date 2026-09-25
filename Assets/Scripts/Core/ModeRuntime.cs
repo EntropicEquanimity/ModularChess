@@ -365,13 +365,13 @@ namespace ModularChess.Core
             {
                 if (next.WhiteIronCurtainTurns > 0) next.WhiteIronCurtainTurns--;
                 if (next.WhiteFogVisionTurns > 0) next.WhiteFogVisionTurns--;
-                if (next.WhiteDustCloudTurns > 0) next.WhiteDustCloudTurns--;
+                if (next.BlackDustCloudTurns > 0) next.BlackDustCloudTurns--;
             }
             else
             {
                 if (next.BlackIronCurtainTurns > 0) next.BlackIronCurtainTurns--;
                 if (next.BlackFogVisionTurns > 0) next.BlackFogVisionTurns--;
-                if (next.BlackDustCloudTurns > 0) next.BlackDustCloudTurns--;
+                if (next.WhiteDustCloudTurns > 0) next.WhiteDustCloudTurns--;
             }
             return next;
         }

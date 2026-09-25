@@ -1,5 +1,4 @@
 using ModularChess.Presentation;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -18,20 +17,7 @@ namespace ModularChess.Match
         [SerializeField] Button exitButton;
         [SerializeField] Button customizeButton;
         [SerializeField] Transform title;
-        [SerializeField] TMP_Text meritText;
         bool _bound;
-        #endregion
-
-        #region Unity
-        void OnEnable()
-        {
-            MeritWallet.Changed += RefreshMerit;
-            RefreshMerit();
-        }
-        void OnDisable()
-        {
-            MeritWallet.Changed -= RefreshMerit;
-        }
         #endregion
 
         #region Public Methods
@@ -56,7 +42,6 @@ namespace ModularChess.Match
             if (customizeButton != null)
                 customizeButton.interactable = false;
             RefreshHistoryGate();
-            RefreshMerit();
             OverlayMotion.Ensure(gameObject);
             _bound = true;
             RefreshLoc();
@@ -66,11 +51,6 @@ namespace ModularChess.Match
             Resolve();
             if (historyButton != null)
                 historyButton.interactable = HistoryPrefs.Unlocked;
-        }
-        public void RefreshMerit()
-        {
-            if (meritText != null)
-                meritText.text = MeritWallet.Balance.ToString();
         }
         public void RefreshLoc()
         {

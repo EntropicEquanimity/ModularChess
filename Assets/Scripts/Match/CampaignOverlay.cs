@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using ModularChess.Core;
 using ModularChess.Presentation;
@@ -15,10 +16,12 @@ namespace ModularChess.Match
         [SerializeField] Transform title;
         [SerializeField] Transform listParent;
         [SerializeField] CampaignRowView rowPrefab;
+        [SerializeField] ScrollRect scroll;
         readonly List<CampaignRowView> _rows = new List<CampaignRowView>();
         int _selected = -1;
         UnityAction _onBack;
         UnityAction<int> _onPlay;
+        Coroutine _scrollRoutine;
         #endregion
 
         #region Public Methods
@@ -42,23 +45,10 @@ namespace ModularChess.Match
         public void Refresh()
         {
             Resolve();
-            if (_selected >= CampaignCatalog.Count)
-                _selected = -1;
-            if (_selected < 0)
-            {
-                for (int i = 0; i < CampaignCatalog.Count; i++)
-                {
-                    if (CampaignProgress.IsUnlocked(i) && !CampaignProgress.HasStar(i, CampaignStarFlags.Complete))
-                    {
-                        _selected = i;
-                        break;
-                    }
-                }
-                if (_selected < 0 && CampaignProgress.IsUnlocked(0))
-                    _selected = 0;
-            }
+            _selected = NextUnbeatenIndex();
             RebuildRows();
             UpdatePlayButton();
+            ScrollToSelected();
         }
         public void SelectIndex(int index)
         {
@@ -72,6 +62,19 @@ namespace ModularChess.Match
         #endregion
 
         #region Private Methods
+        static int NextUnbeatenIndex()
+        {
+            int lastUnlocked = -1;
+            for (int i = 0; i < CampaignCatalog.Count; i++)
+            {
+                if (!CampaignProgress.IsUnlocked(i))
+                    continue;
+                lastUnlocked = i;
+                if (!CampaignProgress.HasStar(i, CampaignStarFlags.Complete))
+                    return i;
+            }
+            return lastUnlocked;
+        }
         void StartLevel()
         {
             if (_selected < 0 || !CampaignProgress.IsUnlocked(_selected)) return;
@@ -99,6 +102,35 @@ namespace ModularChess.Match
                 _rows.Add(row);
             }
         }
+        void ScrollToSelected()
+        {
+            if (!isActiveAndEnabled || scroll == null || _selected < 0 || _selected >= _rows.Count)
+                return;
+            if (_scrollRoutine != null)
+                StopCoroutine(_scrollRoutine);
+            _scrollRoutine = StartCoroutine(ScrollToRow(_rows[_selected].transform as RectTransform));
+        }
+        IEnumerator ScrollToRow(RectTransform row)
+        {
+            yield return null;
+            _scrollRoutine = null;
+            if (scroll == null || row == null || scroll.content == null)
+                yield break;
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(scroll.content);
+            RectTransform view = scroll.viewport != null ? scroll.viewport : (RectTransform)scroll.transform;
+            float contentH = scroll.content.rect.height;
+            float viewH = view.rect.height;
+            float range = contentH - viewH;
+            if (range <= 1f)
+            {
+                scroll.verticalNormalizedPosition = 1f;
+                yield break;
+            }
+            float y = -row.anchoredPosition.y;
+            float offset = y - (viewH - row.rect.height) * 0.5f;
+            scroll.verticalNormalizedPosition = 1f - Mathf.Clamp01(offset / range);
+        }
         void Resolve()
         {
             if (backButton == null)
@@ -118,12 +150,10 @@ namespace ModularChess.Match
             }
             if (title == null)
                 title = FindChild(transform, "Title");
-            if (listParent == null)
-            {
-                ScrollRect scroll = GetComponentInChildren<ScrollRect>(true);
-                if (scroll != null)
-                    listParent = scroll.content;
-            }
+            if (scroll == null)
+                scroll = GetComponentInChildren<ScrollRect>(true);
+            if (listParent == null && scroll != null)
+                listParent = scroll.content;
             if (rowPrefab == null)
             {
                 CampaignRowView existing = GetComponentInChildren<CampaignRowView>(true);

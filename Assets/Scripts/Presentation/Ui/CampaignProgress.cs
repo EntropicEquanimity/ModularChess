@@ -40,7 +40,7 @@ namespace ModularChess.Presentation
         }
         public static void Clear()
         {
-            for (int i = 0; i < CampaignCatalog.Count; i++)
+            for (int i = 0; i < 64; i++)
                 PlayerPrefs.DeleteKey(StarsKey(i));
             PlayerPrefs.Save();
             Changed?.Invoke();

@@ -358,8 +358,9 @@ namespace ModularChess.Presentation
             GameState stateBefore = _state;
             Square? selectedBefore = _selected;
             SquareClicked?.Invoke(square);
-
             if (_targeting)
+                return;
+            if (SquareClicked != null)
                 return;
             if (_state == stateBefore && _selected == selectedBefore)
                 ApplyLocalSelection(square);
@@ -541,7 +542,10 @@ namespace ModularChess.Presentation
                     else if (animate)
                     {
                         float chebyshev = ChebyshevFromLocal(view.transform.localPosition, dest);
-                        float duration = AnimationPrefs.MoveDuration(0.32f + 0.06f * chebyshev);
+                        bool capturing = LastMoveIsCaptureOnto(square);
+                    float duration = capturing
+                        ? AnimationPrefs.MoveDuration(0.48f + 0.08f * chebyshev)
+                        : AnimationPrefs.MoveDuration(0.32f + 0.06f * chebyshev);
                         if (view.PlayMove(dest, duration, OnPieceMotionEnded))
                         {
                             _movingCount++;
@@ -564,8 +568,6 @@ namespace ModularChess.Presentation
                 if (!_seenIds.Contains(pair.Key))
                     _staleIds.Add(pair.Key);
             }
-
-            bool defer = started > 0 || _movingCount > 0;
             for (int i = 0; i < _staleIds.Count; i++)
             {
                 Guid id = _staleIds[i];
@@ -573,9 +575,14 @@ namespace ModularChess.Presentation
                 _pieces.Remove(id);
                 if (view == null)
                     continue;
-                view.gameObject.SetActive(false);
-                if (defer)
+                float fade = AnimationPrefs.MoveDuration(0.38f);
+                if (!AnimationPrefs.Instant && view.PlayFadeOut(fade, OnPieceMotionEnded))
+                {
+                    HoldMatchChrome();
+                    _movingCount++;
+                    started++;
                     _deferredDestroy.Add(view);
+                }
                 else
                     Destroy(view.gameObject);
             }
@@ -629,7 +636,7 @@ namespace ModularChess.Presentation
             }
             Rect board = new Rect(0f, 0f, _layout.BoardSizeLocal.x, _layout.BoardSizeLocal.y);
             float gravity = _layout.SquareSize * 22f;
-            float duration = AnimationPrefs.MoveDuration(1.2f);
+            float duration = AnimationPrefs.MoveDuration(1.55f);
             int started = 0;
             for (int i = 0; i < 64; i++)
             {
@@ -779,7 +786,7 @@ namespace ModularChess.Presentation
                     && (view.transform.localPosition - dest).sqrMagnitude > 0.0001f;
                 if (animate)
                 {
-                    float duration = AnimationPrefs.MoveDuration(0.42f);
+                    float duration = AnimationPrefs.MoveDuration(0.7f);
                     float height = _layout.SquareSize * 0.75f;
                     if (view.PlayCaptureDepart(dest, duration, height, OnPieceMotionEnded))
                     {
@@ -799,6 +806,36 @@ namespace ModularChess.Presentation
             float dx = Mathf.Abs(to.x - from.x) / _layout.SquareSize;
             float dy = Mathf.Abs(to.y - from.y) / _layout.SquareSize;
             return Mathf.Max(1f, Mathf.Max(dx, dy));
+        }
+        bool LastMoveIsCaptureOnto(Square square)
+        {
+            if (_state == null || _state.History == null || _state.History.Count == 0)
+                return false;
+            Move last = _state.History[_state.History.Count - 1];
+            if (!last.To.Equals(square))
+                return false;
+            return last.Kind == MoveKind.Capture
+                || last.Kind == MoveKind.EnPassant
+                || last.CapturedType != null;
+        }
+        void ApplyLandmineMarkers()
+        {
+            Sprite sprite = EffectIconCatalog.Load()?.SpriteFor(MartyrPower.Landmine);
+            for (int i = 0; i < _squares.Length; i++)
+            {
+                if (_squares[i] != null)
+                    _squares[i].SetLandmine(null, false);
+            }
+            if (sprite == null || _state == null)
+                return;
+            IReadOnlyList<LandmineMarker> mines = _state.Runtime.Landmines;
+            for (int i = 0; i < mines.Count; i++)
+            {
+                LandmineMarker mine = mines[i];
+                if (mine.Owner != _viewer)
+                    continue;
+                SquareAt(mine.Square)?.SetLandmine(sprite, true);
+            }
         }
 
         PieceView CreatePieceView()
@@ -976,7 +1013,7 @@ namespace ModularChess.Presentation
             }
 
             ApplySelectedOutlines();
-
+            ApplyLandmineMarkers();
             if (!_selected.HasValue)
                 return;
 

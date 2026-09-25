@@ -15,6 +15,7 @@ namespace ModularChess.Match
         [SerializeField] Image starComplete;
         [SerializeField] Image starTurn;
         [SerializeField] Image starLoss;
+        [SerializeField] GameObject cover;
         int _index;
         static readonly Color Selected = new Color(0.85f, 0.9f, 1f, 1f);
         static readonly Color Idle = new Color(1f, 1f, 1f, 0.4f);
@@ -34,6 +35,8 @@ namespace ModularChess.Match
             bool unlocked = CampaignProgress.IsUnlocked(index);
             if (label != null)
                 label.text = FormatRow(level, unlocked);
+            if (cover != null)
+                cover.SetActive(!unlocked);
             ApplyStars(unlocked, level != null ? CampaignProgress.GetStars(level.Index) : CampaignStarFlags.None);
             SetSelected(selected);
             Button button = GetComponent<Button>();
@@ -69,8 +72,8 @@ namespace ModularChess.Match
         void ApplyStars(bool unlocked, CampaignStarFlags flags)
         {
             ApplyStar(starComplete, unlocked, (flags & CampaignStarFlags.Complete) != 0);
-            ApplyStar(starTurn, unlocked, (flags & CampaignStarFlags.TurnLimit) != 0);
-            ApplyStar(starLoss, unlocked, (flags & CampaignStarFlags.LossLimit) != 0);
+            ApplyStar(starTurn, unlocked, (flags & CampaignStarFlags.Time) != 0);
+            ApplyStar(starLoss, unlocked, (flags & CampaignStarFlags.Special) != 0);
         }
         static void ApplyStar(Image image, bool unlocked, bool earned)
         {
@@ -85,12 +88,13 @@ namespace ModularChess.Match
         static string FormatRow(CampaignLevelDefinition level, bool unlocked)
         {
             if (level == null) return string.Empty;
-            string title = LevelTitle(level);
-            if (!unlocked) return Loc.Format("campaign.locked", level.Index + 1, title);
-            return $"{level.Index + 1}. {title}";
+            if (!unlocked) return Loc.Get("campaign.locked");
+            return $"{level.Index + 1}. {Title(level)}";
         }
-        static string LevelTitle(CampaignLevelDefinition level)
+        public static string Title(CampaignLevelDefinition level)
         {
+            if (level == null)
+                return string.Empty;
             string keyed = Loc.Get(level.TitleKey);
             if (keyed != level.TitleKey)
                 return keyed;

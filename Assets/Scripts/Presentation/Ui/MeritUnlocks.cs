@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ModularChess.Core;
 using UnityEngine;
 
@@ -27,6 +28,32 @@ namespace ModularChess.Presentation
         #region Public Methods
         public static event Action HistoryTierChanged;
         public static UnlockProduct[] All => Catalog;
+        public static UnlockProduct[] VisibleShopItems()
+        {
+            var locked = new List<UnlockProduct>(Catalog.Length);
+            var owned = new List<UnlockProduct>(Catalog.Length);
+            UnlockProduct? nextHistory = null;
+            for (int i = 0; i < Catalog.Length; i++)
+            {
+                UnlockProduct product = Catalog[i];
+                if (IsHistory(product))
+                {
+                    if (IsOwned(product))
+                        owned.Add(product);
+                    else if (nextHistory == null && PrerequisiteMet(product))
+                        nextHistory = product;
+                    continue;
+                }
+                if (IsOwned(product))
+                    owned.Add(product);
+                else
+                    locked.Add(product);
+            }
+            if (nextHistory.HasValue)
+                locked.Add(nextHistory.Value);
+            locked.AddRange(owned);
+            return locked.ToArray();
+        }
         public static int HistoryTier => Mathf.Clamp(PlayerPrefs.GetInt(HistoryTierKey, 0), 0, MaxHistoryTier);
         public static int Cost(UnlockProduct product)
         {
@@ -92,6 +119,16 @@ namespace ModularChess.Presentation
                 default: return null;
             }
         }
+        public static bool PrerequisiteMet(UnlockProduct product)
+        {
+            switch (product)
+            {
+                case UnlockProduct.HistoryTier2: return HistoryTier >= 1;
+                case UnlockProduct.HistoryTier3: return HistoryTier >= 2;
+                case UnlockProduct.HistoryTier4: return HistoryTier >= 3;
+                default: return true;
+            }
+        }
         public static void UnlockAll()
         {
             ModeDefinition[] modes = ModeCatalog.All;
@@ -113,15 +150,9 @@ namespace ModularChess.Presentation
         #endregion
 
         #region Private Methods
-        static bool PrerequisiteMet(UnlockProduct product)
+        static bool IsHistory(UnlockProduct product)
         {
-            switch (product)
-            {
-                case UnlockProduct.HistoryTier2: return HistoryTier >= 1;
-                case UnlockProduct.HistoryTier3: return HistoryTier >= 2;
-                case UnlockProduct.HistoryTier4: return HistoryTier >= 3;
-                default: return true;
-            }
+            return product >= UnlockProduct.HistoryTier1 && product <= UnlockProduct.HistoryTier4;
         }
         static void Grant(UnlockProduct product)
         {

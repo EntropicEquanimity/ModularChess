@@ -482,7 +482,23 @@ namespace ModularChess.Core.Tests
             Assert.IsTrue(state.Runtime.IsSummoned(knight.Id));
         }
         [Test]
-        public void TurncoatConvertsEnemyPawn()
+        public void TurncoatConvertsEnemyPawnOnOwnHalf()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/3pQ3/4K3 b - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d2e2");
+            Piece pawn = state.Board.GetPiece(new Square(4, 1));
+            Assert.IsNotNull(pawn);
+            Assert.AreEqual(Side.Black, pawn.Side);
+            state = state.ApplyDraft(MartyrPower.Turncoat, pawn.Id, null);
+            Piece converted = state.Board.GetPiece(new Square(4, 1));
+            Assert.IsNotNull(converted);
+            Assert.AreEqual(Side.White, converted.Side);
+            Assert.AreEqual(PieceType.Pawn, converted.Type);
+            Assert.AreEqual(pawn.Id, converted.Id);
+        }
+        [Test]
+        public void TurncoatIgnoresEnemyPawnOffOwnHalf()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
             GameState state = GameState.FromFen("4k3/8/8/8/8/8/3pP3/3QK3 w - - 0 1", rules);
@@ -491,12 +507,27 @@ namespace ModularChess.Core.Tests
             Assert.IsNotNull(whitePawn);
             Assert.AreEqual(Side.White, whitePawn.Side);
             state = state.ApplyDraft(MartyrPower.Turncoat, whitePawn.Id, null);
-            Piece converted = state.Board.GetPiece(new Square(4, 1));
-            Assert.IsNotNull(converted);
-            Assert.AreEqual(Side.Black, converted.Side);
-            Assert.AreEqual(PieceType.Pawn, converted.Type);
-            Assert.IsTrue(state.Runtime.IsSummoned(converted.Id));
-            Assert.AreNotEqual(whitePawn.Id, converted.Id);
+            Piece same = state.Board.GetPiece(new Square(4, 1));
+            Assert.IsNotNull(same);
+            Assert.AreEqual(Side.White, same.Side);
+            Assert.AreEqual(whitePawn.Id, same.Id);
+        }
+        [Test]
+        public void DustCloudTicksOnOpponentTurns()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1d2");
+            state = state.ApplyDraft(MartyrPower.DustCloud, null, null);
+            Assert.AreEqual(2, state.Runtime.DustCloudTurns(Side.Black));
+            state = MoveTestHelper.Play(state, "e8e7");
+            Assert.AreEqual(2, state.Runtime.DustCloudTurns(Side.Black));
+            state = MoveTestHelper.Play(state, "d2d3");
+            Assert.AreEqual(1, state.Runtime.DustCloudTurns(Side.Black));
+            state = MoveTestHelper.Play(state, "e7e8");
+            Assert.AreEqual(1, state.Runtime.DustCloudTurns(Side.Black));
+            state = MoveTestHelper.Play(state, "d3d4");
+            Assert.AreEqual(0, state.Runtime.DustCloudTurns(Side.Black));
         }
         [Test]
         public void LandmineCapturesEnemyThatEndsOnIt()
