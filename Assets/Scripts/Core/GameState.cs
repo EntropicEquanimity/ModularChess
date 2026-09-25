@@ -7,6 +7,7 @@ namespace ModularChess.Core
     {
         #region Fields
         private readonly string[] _positionKeys;
+        readonly Side[] _historySides;
         public Board Board { get; }
         public Side SideToMove { get; }
         public GameStatus Status { get; }
@@ -27,6 +28,12 @@ namespace ModularChess.Core
         #endregion
 
         #region Public Methods
+        public Side HistorySide(int index)
+        {
+            if (_historySides == null || index < 0 || index >= _historySides.Length)
+                return index % 2 == 0 ? Side.White : Side.Black;
+            return _historySides[index];
+        }
         public static GameState StartingPosition(MatchRules rules = null)
         {
             return Fen.Parse(Fen.StartingPosition, rules);
@@ -56,6 +63,7 @@ namespace ModularChess.Core
                 halfmoveClock,
                 fullmoveNumber,
                 history ?? Array.Empty<Move>(),
+                null,
                 previousPositionKeys,
                 rules,
                 runtime,
@@ -170,6 +178,7 @@ namespace ModularChess.Core
                 nextHalfmove,
                 nextFullmove,
                 nextHistory,
+                AppendHistorySides(SideToMove),
                 _positionKeys,
                 Rules,
                 nextRuntime,
@@ -201,6 +210,7 @@ namespace ModularChess.Core
                 HalfmoveClock,
                 nextFullmove,
                 History as Move[] ?? CopyHistory(),
+                CopyHistorySides(),
                 _positionKeys,
                 Rules,
                 nextRuntime,
@@ -263,6 +273,7 @@ namespace ModularChess.Core
                 HalfmoveClock,
                 FullmoveNumber,
                 History as Move[] ?? CopyHistory(),
+                CopyHistorySides(),
                 _positionKeys,
                 Rules,
                 Runtime,
@@ -284,6 +295,7 @@ namespace ModularChess.Core
                 HalfmoveClock,
                 FullmoveNumber,
                 History as Move[] ?? CopyHistory(),
+                CopyHistorySides(),
                 _positionKeys,
                 Rules,
                 Runtime,
@@ -319,6 +331,7 @@ namespace ModularChess.Core
                 HalfmoveClock,
                 FullmoveNumber,
                 History as Move[] ?? CopyHistory(),
+                CopyHistorySides(),
                 _positionKeys,
                 Rules,
                 next,
@@ -369,6 +382,7 @@ namespace ModularChess.Core
             int halfmoveClock,
             int fullmoveNumber,
             Move[] history,
+            Side[] historySides,
             string[] previousPositionKeys,
             MatchRules rules,
             ModeRuntime runtime,
@@ -382,6 +396,7 @@ namespace ModularChess.Core
             HalfmoveClock = halfmoveClock;
             FullmoveNumber = fullmoveNumber;
             History = history ?? Array.Empty<Move>();
+            _historySides = AlignHistorySides(History.Count, historySides);
             Rules = rules ?? MatchRules.CoreOnly;
             Runtime = runtime ?? ModeRuntime.Empty;
 
@@ -629,6 +644,7 @@ namespace ModularChess.Core
                 HalfmoveClock,
                 FullmoveNumber,
                 History as Move[] ?? CopyHistory(),
+                CopyHistorySides(),
                 _positionKeys,
                 Rules,
                 runtime,
@@ -639,22 +655,47 @@ namespace ModularChess.Core
         {
             var copy = new Move[History.Count];
             for (int i = 0; i < History.Count; i++)
-            {
                 copy[i] = History[i];
-            }
-
+            return copy;
+        }
+        Side[] CopyHistorySides()
+        {
+            var copy = new Side[History.Count];
+            for (int i = 0; i < History.Count; i++)
+                copy[i] = HistorySide(i);
             return copy;
         }
         private Move[] AppendHistory(Move move)
         {
             Move[] nextHistory = new Move[History.Count + 1];
             for (int i = 0; i < History.Count; i++)
-            {
                 nextHistory[i] = History[i];
-            }
-
             nextHistory[History.Count] = move;
             return nextHistory;
+        }
+        Side[] AppendHistorySides(Side side)
+        {
+            var next = new Side[History.Count + 1];
+            for (int i = 0; i < History.Count; i++)
+                next[i] = HistorySide(i);
+            next[History.Count] = side;
+            return next;
+        }
+        static Side[] AlignHistorySides(int count, Side[] sides)
+        {
+            if (count <= 0)
+                return Array.Empty<Side>();
+            if (sides != null && sides.Length == count)
+                return sides;
+            var aligned = new Side[count];
+            for (int i = 0; i < count; i++)
+            {
+                if (sides != null && i < sides.Length)
+                    aligned[i] = sides[i];
+                else
+                    aligned[i] = i % 2 == 0 ? Side.White : Side.Black;
+            }
+            return aligned;
         }
         private bool IsLegal(Move move)
         {

@@ -43,7 +43,7 @@ namespace ModularChess.Core
             for (int i = 0; i < Pool.Length; i++)
             {
                 MartyrPower power = Pool[i];
-                if (!IsOffered(power) || !IsRelevant(board, state.Rules, runtime, side, power) || !CanObtain(runtime, side, power))
+                if (!IsOffered(power) || !IsRelevant(state, board, runtime, side, power) || !CanObtain(runtime, side, power))
                 {
                     continue;
                 }
@@ -426,31 +426,46 @@ namespace ModularChess.Core
         }
         static ModeRuntime ApplyOverload(GameState state, ModeRuntime runtime, Guid? targetId)
         {
-            Piece target = null;
+            Piece target = OverloadTarget(state, targetId);
+            if (target == null) return runtime;
+            return runtime.WithOverload(target.Id, 0);
+        }
+        static Piece OverloadTarget(GameState state, Guid? targetId)
+        {
             if (targetId != null)
             {
                 Square? square = state.Board.FindSquare(targetId.Value);
                 if (square != null)
                 {
                     Piece piece = state.Board.GetPiece(square.Value);
-                    if (piece != null && piece.Side == state.SideToMove && piece.Type != PieceType.King)
-                    {
-                        target = piece;
-                    }
+                    if (CanOverload(state, piece, square.Value))
+                        return piece;
                 }
             }
-            if (target == null)
+            for (int i = 0; i < 64; i++)
             {
-                for (int i = 0; i < 64; i++)
-                {
-                    Piece piece = state.Board.GetPiece(Square.FromIndex(i));
-                    if (piece == null || piece.Side != state.SideToMove || piece.Type == PieceType.King) continue;
-                    if (target != null) return runtime;
-                    target = piece;
-                }
+                Square square = Square.FromIndex(i);
+                Piece piece = state.Board.GetPiece(square);
+                if (CanOverload(state, piece, square))
+                    return piece;
             }
-            if (target == null) return runtime;
-            return runtime.WithOverload(target.Id, 0);
+            return null;
+        }
+        static bool CanOverload(GameState state, Piece piece, Square square)
+        {
+            if (piece == null || piece.Side != state.SideToMove || piece.Type == PieceType.King)
+                return false;
+            return HasLegalMoveFrom(state, square);
+        }
+        static bool HasLegalMoveFrom(GameState state, Square from)
+        {
+            IReadOnlyList<Move> legal = state.LegalMoves;
+            for (int i = 0; i < legal.Count; i++)
+            {
+                if (legal[i].From.Equals(from))
+                    return true;
+            }
+            return false;
         }
         static ModeRuntime PlaceLandmine(GameState state, ModeRuntime runtime, Square[] chosen)
         {
@@ -487,8 +502,9 @@ namespace ModularChess.Core
             }
             return true;
         }
-        static bool IsRelevant(Board board, MatchRules rules, ModeRuntime runtime, Side side, MartyrPower power)
+        static bool IsRelevant(GameState state, Board board, ModeRuntime runtime, Side side, MartyrPower power)
         {
+            MatchRules rules = state != null ? state.Rules : null;
             switch (power)
             {
                 case MartyrPower.Reinforcements:
@@ -508,7 +524,8 @@ namespace ModularChess.Core
                 case MartyrPower.VanishingAct:
                     return HasThreatenedHighValue(board, rules, runtime, side);
                 case MartyrPower.Overload:
-                    return !AttackMap.IsInCheck(board, side, rules, runtime);
+                    return !AttackMap.IsInCheck(board, side, rules, runtime)
+                        && HasOverloadTarget(state, side);
                 case MartyrPower.FogVision:
                     return rules != null && rules.Has(ModeId.FogOfWar);
                 case MartyrPower.SecondFront:
@@ -522,6 +539,20 @@ namespace ModularChess.Core
                 default:
                     return true;
             }
+        }
+        static bool HasOverloadTarget(GameState state, Side side)
+        {
+            if (state == null) return false;
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = Square.FromIndex(i);
+                Piece piece = state.Board.GetPiece(square);
+                if (piece == null || piece.Side != side || piece.Type == PieceType.King)
+                    continue;
+                if (HasLegalMoveFrom(state, square))
+                    return true;
+            }
+            return false;
         }
         static int CountEmptyBackRank(Board board, Side side)
         {

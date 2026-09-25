@@ -457,6 +457,37 @@ namespace ModularChess.Core.Tests
             Assert.IsTrue(state.CanEndTurn());
         }
         [Test]
+        public void OverloadIgnoresImmobileTargetAndPicksAMovablePiece()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));
+            GameState state = GameState.FromFen("4k3/8/8/8/q7/8/1p2p3/3QK3 w - - 0 1", rules);
+            state = MoveTestHelper.Play(state, "d1e2");
+            Assert.IsTrue(state.DraftPending);
+            Piece pawn = state.Board.GetPiece(new Square(1, 1));
+            Piece queen = state.Board.GetPiece(new Square(0, 3));
+            Assert.IsNotNull(pawn);
+            Assert.IsNotNull(queen);
+            ModeRuntime runtime = state.Runtime.WithIronCurtain(Side.White, 2);
+            state = GameState.FromPosition(
+                state.Board,
+                state.SideToMove,
+                state.EnPassantTarget,
+                state.CastlingRights,
+                state.HalfmoveClock,
+                state.FullmoveNumber,
+                null,
+                null,
+                rules,
+                runtime);
+            Assert.AreEqual(0, state.LegalMovesFrom(new Square(1, 1)).Count);
+            Assert.Greater(state.LegalMovesFrom(new Square(0, 3)).Count, 0);
+            state = state.ApplyDraft(MartyrPower.Overload, pawn.Id, null);
+            Assert.AreEqual(queen.Id, state.Runtime.OverloadPieceId);
+            Assert.Greater(state.LegalMoves.Count, 0);
+            for (int i = 0; i < state.LegalMoves.Count; i++)
+                Assert.AreEqual(new Square(0, 3), state.LegalMoves[i].From);
+        }
+        [Test]
         public void OverloadIsNotOfferedInCheck()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));

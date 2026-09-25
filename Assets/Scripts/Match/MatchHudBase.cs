@@ -1663,24 +1663,52 @@ namespace ModularChess.Match
                 return string.Empty;
             bool hideOpponent = state != null && state.Rules != null && state.Rules.Has(ModeId.FogOfWar);
             var builder = new StringBuilder();
-            for (int i = 0; i < moves.Count; i++)
+            int i = 0;
+            int turn = 1;
+            while (i < moves.Count)
             {
-                if (i % 2 == 0)
+                if (turn > 1)
+                    builder.Append('\n');
+                builder.Append(turn);
+                builder.Append(". ");
+                bool onLine = false;
+                while (i < moves.Count && HistoryMover(state, i) == Side.White)
                 {
-                    if (i > 0)
-                        builder.Append('\n');
-                    builder.Append((i / 2) + 1);
-                    builder.Append(". ");
+                    AppendListedMove(builder, moves[i], hideOpponent, viewer, Side.White, onLine, sameSide: true);
+                    onLine = true;
+                    i++;
                 }
-                else
-                    builder.Append("  ");
-                Side mover = i % 2 == 0 ? Side.White : Side.Black;
-                if (hideOpponent && mover != viewer)
-                    builder.Append("-----");
-                else
-                    builder.Append(FormatMove(moves[i]));
+                bool wroteBlack = false;
+                while (i < moves.Count && HistoryMover(state, i) == Side.Black)
+                {
+                    AppendListedMove(builder, moves[i], hideOpponent, viewer, Side.Black, onLine, sameSide: wroteBlack);
+                    onLine = true;
+                    wroteBlack = true;
+                    i++;
+                }
+                turn++;
             }
             return builder.ToString();
+        }
+        static Side HistoryMover(GameState state, int index)
+        {
+            return state != null ? state.HistorySide(index) : (index % 2 == 0 ? Side.White : Side.Black);
+        }
+        static void AppendListedMove(
+            StringBuilder builder,
+            Move move,
+            bool hideOpponent,
+            Side viewer,
+            Side mover,
+            bool onLine,
+            bool sameSide)
+        {
+            if (onLine)
+                builder.Append(sameSide ? ' ' : "  ");
+            if (hideOpponent && mover != viewer)
+                builder.Append("-----");
+            else
+                builder.Append(FormatMove(move));
         }
         static string FormatMove(Move move)
         {

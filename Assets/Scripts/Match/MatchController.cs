@@ -1323,7 +1323,9 @@ namespace ModularChess.Match
             }
             if (power == MartyrPower.Overload)
             {
-                if (piece.Side != _state.SideToMove || piece.Type == PieceType.King)
+                if (piece.Side != _state.SideToMove
+                    || piece.Type == PieceType.King
+                    || _state.LegalMovesFrom(square).Count == 0)
                 {
                     GameAudio.PlayIllegal();
                     return;
@@ -1577,8 +1579,13 @@ namespace ModularChess.Match
                     {
                         Square square = Square.FromIndex(i);
                         Piece piece = _state.Board.GetPiece(square);
-                        if (piece != null && piece.Side == side && piece.Type != PieceType.King)
+                        if (piece != null
+                            && piece.Side == side
+                            && piece.Type != PieceType.King
+                            && _state.LegalMovesFrom(square).Count > 0)
+                        {
                             _draftTargets.Add(square);
+                        }
                     }
                     break;
                 case MartyrPower.Landmine:

@@ -511,7 +511,9 @@ namespace ModularChess.Presentation
                     bool identified = ReviewVision || sight == SquareSight.Identified || piece.Side == _viewer;
                     view.Bind(piece, _layout.SquareSize, theme);
                     bool empowered = identified
-                        && (_state.Runtime.IsEmpowered(piece.Id) || _pendingEmpowered.Contains(piece.Id));
+                        && (_state.Runtime.IsEmpowered(piece.Id)
+                            || _pendingEmpowered.Contains(piece.Id)
+                            || _state.Runtime.OverloadPieceId == piece.Id);
                     view.SetEmpoweredAura(empowered, piece.Side == _viewer);
                     bool dimmed = _dimmedIds.Contains(piece.Id);
                     view.SetGhosted(dimmed || _state.Runtime.HasStatus(piece.Id, StatusKind.Stasis));
@@ -541,11 +543,7 @@ namespace ModularChess.Presentation
                     }
                     else if (animate)
                     {
-                        float chebyshev = ChebyshevFromLocal(view.transform.localPosition, dest);
-                        bool capturing = LastMoveIsCaptureOnto(square);
-                    float duration = capturing
-                        ? AnimationPrefs.MoveDuration(0.48f + 0.08f * chebyshev)
-                        : AnimationPrefs.MoveDuration(0.32f + 0.06f * chebyshev);
+                        float duration = MoveDurationSeconds(piece, view.transform.localPosition, dest);
                         if (view.PlayMove(dest, duration, OnPieceMotionEnded))
                         {
                             _movingCount++;
@@ -801,22 +799,15 @@ namespace ModularChess.Presentation
             }
         }
 
-        float ChebyshevFromLocal(Vector3 from, Vector3 to)
+        float MoveDurationSeconds(Piece piece, Vector3 from, Vector3 to)
         {
             float dx = Mathf.Abs(to.x - from.x) / _layout.SquareSize;
             float dy = Mathf.Abs(to.y - from.y) / _layout.SquareSize;
-            return Mathf.Max(1f, Mathf.Max(dx, dy));
-        }
-        bool LastMoveIsCaptureOnto(Square square)
-        {
-            if (_state == null || _state.History == null || _state.History.Count == 0)
-                return false;
-            Move last = _state.History[_state.History.Count - 1];
-            if (!last.To.Equals(square))
-                return false;
-            return last.Kind == MoveKind.Capture
-                || last.Kind == MoveKind.EnPassant
-                || last.CapturedType != null;
+            float tiles = piece != null && piece.Type == PieceType.Knight
+                ? dx + dy
+                : Mathf.Max(dx, dy);
+            tiles = Mathf.Max(1f, Mathf.Round(tiles));
+            return AnimationPrefs.MoveDuration(0.2f * tiles);
         }
         void ApplyLandmineMarkers()
         {

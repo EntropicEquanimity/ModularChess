@@ -146,6 +146,7 @@ namespace ModularChess.Match
             }
             if (state.CanEndTurn() && PreferEndTurn(state, best, bestScore))
                 return null;
+            best = PreferKingCapture(state, best, bestScore);
             return best;
         }
         public static void AutopickEmpowered(GameState state, Side side, int budget, List<Guid> into)
@@ -244,6 +245,44 @@ namespace ModularChess.Match
             int endScore = -Evaluate(ended, 0);
             return endScore >= bestScore;
         }
+        static Move PreferKingCapture(GameState state, Move best, int bestScore)
+        {
+            if (bestScore >= MateScore - 64)
+                return best;
+            Move? take = BestKingCapture(state);
+            if (take == null)
+                return best;
+            if (IsKingCapture(state, best))
+                return best;
+            if (IsCaptureOrPromo(best) && CaptureValue(best) > CaptureValue(take.Value))
+                return best;
+            return take.Value;
+        }
+        static Move? BestKingCapture(GameState state)
+        {
+            Move? best = null;
+            int bestValue = -1;
+            for (int i = 0; i < state.LegalMoves.Count; i++)
+            {
+                Move move = state.LegalMoves[i];
+                if (!IsKingCapture(state, move))
+                    continue;
+                int value = CaptureValue(move);
+                if (value > bestValue)
+                {
+                    bestValue = value;
+                    best = move;
+                }
+            }
+            return best;
+        }
+        static bool IsKingCapture(GameState state, Move move)
+        {
+            if (!IsCaptureOrPromo(move))
+                return false;
+            Piece piece = state.Board.GetPiece(move.From);
+            return piece != null && piece.Type == PieceType.King;
+        }
         static bool GivesCheck(GameState state, Move move)
         {
             GameState next = state.Apply(move);
@@ -324,6 +363,8 @@ namespace ModularChess.Match
                 Piece attacker = state.Board.GetPiece(move.From);
                 int attackerVal = attacker != null ? (PieceValues.Get(attacker.Type) ?? 0) : 0;
                 key += 10000 + victim * 100 - attackerVal;
+                if (attacker != null && attacker.Type == PieceType.King)
+                    key += 4000;
             }
             if (move.Kind == MoveKind.Promotion)
                 key += 8000;
