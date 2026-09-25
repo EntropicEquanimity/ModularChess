@@ -11,6 +11,7 @@ namespace ModularChess.Presentation
     {
         readonly List<EffectDescriptionView> _rows = new List<EffectDescriptionView>();
         [SerializeField] TMP_Text pieceName;
+        [SerializeField] GameObject namePanel;
         GameObject _effectPrefab;
 
         public void Show(Piece piece, GameState state, IReadOnlyCollection<Guid> pendingEmpowered)
@@ -22,6 +23,7 @@ namespace ModularChess.Presentation
             }
 
             EnsureName();
+            SetNamePanelVisible(true);
             gameObject.SetActive(true);
             if (pieceName != null)
                 pieceName.text = Loc.PieceName(piece.Type);
@@ -64,9 +66,8 @@ namespace ModularChess.Presentation
                 return;
             }
             EnsureName();
+            SetNamePanelVisible(false);
             gameObject.SetActive(true);
-            if (pieceName != null)
-                pieceName.text = title;
             BindRow(0, title, body ?? string.Empty);
             HideUnused(1);
             transform.SetAsLastSibling();
@@ -91,6 +92,15 @@ namespace ModularChess.Presentation
                 pieceName = nameTf.GetComponent<TMP_Text>();
             if (pieceName == null)
                 pieceName = GetComponentInChildren<TMP_Text>(true);
+            if (namePanel == null && pieceName != null)
+                namePanel = pieceName.gameObject;
+        }
+        void SetNamePanelVisible(bool visible)
+        {
+            if (namePanel == null && pieceName != null)
+                namePanel = pieceName.gameObject;
+            if (namePanel != null)
+                namePanel.SetActive(visible);
         }
 
         void BindRow(int index, string effectName, string description)

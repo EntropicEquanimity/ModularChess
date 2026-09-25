@@ -534,12 +534,14 @@ namespace ModularChess.Match
             _draftOpen = true;
             DraftOffer offer = state.Runtime.PendingDraft.Value;
             PieceType? battlefield = state.Runtime.PendingBattlefieldType ?? offer.BattlefieldType;
+            EffectIconCatalog catalog = EffectIcons();
             var powers = new MartyrPower[offer.Count];
             var choices = new List<DraftChoice>(offer.Count);
             for (int i = 0; i < offer.Count; i++)
             {
                 powers[i] = offer.At(i);
-                choices.Add(new DraftChoice(FormatPower(powers[i]), DescribePower(powers[i], battlefield)));
+                Sprite icon = catalog != null ? catalog.SpriteFor(powers[i]) : null;
+                choices.Add(new DraftChoice(FormatPower(powers[i]), DescribePower(powers[i], battlefield), icon));
             }
 
             DraftRow row = EnsureDraft();

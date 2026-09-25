@@ -3834,6 +3834,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.PieceDetailsPanel
   pieceName: {fileID: 2186975857130381543}
+  namePanel: {fileID: 1443893998618787916}
 --- !u!1 &8207676466734525855
 GameObject:
   m_ObjectHideFlags: 0

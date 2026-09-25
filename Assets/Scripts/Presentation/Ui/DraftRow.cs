@@ -11,6 +11,7 @@ namespace ModularChess.Presentation
     {
         #region Fields
         [SerializeField] RectTransform[] optionRoots;
+        [SerializeField] Image[] optionIcons;
         [SerializeField] Button hideShowButton;
         [SerializeField] GameObject hideIcon;
         [SerializeField] GameObject showIcon;
@@ -163,7 +164,10 @@ namespace ModularChess.Presentation
                         label.text = choices[i].Label;
                     if (body != null)
                         body.text = choices[i].Description;
+                    BindIcon(i, option, choices[i].Icon);
                 }
+                else
+                    BindIcon(i, option, null);
                 var button = option.GetComponent<Button>();
                 if (button == null)
                     continue;
@@ -273,6 +277,23 @@ namespace ModularChess.Presentation
                 return null;
             return _descriptions[index].GetComponentInChildren<TMP_Text>(true);
         }
+        void BindIcon(int index, Transform option, Sprite sprite)
+        {
+            Image icon = IconAt(index, option);
+            if (icon == null)
+                return;
+            icon.sprite = sprite;
+            icon.enabled = sprite != null;
+        }
+        Image IconAt(int index, Transform option)
+        {
+            if (optionIcons != null && index >= 0 && index < optionIcons.Length && optionIcons[index] != null)
+                return optionIcons[index];
+            if (option == null)
+                return null;
+            Transform named = option.Find("Icon");
+            return named != null ? named.GetComponent<Image>() : null;
+        }
         void KillSequence()
         {
             _sequence?.Kill();
@@ -290,10 +311,12 @@ namespace ModularChess.Presentation
     {
         public readonly string Label;
         public readonly string Description;
-        public DraftChoice(string label, string description)
+        public readonly Sprite Icon;
+        public DraftChoice(string label, string description, Sprite icon = null)
         {
             Label = label ?? string.Empty;
             Description = description ?? string.Empty;
+            Icon = icon;
         }
     }
 }

@@ -573,6 +573,31 @@ namespace ModularChess.Core.Tests
             Assert.AreEqual(0, state.Runtime.BloodDebtCharges(Side.Black));
             Assert.AreEqual(2, state.Runtime.Captures.Count);
         }
+        [Test]
+        public void BloodDebtDoesNotRetaliateAgainstKing()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 9));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/3p4/4K3 w - - 0 1", rules);
+            ModeRuntime runtime = state.Runtime.AddBloodDebt(Side.Black);
+            state = GameState.FromPosition(
+                state.Board,
+                state.SideToMove,
+                state.EnPassantTarget,
+                state.CastlingRights,
+                state.HalfmoveClock,
+                state.FullmoveNumber,
+                null,
+                null,
+                rules,
+                runtime);
+            state = MoveTestHelper.Play(state, "e1d2");
+            Piece king = state.Board.GetPiece(new Square(3, 1));
+            Assert.IsNotNull(king);
+            Assert.AreEqual(PieceType.King, king.Type);
+            Assert.AreEqual(Side.White, king.Side);
+            Assert.AreEqual(1, state.Runtime.BloodDebtCharges(Side.Black));
+            Assert.AreEqual(1, state.Runtime.Captures.Count);
+        }
         static bool HasPieceOnBackTwo(Board board, Side side)
         {
             for (int i = 0; i < 64; i++)

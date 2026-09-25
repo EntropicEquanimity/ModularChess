@@ -273,8 +273,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   image: {fileID: 6213382640769423991}
   hoverPadX: 40
-  hoverPadY: 6
-  duration: 0.2
+  hoverPadY: 10
+  duration: 0.25
   openMinHeight: 16
-  openPop: 4
+  openPop: 8
   openDuration: 0.15

@@ -494,6 +494,7 @@ namespace ModularChess.Core
             Square capturerSquare = move.Kind == MoveKind.Bombard ? move.From : move.To;
             Piece capturer = board.GetPiece(capturerSquare);
             if (capturer == null || capturer.Id != moving.Id) return board;
+            if (capturer.Type == PieceType.King) return board;
             runtime = runtime.SpendBloodDebt(captured.Side);
             Move retaliate = new Move(lossSquare, capturerSquare, MoveKind.Capture, capturedType: capturer.Type);
             CaptureResolution resolved = Rules.Hooks.ResolveCapture(board, retaliate, capturer, runtime);
