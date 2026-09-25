@@ -92,12 +92,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 12
+  m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 16
-  m_fontSizeMax: 32
+  m_fontSizeMin: 12
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -410,12 +410,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 12
+  m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 16
-  m_fontSizeMax: 32
+  m_fontSizeMin: 12
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -823,12 +823,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 12
+  m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 16
-  m_fontSizeMax: 32
+  m_fontSizeMin: 12
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -1653,12 +1653,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 12
+  m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 16
-  m_fontSizeMax: 32
+  m_fontSizeMin: 12
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -1790,12 +1790,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 12
+  m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 16
-  m_fontSizeMax: 32
+  m_fontSizeMin: 12
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -1997,11 +1997,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSize
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSizeBase
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_Pivot.x
@@ -2112,11 +2112,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSize
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSizeBase
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_Pivot.x
@@ -2231,11 +2231,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSize
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSizeBase
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_Pivot.x
@@ -2346,11 +2346,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSize
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSizeBase
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_Pivot.x
@@ -2465,11 +2465,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSize
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4806806988107974003, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_fontSizeBase
-      value: 16
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6213382640769423991, guid: 6187324e3fcdce24a8588eac163784ed, type: 3}
       propertyPath: m_Pivot.x

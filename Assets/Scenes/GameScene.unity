@@ -469,6 +469,7 @@ MonoBehaviour:
   optionsOverlay: {fileID: 9300600003}
   creditsOverlay: {fileID: 9300700003}
   historyOverlay: {fileID: 1020581273}
+  campaignOverlay: {fileID: 0}
   accountCreationOverlay: {fileID: 9300800003}
   feedbackOverlay: {fileID: 9300900003}
   match: {fileID: 910000005}

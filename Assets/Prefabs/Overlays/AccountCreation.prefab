@@ -326,11 +326,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7691604934803255295, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
       propertyPath: m_fontSize
-      value: 32
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 7691604934803255295, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
       propertyPath: m_fontSizeBase
-      value: 32
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 7691604934803255295, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
       propertyPath: m_VerticalAlignment
@@ -448,11 +448,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7691604934803255295, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
       propertyPath: m_fontSize
-      value: 32
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 7691604934803255295, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
       propertyPath: m_fontSizeBase
-      value: 32
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 7691604934803255295, guid: b0c5fc58a171b6448a1d02c7a884d23f, type: 3}
       propertyPath: m_VerticalAlignment
@@ -707,19 +707,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5158060360026357011, guid: a6f7edac49cea4c4a9306006597c54c8, type: 3}
       propertyPath: m_fontSize
-      value: 32
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 5158060360026357011, guid: a6f7edac49cea4c4a9306006597c54c8, type: 3}
       propertyPath: m_fontSizeBase
-      value: 32
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 5164080082471322561, guid: a6f7edac49cea4c4a9306006597c54c8, type: 3}
       propertyPath: m_fontSize
-      value: 32
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 5164080082471322561, guid: a6f7edac49cea4c4a9306006597c54c8, type: 3}
       propertyPath: m_fontSizeBase
-      value: 32
+      value: 36
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

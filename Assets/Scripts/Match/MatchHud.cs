@@ -52,6 +52,19 @@ namespace ModularChess.Match
         [SerializeField] PieceDetailsPanel pieceDetails;
         [SerializeField] GameObject statusRoot;
         [SerializeField] GameObject matchChrome;
+        [SerializeField] Transform playerEffectsIconList;
+        [SerializeField] Transform opponentEffectsIconList;
+        [SerializeField] GameObject effectIconPrefab;
+        [SerializeField] Sprite ironCurtainIcon;
+        [SerializeField] Sprite bloodDebtIcon;
+        [SerializeField] Sprite fogVisionIcon;
+        [SerializeField] Sprite dustCloudIcon;
+        [SerializeField] Sprite reserveCallIcon;
+        [SerializeField] Sprite fleetPawnsIcon;
+        [SerializeField] Sprite landmineIcon;
+        [SerializeField] Sprite overloadIcon;
+        readonly List<EffectIconView> _playerEffectIcons = new List<EffectIconView>();
+        readonly List<EffectIconView> _opponentEffectIcons = new List<EffectIconView>();
         Tween _optionsTween;
         Tween _statusTween;
         Tween _gameOverTween;
@@ -102,7 +115,7 @@ namespace ModularChess.Match
         #endregion
 
         #region Public Methods
-        public void Bind(GameState state, IReadOnlyList<Move> moves)
+        public void Bind(GameState state, IReadOnlyList<Move> moves, Side viewer = Side.White)
         {
             Wire();
             if (state == null)
@@ -146,6 +159,8 @@ namespace ModularChess.Match
             {
                 HideGameOverImmediate();
             }
+
+            RefreshEffectIcons(state, viewer);
         }
         public void BindActions(MatchController controller)
         {
@@ -566,6 +581,96 @@ namespace ModularChess.Match
         #endregion
 
         #region Private Methods
+        void RefreshEffectIcons(GameState state, Side viewer)
+        {
+            if (effectIconPrefab == null)
+                return;
+            int playerUsed = BindEffectIcons(
+                _playerEffectIcons,
+                playerEffectsIconList,
+                state,
+                viewer,
+                viewer);
+            HideUnusedEffectIcons(_playerEffectIcons, playerUsed);
+            int opponentUsed = BindEffectIcons(
+                _opponentEffectIcons,
+                opponentEffectsIconList,
+                state,
+                viewer.Opponent(),
+                viewer);
+            HideUnusedEffectIcons(_opponentEffectIcons, opponentUsed);
+        }
+        int BindEffectIcons(
+            List<EffectIconView> pool,
+            Transform parent,
+            GameState state,
+            Side side,
+            Side viewer)
+        {
+            if (parent == null)
+                return 0;
+            int used = 0;
+            if (state.Runtime.IronCurtainTurns(side) > 0)
+                BindEffectIcon(pool, parent, ref used, ironCurtainIcon, MartyrPower.IronCurtain);
+            if (state.Runtime.BloodDebtCharges(side) > 0)
+                BindEffectIcon(pool, parent, ref used, bloodDebtIcon, MartyrPower.BloodDebt);
+            if (state.Runtime.FogVisionTurns(side) > 0)
+                BindEffectIcon(pool, parent, ref used, fogVisionIcon, MartyrPower.FogVision);
+            if (state.Runtime.DustCloudTurns(side) > 0)
+                BindEffectIcon(pool, parent, ref used, dustCloudIcon, MartyrPower.DustCloud);
+            if (state.Runtime.ReserveCallArmed(side))
+                BindEffectIcon(pool, parent, ref used, reserveCallIcon, MartyrPower.ReserveCall);
+            if (state.Runtime.FleetPawns(side))
+                BindEffectIcon(pool, parent, ref used, fleetPawnsIcon, MartyrPower.FleetPawns);
+            if (state.Runtime.OverloadPieceId != null && state.SideToMove == side)
+                BindEffectIcon(pool, parent, ref used, overloadIcon, MartyrPower.Overload);
+            if (side == viewer && CountLandmines(state.Runtime, side) > 0)
+                BindEffectIcon(pool, parent, ref used, landmineIcon, MartyrPower.Landmine);
+            return used;
+        }
+        void BindEffectIcon(
+            List<EffectIconView> pool,
+            Transform parent,
+            ref int used,
+            Sprite sprite,
+            MartyrPower power)
+        {
+            EffectIconView view = EffectIconAt(pool, parent, used);
+            view.Bind(sprite, FormatPower(power), DescribePower(power, null), pieceDetails);
+            used++;
+        }
+        EffectIconView EffectIconAt(List<EffectIconView> pool, Transform parent, int index)
+        {
+            while (pool.Count <= index)
+            {
+                GameObject go = Instantiate(effectIconPrefab, parent);
+                go.name = "EffectIcon";
+                EffectIconView view = go.GetComponent<EffectIconView>();
+                if (view == null)
+                    view = go.AddComponent<EffectIconView>();
+                pool.Add(view);
+            }
+            return pool[index];
+        }
+        static void HideUnusedEffectIcons(List<EffectIconView> pool, int used)
+        {
+            for (int i = used; i < pool.Count; i++)
+            {
+                if (pool[i] != null)
+                    pool[i].gameObject.SetActive(false);
+            }
+        }
+        static int CountLandmines(ModeRuntime runtime, Side side)
+        {
+            int count = 0;
+            IReadOnlyList<LandmineMarker> mines = runtime.Landmines;
+            for (int i = 0; i < mines.Count; i++)
+            {
+                if (mines[i].Owner == side)
+                    count++;
+            }
+            return count;
+        }
         void Wire()
         {
             if (_wired)

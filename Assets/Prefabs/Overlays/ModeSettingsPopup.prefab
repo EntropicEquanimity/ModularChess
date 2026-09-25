@@ -336,8 +336,8 @@ MonoBehaviour:
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 16
-  m_fontSizeMax: 32
+  m_fontSizeMin: 12
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -494,8 +494,8 @@ MonoBehaviour:
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 16
-  m_fontSizeMax: 32
+  m_fontSizeMin: 12
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -696,8 +696,8 @@ MonoBehaviour:
   m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 16
-  m_fontSizeMax: 32
+  m_fontSizeMin: 12
+  m_fontSizeMax: 36
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -1073,6 +1073,10 @@ PrefabInstance:
       propertyPath: m_ChildForceExpandWidth
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2116479100544926300, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2515844913831268127, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
       propertyPath: m_Name
       value: Fields
@@ -1083,11 +1087,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4847753442264989259, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4847753442264989259, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4847753442264989259, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
       propertyPath: m_AnchorMin.y
@@ -1147,7 +1151,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7892538062008669962, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 8
+      value: 48
       objectReference: {fileID: 0}
     - target: {fileID: 7892538062008669962, guid: d5c5f2c1f1f7f554397b95f66764f67a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1224,9 +1228,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
   m_MinWidth: -1
-  m_MinHeight: 8
+  m_MinHeight: 48
   m_PreferredWidth: -1
-  m_PreferredHeight: 8
+  m_PreferredHeight: 48
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1

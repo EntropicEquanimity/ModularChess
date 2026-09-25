@@ -55,7 +55,7 @@ namespace ModularChess.Presentation
             go.transform.SetParent(parent, false);
             var tmp = go.AddComponent<TextMeshProUGUI>();
             tmp.text = text;
-            tmp.fontSize = fontSize < 16 ? 16 : fontSize - (fontSize % 16);
+            tmp.fontSize = fontSize < 12 ? 12 : fontSize - (fontSize % 12);
             tmp.alignment = align;
             tmp.color = Color.white;
             tmp.extraPadding = false;

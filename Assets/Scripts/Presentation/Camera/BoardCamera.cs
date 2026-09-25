@@ -12,12 +12,15 @@ namespace ModularChess.Presentation
         [SerializeField] bool followEveryFrame = true;
         [SerializeField] bool applyBackgroundColor = true;
         [SerializeField] Color backgroundColor = new Color(0.16f, 0.2f, 0.18f, 1f);
-        const float TraumaDecay = 5f;
-        const float TraumaMaxOffset = 0.4f;
-        const float TraumaMaxRoll = 0.07f;
+        const float TraumaDecay = 1.75f;
+        const float TraumaMaxOffset = 0.55f;
+        const float TraumaMaxRoll = 0.09f;
         Camera _camera;
         float _trauma;
         float _noise;
+        Vector3 _framedPosition;
+        Quaternion _framedRotation = Quaternion.identity;
+        bool _hasFrame;
         static BoardCamera _active;
         public BoardView Board
         {
@@ -94,27 +97,40 @@ namespace ModularChess.Presentation
             float z = transform.position.z;
             if (Mathf.Abs(z) < 0.01f)
                 z = -10f;
-            transform.position = new Vector3(bounds.center.x, bounds.center.y, z);
-            transform.rotation = Quaternion.identity;
+            _framedPosition = new Vector3(bounds.center.x, bounds.center.y, z);
+            _framedRotation = Quaternion.identity;
+            _hasFrame = true;
+            if (_trauma <= 0.0001f)
+            {
+                transform.position = _framedPosition;
+                transform.rotation = _framedRotation;
+            }
         }
         #endregion
 
         #region Private Methods
         void ApplyTrauma()
         {
+            Vector3 basePos = _hasFrame ? _framedPosition : transform.position;
+            Quaternion baseRot = _hasFrame ? _framedRotation : transform.rotation;
             if (_trauma <= 0.0001f)
+            {
+                if (_hasFrame)
+                {
+                    transform.position = basePos;
+                    transform.rotation = baseRot;
+                }
                 return;
-            _trauma = Mathf.Max(0f, _trauma - TraumaDecay * Time.deltaTime);
+            }
             float intensity = CameraShakePrefs.Multiplier;
-            if (intensity <= 0.0001f)
-                return;
-            float shake = _trauma * _trauma * intensity;
+            float shake = intensity > 0.0001f ? _trauma * _trauma * intensity : 0f;
             _noise += Time.deltaTime * 28f;
             float ox = TraumaMaxOffset * shake * (Mathf.PerlinNoise(_noise, 0.13f) * 2f - 1f);
             float oy = TraumaMaxOffset * shake * (Mathf.PerlinNoise(0.71f, _noise) * 2f - 1f);
             float roll = TraumaMaxRoll * shake * (Mathf.PerlinNoise(_noise, _noise) * 2f - 1f);
-            transform.position += new Vector3(ox, oy, 0f);
-            transform.rotation = Quaternion.Euler(0f, 0f, roll * Mathf.Rad2Deg);
+            transform.position = basePos + new Vector3(ox, oy, 0f);
+            transform.rotation = baseRot * Quaternion.Euler(0f, 0f, roll * Mathf.Rad2Deg);
+            _trauma = Mathf.Max(0f, _trauma - TraumaDecay * Time.deltaTime);
         }
         #endregion
     }

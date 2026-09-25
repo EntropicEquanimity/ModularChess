@@ -117,7 +117,7 @@ namespace ModularChess.Match
             labelRect.offsetMin = new Vector2(12f, 4f);
             labelRect.offsetMax = new Vector2(-12f, -4f);
             TMP_Text text = labelGo.AddComponent<TextMeshProUGUI>();
-            text.fontSize = 18f;
+            text.fontSize = 24f;
             text.color = Color.black;
             text.raycastTarget = false;
             return go.GetComponent<HistoryRowView>();
@@ -184,7 +184,7 @@ namespace ModularChess.Match
                 var go = new GameObject("EmptyLabel", typeof(RectTransform));
                 go.transform.SetParent(listParent, false);
                 emptyLabel = go.AddComponent<TextMeshProUGUI>();
-                emptyLabel.fontSize = 20f;
+                emptyLabel.fontSize = 24f;
                 emptyLabel.alignment = TextAlignmentOptions.Center;
                 emptyLabel.color = Color.black;
                 emptyLabel.raycastTarget = false;

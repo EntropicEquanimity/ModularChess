@@ -17,6 +17,8 @@ namespace ModularChess.Presentation
     public sealed class ModeSettingsPopup : MonoBehaviour
     {
         const float Duration = 0.28f;
+        const float FieldRowHeight = 48f;
+        const float FieldPad = 0f;
 
         [SerializeField] RectTransform clip;
         [SerializeField] RectTransform panel;
@@ -201,28 +203,19 @@ namespace ModularChess.Presentation
                 summary.text = Loc.ModeSummary(id);
 
             Transform content = FieldsContent();
-            if (content != null)
-            {
-                for (int i = content.childCount - 1; i >= 0; i--)
-                {
-                    GameObject child = content.GetChild(i).gameObject;
-                    if (Application.isPlaying)
-                        Destroy(child);
-                    else
-                        DestroyImmediate(child);
-                }
-            }
+            ClearFieldRows(content);
 
             bool hasFields = id != ModeId.FogOfWar;
             if (fields != null)
                 fields.SetActive(hasFields);
             if (!hasFields)
+            {
+                ApplyFieldsHeight(0f);
                 return;
+            }
 
             switch (id)
             {
-                case ModeId.FogOfWar:
-                    return;
                 case ModeId.PowerfulPieces:
                     AddStepper(
                         content,
@@ -243,6 +236,14 @@ namespace ModularChess.Presentation
             FitFieldsToContent();
         }
 
+        void ClearFieldRows(Transform content)
+        {
+            if (content == null)
+                return;
+            for (int i = content.childCount - 1; i >= 0; i--)
+                DestroyImmediate(content.GetChild(i).gameObject);
+        }
+
         void AddStepper(Transform content, string label, Func<int> get, Action<int> set, int min, int max)
         {
             if (content == null || !content.gameObject.scene.IsValid() || settingsControlPrefab == null)
@@ -251,6 +252,11 @@ namespace ModularChess.Presentation
             GameObject go = Instantiate(settingsControlPrefab, content);
             go.name = label;
             go.SetActive(true);
+            var row = go.GetComponent<LayoutElement>();
+            if (row == null)
+                row = go.AddComponent<LayoutElement>();
+            row.minHeight = FieldRowHeight;
+            row.preferredHeight = FieldRowHeight;
             SettingsControl control = go.GetComponent<SettingsControl>();
             if (control == null)
                 control = go.AddComponent<SettingsControl>();
@@ -263,28 +269,36 @@ namespace ModularChess.Presentation
             if (fields == null || content == null)
                 return;
 
-            var contentRect = (RectTransform)content;
-            Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
-
-            float height = LayoutUtility.GetPreferredHeight(contentRect);
-            if (height <= 0f)
-                height = contentRect.rect.height;
-            if (height <= 0f)
+            int rows = 0;
+            for (int i = 0; i < content.childCount; i++)
             {
-                int n = contentRect.childCount;
-                height = n * 40f + 8f;
+                if (content.GetChild(i).gameObject.activeSelf)
+                    rows++;
             }
+
+            float height = rows <= 0 ? 0f : rows * FieldRowHeight + FieldPad;
+            ApplyFieldsHeight(height);
+        }
+
+        void ApplyFieldsHeight(float height)
+        {
+            if (fields == null)
+                return;
 
             var element = fields.GetComponent<LayoutElement>();
             if (element == null)
                 element = fields.AddComponent<LayoutElement>();
             element.minHeight = height;
             element.preferredHeight = height;
+            element.flexibleHeight = -1f;
 
             var fieldsRect = (RectTransform)fields.transform;
             fieldsRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
 
+            Canvas.ForceUpdateCanvases();
+            if (panel != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(panel);
+            Canvas.ForceUpdateCanvases();
             if (panel != null)
                 LayoutRebuilder.ForceRebuildLayoutImmediate(panel);
         }

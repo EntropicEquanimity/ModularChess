@@ -1611,7 +1611,7 @@ namespace ModularChess.Match
             if (hud == null)
                 return;
 
-            hud.Bind(_state, _state.History);
+            hud.Bind(_state, _state.History, viewer);
             hud.SetNames(_session);
             if (_replaying)
             {
@@ -1698,7 +1698,8 @@ namespace ModularChess.Match
             if (OptionsOverlay.IsOpen || (hud != null && hud.BlocksBoardInput) || BoardPointerInput.IsScreenBlockedByUi())
             {
                 _hovered = null;
-                RefreshPieceDetails();
+                if (!EffectIconView.Hovered)
+                    RefreshPieceDetails();
                 return;
             }
 
@@ -1809,6 +1810,8 @@ namespace ModularChess.Match
         void RefreshPieceDetails()
         {
             if (hud == null || _state == null)
+                return;
+            if (EffectIconView.Hovered)
                 return;
 
             Piece piece = null;

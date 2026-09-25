@@ -410,6 +410,53 @@ namespace ModularChess.Core.Tests
             Assert.IsFalse(state.Runtime.PendingDraft.Value.Contains(MartyrPower.IronCurtain));
         }
         [Test]
+        public void IronCurtainBlocksMovesOntoProtectedRanksButAllowsLeaving()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, MatchSettings.Default);
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/1n6/4K3 b - - 0 1", rules);
+            ModeRuntime runtime = state.Runtime.WithIronCurtain(Side.White, 2);
+            state = GameState.FromPosition(
+                state.Board,
+                state.SideToMove,
+                state.EnPassantTarget,
+                state.CastlingRights,
+                state.HalfmoveClock,
+                state.FullmoveNumber,
+                null,
+                null,
+                rules,
+                runtime);
+            Assert.IsFalse(MoveTestHelper.Has(state, "b2", "a1"));
+            Assert.IsFalse(MoveTestHelper.Has(state, "b2", "c1"));
+            Assert.IsTrue(MoveTestHelper.Has(state, "b2", "a4") || MoveTestHelper.Has(state, "b2", "c4") || MoveTestHelper.Has(state, "b2", "d3"));
+        }
+        [Test]
+        public void OverloadWithNoLegalMovesAllowsEndTurn()
+        {
+            MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, MatchSettings.Default);
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/1p6/4K3 b - - 0 1", rules);
+            Piece pawn = state.Board.GetPiece(new Square(1, 1));
+            Assert.IsNotNull(pawn);
+            ModeRuntime runtime = state.Runtime
+                .WithIronCurtain(Side.White, 2)
+                .WithOverload(pawn.Id, 0);
+            state = GameState.FromPosition(
+                state.Board,
+                state.SideToMove,
+                state.EnPassantTarget,
+                state.CastlingRights,
+                state.HalfmoveClock,
+                state.FullmoveNumber,
+                null,
+                null,
+                rules,
+                runtime);
+            Assert.AreEqual(GameStatus.InProgress, state.Status);
+            Assert.IsTrue(state.TurnOpen);
+            Assert.AreEqual(0, state.LegalMoves.Count);
+            Assert.IsTrue(state.CanEndTurn());
+        }
+        [Test]
         public void OverloadIsNotOfferedInCheck()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.Martyr }, new MatchSettings(martyrThreshold: 1));

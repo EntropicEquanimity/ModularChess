@@ -56,6 +56,24 @@ namespace ModularChess.Presentation
                 _rows[i].RefreshLayout();
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)transform);
         }
+        public void ShowEffect(string title, string body)
+        {
+            if (string.IsNullOrEmpty(title))
+            {
+                Hide();
+                return;
+            }
+            EnsureName();
+            gameObject.SetActive(true);
+            if (pieceName != null)
+                pieceName.text = title;
+            BindRow(0, title, body ?? string.Empty);
+            HideUnused(1);
+            transform.SetAsLastSibling();
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)transform);
+            _rows[0].RefreshLayout();
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)transform);
+        }
 
         public void Hide()
         {

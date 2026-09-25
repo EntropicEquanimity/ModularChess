@@ -301,8 +301,8 @@ A Martyr power. After the card is picked, still in the Draft 60s, this Side clic
 _Avoid_: airdrop past rank 2, overwrite occupants
 
 **Iron Curtain**:
-A Martyr power. For 2 of this Side’s Turns, enemy Pieces cannot end a Move on this Side’s back 2 ranks. Situational — offered only if this Side has at least one Piece on their own back 2 ranks. Max 1 obtain. Public on the HUD.
-_Avoid_: blocks leaving those ranks, Fog-required
+A Martyr power. For 2 of this Side’s Turns, enemy Pieces cannot Move onto or Capture on this Side’s back 2 ranks. Situational — offered only if this Side has at least one Piece on their own back 2 ranks. Max 1 obtain. Public on the HUD.
+_Avoid_: blocks leaving those ranks, Fog-required, End Turn soft-lock
 
 **Turncoat**:
 A Martyr power. Choose an enemy Pawn; it becomes a Summoned Pawn of this Side on its current Square. Max 1 obtain.

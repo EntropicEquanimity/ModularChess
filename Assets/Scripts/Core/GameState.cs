@@ -219,7 +219,9 @@ namespace ModularChess.Core
                 return false;
             }
 
-            if (MovesThisTurn == 0 && !Rules.Settings.AllowEndTurnWithZeroMoves)
+            if (MovesThisTurn == 0
+                && LegalMoves.Count > 0
+                && !Rules.Settings.AllowEndTurnWithZeroMoves)
             {
                 return false;
             }
@@ -416,6 +418,10 @@ namespace ModularChess.Core
                 Status = forcedStatus.Value;
             }
             else if (Runtime.PendingDraft != null)
+            {
+                Status = GameStatus.InProgress;
+            }
+            else if (TurnOpen && legal.Count == 0 && !IsInCheck)
             {
                 Status = GameStatus.InProgress;
             }
