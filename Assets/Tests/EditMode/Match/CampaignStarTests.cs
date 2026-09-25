@@ -56,10 +56,15 @@ namespace ModularChess.Match.Tests
         }
 
         [Test]
-        public void Catalog_HasDemoTenLevels()
+        public void Catalog_HasFiftyLevelsWithDifficultyBands()
         {
-            Assert.AreEqual(CampaignCatalog.DemoLevelCount, CampaignCatalog.Count);
+            Assert.AreEqual(CampaignCatalog.TotalLevelCount, CampaignCatalog.Count);
+            Assert.AreEqual(CampaignCatalog.DemoLevelCount, 10);
             Assert.IsNotNull(CampaignCatalog.Get(0).Fen);
+            Assert.AreEqual(AiStrength.Easy, CampaignCatalog.Get(4).AiStrength);
+            Assert.AreEqual(AiStrength.Medium, CampaignCatalog.Get(10).AiStrength);
+            Assert.AreEqual(AiStrength.Hard, CampaignCatalog.Get(35).AiStrength);
+            Assert.IsTrue(CampaignCatalog.Get(5).Modes.Length > 0);
         }
     }
 }

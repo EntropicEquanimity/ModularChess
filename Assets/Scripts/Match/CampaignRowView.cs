@@ -12,10 +12,16 @@ namespace ModularChess.Match
         #region Fields
         [SerializeField] TMP_Text label;
         [SerializeField] Image background;
+        [SerializeField] Image starComplete;
+        [SerializeField] Image starTurn;
+        [SerializeField] Image starLoss;
         int _index;
         static readonly Color Selected = new Color(0.85f, 0.9f, 1f, 1f);
         static readonly Color Idle = new Color(1f, 1f, 1f, 0.4f);
         static readonly Color Locked = new Color(1f, 1f, 1f, 0.2f);
+        static readonly Color StarEarned = new Color(1f, 1f, 1f, 1f);
+        static readonly Color StarUnearned = new Color(1f, 1f, 1f, 0.5f);
+        static readonly Color StarLockedTint = new Color(0.65f, 0.65f, 0.65f, 0.35f);
         #endregion
 
         #region Public Methods
@@ -28,6 +34,7 @@ namespace ModularChess.Match
             bool unlocked = CampaignProgress.IsUnlocked(index);
             if (label != null)
                 label.text = FormatRow(level, unlocked);
+            ApplyStars(unlocked, level != null ? CampaignProgress.GetStars(level.Index) : CampaignStarFlags.None);
             SetSelected(selected);
             Button button = GetComponent<Button>();
             if (button == null) { button = gameObject.AddComponent<Button>(); }
@@ -59,22 +66,35 @@ namespace ModularChess.Match
             if (label == null) { label = GetComponentInChildren<TMP_Text>(true); }
             if (background == null) { background = GetComponent<Image>(); }
         }
+        void ApplyStars(bool unlocked, CampaignStarFlags flags)
+        {
+            ApplyStar(starComplete, unlocked, (flags & CampaignStarFlags.Complete) != 0);
+            ApplyStar(starTurn, unlocked, (flags & CampaignStarFlags.TurnLimit) != 0);
+            ApplyStar(starLoss, unlocked, (flags & CampaignStarFlags.LossLimit) != 0);
+        }
+        static void ApplyStar(Image image, bool unlocked, bool earned)
+        {
+            if (image == null) return;
+            if (!unlocked)
+            {
+                image.color = StarLockedTint;
+                return;
+            }
+            image.color = earned ? StarEarned : StarUnearned;
+        }
         static string FormatRow(CampaignLevelDefinition level, bool unlocked)
         {
             if (level == null) return string.Empty;
-            string title = Loc.Get(level.TitleKey);
+            string title = LevelTitle(level);
             if (!unlocked) return Loc.Format("campaign.locked", level.Index + 1, title);
-            CampaignStarFlags stars = CampaignProgress.GetStars(level.Index);
-            string marks = StarMarks(stars);
-            return $"{level.Index + 1}. {title}  {marks}";
+            return $"{level.Index + 1}. {title}";
         }
-        static string StarMarks(CampaignStarFlags flags)
+        static string LevelTitle(CampaignLevelDefinition level)
         {
-            return $"{Mark(flags, CampaignStarFlags.Complete)}{Mark(flags, CampaignStarFlags.TurnLimit)}{Mark(flags, CampaignStarFlags.LossLimit)}";
-        }
-        static string Mark(CampaignStarFlags flags, CampaignStarFlags star)
-        {
-            return Loc.Get((flags & star) != 0 ? "campaign.star.on" : "campaign.star.off");
+            string keyed = Loc.Get(level.TitleKey);
+            if (keyed != level.TitleKey)
+                return keyed;
+            return Loc.Format("campaign.level.n", level.Index + 1);
         }
         #endregion
     }

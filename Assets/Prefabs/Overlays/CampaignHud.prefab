@@ -1584,8 +1584,10 @@ GameObject:
   - component: {fileID: 6298340230225813490}
   - component: {fileID: 8896423958209571177}
   - component: {fileID: 9096549729111664946}
+  - component: {fileID: 9200661804478138678}
+  - component: {fileID: 8283916691006066042}
   m_Layer: 5
-  m_Name: MatchHud
+  m_Name: CampaignHud
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1742,6 +1744,30 @@ MonoBehaviour:
   fleetPawnsIcon: {fileID: 0}
   landmineIcon: {fileID: 0}
   overloadIcon: {fileID: 0}
+--- !u!114 &9200661804478138678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3105488776249050595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 874cc4a4238aff445be6cac0b59e2ad5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.OverlayMotion
+--- !u!225 &8283916691006066042
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3105488776249050595}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &3207877225155190498
 GameObject:
   m_ObjectHideFlags: 0
@@ -2548,7 +2574,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 480, y: -324}
-  m_SizeDelta: {x: 400, y: 32}
+  m_SizeDelta: {x: 0, y: 32}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1888209945215192833
 CanvasRenderer:

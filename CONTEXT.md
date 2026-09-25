@@ -73,7 +73,7 @@ A later Mode. After a legal Capture, that Mode may miss. Runs before Health and 
 _Avoid_: RNG as Core, XCOM as the Mode name, miss as illegal Move
 
 **Campaign**:
-An Activity. An authored sequence of levels that teach chess and Mode mechanics and award Merit. EA targets about 50 levels; the Steam demo is the first 10. Not Versus. Not a Mode. Not Puzzle.
+An Activity. An authored sequence of levels that teach chess and Mode mechanics and award Merit. EA targets about 50 levels; the Steam demo is the first 10. Difficulty bands: levels 1–5 tutorial mates and basics; 6–10 Mode introductions; 11–34 Medium AI; 35–50 Hard AI. Not Versus. Not a Mode. Not Puzzle.
 _Avoid_: Puzzle Activity, Run, Stage, matchmaking
 
 **Campaign level**:

@@ -120,7 +120,7 @@ MonoBehaviour:
   versusAiButton: {fileID: 6268693234159291287}
   versusFriendButton: {fileID: 6268693234159291273}
   joinButton: {fileID: 6268693234159291275}
-  campaignButton: {fileID: 6268693234159291276}
+  campaignButton: {fileID: 6268693234159291274}
   backButton: {fileID: 6268693234159291277}
   title: {fileID: 7686386933776877097}
 --- !u!1 &8210001001
@@ -153,10 +153,10 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 6213382636094191108}
   - {fileID: 6213382636094191129}
   - {fileID: 6213382636094191111}
   - {fileID: 6213382636094191109}
-  - {fileID: 6213382636094191108}
   - {fileID: 6213382636094191107}
   m_Father: {fileID: 8210000002}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -768,7 +768,7 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6213382640769423991, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
   m_PrefabInstance: {fileID: 8210001011}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6268693234159291276 stripped
+--- !u!114 &6268693234159291274 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6268693238030215161, guid: 2b28ed3a389968348b67d123bb39ac01, type: 3}
   m_PrefabInstance: {fileID: 8210001011}

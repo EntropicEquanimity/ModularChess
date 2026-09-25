@@ -305,6 +305,7 @@ namespace ModularChess.Match
             HideBoard();
             DismissScreens(mainMenu);
             _mainMenu?.RefreshHistoryGate();
+            _mainMenu?.RefreshMerit();
             OverlayMotion.Ensure(mainMenu)?.PlayEnter();
             GameAudio.PlayMenuMusic();
         }
@@ -736,6 +737,7 @@ namespace ModularChess.Match
             CacheOverlayViews();
             _unlocks?.Refresh();
             _mainMenu?.RefreshHistoryGate();
+            _mainMenu?.RefreshMerit();
             if (matchSettingsOverlay != null && matchSettingsOverlay.activeSelf)
                 ShowPrep();
         }

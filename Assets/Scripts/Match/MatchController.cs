@@ -1022,10 +1022,11 @@ namespace ModularChess.Match
             if (_state.LegalMoves.Count > 0)
             {
                 Move? move = SimpleAi.Choose(_state, strength, _state.SideToMove);
-                if (move == null)
+                if (move != null)
+                {
+                    Commit(move.Value);
                     return;
-                Commit(move.Value);
-                return;
+                }
             }
             if (!_state.CanEndTurn())
                 return;
