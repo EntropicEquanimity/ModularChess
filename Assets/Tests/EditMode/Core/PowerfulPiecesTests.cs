@@ -33,6 +33,27 @@ namespace ModularChess.Core.Tests
         }
 
         [Test]
+        public void EmpoweredKing_ActionEconomyConsumesTheFreeMove()
+        {
+            MatchRules rules = new MatchRules(
+                new[] { ModeId.PowerfulPieces, ModeId.ActionEconomy },
+                new MatchSettings(actionPoints: 3));
+            GameState state = GameState.FromFen("4k3/8/8/8/8/8/8/4K2R w - - 0 1", rules);
+            Piece king = state.Board.GetPiece(new Square(4, 0));
+            state = state.ConfirmEmpowered(new[] { king.Id });
+            state = MoveTestHelper.Play(state, "e1e2");
+            Assert.AreEqual(Side.White, state.SideToMove);
+            Assert.IsNotNull(state.Runtime.ExtraMoveKingId);
+            Assert.IsTrue(MoveTestHelper.Has(state, "e2", "e3"));
+            Assert.IsFalse(MoveTestHelper.Has(state, "h1", "h2"));
+            state = MoveTestHelper.Play(state, "e2e3");
+            Assert.AreEqual(Side.White, state.SideToMove);
+            Assert.IsNull(state.Runtime.ExtraMoveKingId);
+            Assert.IsFalse(MoveTestHelper.Has(state, "e3", "e4"));
+            Assert.IsTrue(MoveTestHelper.Has(state, "h1", "h2"));
+        }
+
+        [Test]
         public void EmpoweredBishop_SwapsWithAdjacentPawnsInEightDirections()
         {
             MatchRules rules = new MatchRules(new[] { ModeId.PowerfulPieces }, MatchSettings.Default);

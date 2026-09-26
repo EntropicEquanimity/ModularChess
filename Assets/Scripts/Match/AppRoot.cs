@@ -12,6 +12,7 @@ namespace ModularChess.Match
     [DefaultExecutionOrder(-50)]
     public sealed class AppRoot : MonoBehaviour, IInitializable
     {
+        #region Fields
         [SerializeField] GameObject mainMenu;
         [SerializeField] GameObject playOverlay;
         [SerializeField] GameObject matchSettingsOverlay;
@@ -29,7 +30,8 @@ namespace ModularChess.Match
         [SerializeField] MatchHud hud;
         [SerializeField] CampaignHud campaignHud;
         [SerializeField] CampaignLevelSet campaignLevels;
-
+        static readonly int[] MinutesByTimePreset = { 0, 1, 5, 15, 30, 120 };
+        static readonly int[] SecondsByIncrementPreset = { 0, 1, 2, 5, 10, 15, 30, 60 };
         MatchController _match;
         BoardView _board;
         MatchHudBase _activeHud;
@@ -56,15 +58,9 @@ namespace ModularChess.Match
         bool _optionsHooked;
         MatchSession _lastSession;
         int _historyReturnIndex = -1;
+        #endregion
 
-        public void Initialize()
-        {
-            GameAudio.Ensure();
-            ResolveReferences();
-            BindMainMenu();
-            BindOverlays();
-        }
-
+        #region Unity
         void Start()
         {
             ResolveReferences();
@@ -106,7 +102,33 @@ namespace ModularChess.Match
             if (keyboard.escapeKey.wasPressedThisFrame)
                 HandleEscape();
         }
+        #endregion
 
+        #region Public Methods
+        public void Initialize()
+        {
+            GameAudio.Ensure();
+            ResolveReferences();
+            BindMainMenu();
+            BindOverlays();
+        }
+        public void ShowMainMenu()
+        {
+            _pausedForOptions = false;
+            if (!PlayerIdentity.HasName)
+            {
+                ShowAccountCreation();
+                return;
+            }
+            HideBoard();
+            DismissScreens(mainMenu);
+            _mainMenu?.RefreshHistoryGate();
+            OverlayMotion.Ensure(mainMenu)?.PlayEnter();
+            GameAudio.PlayMenuMusic();
+        }
+        #endregion
+
+        #region Private Methods
         void HandleGrave()
         {
             float now = Time.unscaledTime;
@@ -155,7 +177,7 @@ namespace ModularChess.Match
                 campaignLevels = CampaignLevelSet.Load();
             CampaignCatalog.Bind(campaignLevels != null
                 ? campaignLevels.ToDefinitions()
-                : System.Array.Empty<CampaignLevelDefinition>());
+                : Array.Empty<CampaignLevelDefinition>());
             _activeHud = hud != null ? hud : (MatchHudBase)campaignHud;
             if (mainMenu == null)
             {
@@ -333,22 +355,6 @@ namespace ModularChess.Match
                 ShowMainMenu();
             else
                 ShowAccountCreation();
-        }
-
-        public void ShowMainMenu()
-        {
-            _pausedForOptions = false;
-            if (!PlayerIdentity.HasName)
-            {
-                ShowAccountCreation();
-                return;
-            }
-
-            HideBoard();
-            DismissScreens(mainMenu);
-            _mainMenu?.RefreshHistoryGate();
-            OverlayMotion.Ensure(mainMenu)?.PlayEnter();
-            GameAudio.PlayMenuMusic();
         }
 
         void ShowAccountCreation()
@@ -687,7 +693,7 @@ namespace ModularChess.Match
                 var guest = new LocalHotseatTransport();
                 guest.Join(_openLobby.Code);
             }
-            catch (System.InvalidOperationException)
+            catch (InvalidOperationException)
             {
                 return;
             }
@@ -773,11 +779,10 @@ namespace ModularChess.Match
                 ShowQuitConfirm();
         }
 
-        static bool IsActive(GameObject go)
-        {
-            return go != null && go.activeSelf;
-        }
+        static bool IsActive(GameObject go) => go != null && go.activeSelf;
+        #endregion
 
+        #region Debug
         void DebugUnlockAll()
         {
             MeritWallet.DebugFill(999);
@@ -926,14 +931,12 @@ namespace ModularChess.Match
             }
             return ids.ToArray();
         }
-
         void DebugResetSave()
         {
             bool inMatch = _match != null && _match.IsPlaying;
             bool afterSetup = inMatch && !_match.InSetup;
             if (afterSetup)
                 _match.Resign();
-
             ModeDlc.ClearAll();
             MatchHistoryStore.Delete();
             PlayerPrefs.DeleteAll();
@@ -941,7 +944,9 @@ namespace ModularChess.Match
             _dialogs?.HideDebugImmediate();
             ExitGame();
         }
+        #endregion
 
+        #region Private Methods
         void ExitGame()
         {
 #if UNITY_EDITOR
@@ -988,56 +993,12 @@ namespace ModularChess.Match
 
         TimeControl TimeFromPreset(int timePreset, int incrementPreset)
         {
-            int minutes;
-            switch (timePreset)
-            {
-                case 1:
-                    minutes = 1;
-                    break;
-                case 2:
-                    minutes = 5;
-                    break;
-                case 3:
-                    minutes = 15;
-                    break;
-                case 4:
-                    minutes = 30;
-                    break;
-                case 5:
-                    minutes = 120;
-                    break;
-                default:
-                    return TimeControl.None;
-            }
-            int increment;
-            switch (incrementPreset)
-            {
-                case 1:
-                    increment = 1;
-                    break;
-                case 2:
-                    increment = 2;
-                    break;
-                case 3:
-                    increment = 5;
-                    break;
-                case 4:
-                    increment = 10;
-                    break;
-                case 5:
-                    increment = 15;
-                    break;
-                case 6:
-                    increment = 30;
-                    break;
-                case 7:
-                    increment = 60;
-                    break;
-                default:
-                    increment = 0;
-                    break;
-            }
-            return new TimeControl(minutes, increment);
+            if (timePreset < 1 || timePreset >= MinutesByTimePreset.Length)
+                return TimeControl.None;
+            int increment = incrementPreset >= 0 && incrementPreset < SecondsByIncrementPreset.Length
+                ? SecondsByIncrementPreset[incrementPreset]
+                : 0;
+            return new TimeControl(MinutesByTimePreset[timePreset], increment);
         }
 
         static Side ResolveColor(HostColor color)
@@ -1051,7 +1012,7 @@ namespace ModularChess.Match
                 case HostColor.Random:
                     return UnityEngine.Random.value < 0.5f ? Side.White : Side.Black;
                 default:
-                    throw new System.ArgumentOutOfRangeException(nameof(color), color, null);
+                    throw new ArgumentOutOfRangeException(nameof(color), color, null);
             }
         }
 
@@ -1148,12 +1109,6 @@ namespace ModularChess.Match
                 return;
             ShowMainMenu();
         }
-
-        static void BindButton(GameObject root, string name, UnityEngine.Events.UnityAction action)
-        {
-            GameAudio.Bind(FindButton(root, name), action);
-        }
-
         static Button FindButton(GameObject root, string name)
         {
             if (root == null)
@@ -1161,7 +1116,6 @@ namespace ModularChess.Match
             Transform child = FindChild(root.transform, name);
             return child != null ? child.GetComponent<Button>() : null;
         }
-
         static Transform FindChild(Transform root, string name)
         {
             if (root.name == name)
@@ -1175,5 +1129,6 @@ namespace ModularChess.Match
 
             return null;
         }
+        #endregion
     }
 }

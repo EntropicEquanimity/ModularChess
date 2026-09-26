@@ -6,7 +6,7 @@ namespace ModularChess.Core
     public sealed class GameState
     {
         #region Fields
-        private readonly string[] _positionKeys;
+        readonly string[] _positionKeys;
         readonly Side[] _historySides;
         public Board Board { get; }
         public Side SideToMove { get; }
@@ -35,14 +35,8 @@ namespace ModularChess.Core
                 return index % 2 == 0 ? Side.White : Side.Black;
             return _historySides[index];
         }
-        public static GameState StartingPosition(MatchRules rules = null)
-        {
-            return Fen.Parse(Fen.StartingPosition, rules);
-        }
-        public static GameState FromFen(string fen, MatchRules rules = null)
-        {
-            return Fen.Parse(fen, rules);
-        }
+        public static GameState StartingPosition(MatchRules rules = null) => Fen.Parse(Fen.StartingPosition, rules);
+        public static GameState FromFen(string fen, MatchRules rules = null) => Fen.Parse(fen, rules);
         internal static GameState FromPosition(
             Board board,
             Side sideToMove,
@@ -75,20 +69,11 @@ namespace ModularChess.Core
         public GameState Apply(Move move)
         {
             if (Status != GameStatus.InProgress)
-            {
                 throw new InvalidOperationException("Cannot apply a move when the game is over.");
-            }
-
             if (Runtime.PendingDraft != null)
-            {
                 throw new InvalidOperationException("Cannot apply a move during Draft.");
-            }
-
             if (!IsLegal(move))
-            {
                 throw new InvalidOperationException("Move is not legal in the current position.");
-            }
-
             Piece moving = Board.GetPiece(move.From);
             Piece captured = FindCaptured(move);
             ModeRuntime nextRuntime = Runtime;
@@ -99,9 +84,7 @@ namespace ModularChess.Core
                 CaptureResolution resolved = Rules.Hooks.ResolveCapture(Board, move, captured, nextRuntime);
                 nextRuntime = resolved.Runtime;
                 if (resolved.Kind == CaptureResolutionKind.Negate)
-                {
                     bounced = true;
-                }
                 else
                 {
                     nextBoard = Board.ApplyUnchecked(move);
@@ -109,24 +92,10 @@ namespace ModularChess.Core
                         ? new Square(move.To.File, move.From.Rank)
                         : move.To;
                     nextRuntime = nextRuntime.AddCapture(captured, false, origin);
-                    if (Rules.Has(ModeId.Martyr) && !nextRuntime.IsSummoned(captured.Id))
-                    {
-                        int? value = PieceValues.Get(captured.Type);
-                        if (value != null)
-                        {
-                            nextRuntime = nextRuntime.AddLostMaterial(
-                                captured.Side,
-                                value.Value,
-                                Rules.Settings.MartyrThreshold);
-                        }
-                    }
+                    if (Rules.Has(ModeId.Martyr))
+                        nextRuntime = CreditLostMaterial(nextRuntime, captured);
                     nextBoard = ResolveMartyrAfterCapture(
-                        nextBoard,
-                        move,
-                        moving,
-                        captured,
-                        origin,
-                        ref nextRuntime);
+                        nextBoard, move, moving, captured, origin, ref nextRuntime);
                 }
             }
             else
@@ -137,17 +106,13 @@ namespace ModularChess.Core
             if (move.Kind == MoveKind.Promotion
                 && nextRuntime.IsEmpowered(moving.Id)
                 && moving.Type == PieceType.Pawn)
-            {
                 nextRuntime = nextRuntime.WithoutEmpowered(moving.Id);
-            }
             if (nextRuntime.OverloadPieceId != null && nextRuntime.OverloadPieceId.Value == moving.Id)
             {
                 int overloadMoves = nextRuntime.OverloadMovesMade + 1;
                 nextRuntime = nextRuntime.WithOverload(moving.Id, overloadMoves);
                 if (overloadMoves >= 2)
-                {
                     nextBoard = RemoveOverloadPiece(nextBoard, moving, move.To, ref nextRuntime);
-                }
             }
             CastlingRights nextCastling = bounced ? CastlingRights : CastlingRights.AfterMove(move, Board);
             Square? nextEnPassant = bounced ? null : ComputeEnPassantTarget(move, moving);
@@ -172,15 +137,15 @@ namespace ModularChess.Core
             }
             else
             {
-                Guid? extraKing = moving.Type == PieceType.King && nextRuntime.IsEmpowered(moving.Id)
-                    ? moving.Id
-                    : nextRuntime.ExtraMoveKingId;
-                nextRuntime = nextRuntime.WithExtraKing(extraKing).WithMovesThisTurn(nextMovesThisTurn).WithPaidMoves(paidAfter);
+                Guid? extraKing = nextRuntime.ExtraMoveKingId;
+                if (moving.Type == PieceType.King && nextRuntime.IsEmpowered(moving.Id))
+                    extraKing = Runtime.ExtraMoveKingId == null ? moving.Id : null;
+                nextRuntime = nextRuntime.WithExtraKing(extraKing)
+                    .WithMovesThisTurn(nextMovesThisTurn)
+                    .WithPaidMoves(paidAfter);
                 if (usedRallyExtra)
                     nextRuntime = nextRuntime.WithRallyExtraSpent(true);
             }
-
-            Move[] nextHistory = AppendHistory(move);
             return new GameState(
                 nextBoard,
                 nextSide,
@@ -188,7 +153,7 @@ namespace ModularChess.Core
                 nextCastling,
                 nextHalfmove,
                 nextFullmove,
-                nextHistory,
+                AppendHistory(move),
                 AppendHistorySides(SideToMove),
                 _positionKeys,
                 Rules,
@@ -199,15 +164,9 @@ namespace ModularChess.Core
         public GameState EndTurn()
         {
             if (Status != GameStatus.InProgress)
-            {
                 throw new InvalidOperationException("Cannot end a turn when the game is over.");
-            }
-
             if (!CanEndTurn())
-            {
                 throw new InvalidOperationException("End Turn is not legal.");
-            }
-
             ModeRuntime nextRuntime = Runtime;
             Board nextBoard = FinishTurnSideEffects(Board, ref nextRuntime);
             Side nextSide = SideToMove.Opponent();
@@ -230,23 +189,10 @@ namespace ModularChess.Core
         }
         public bool CanEndTurn()
         {
-            if (!TurnOpen)
-            {
+            if (!TurnOpen || IsInCheck)
                 return false;
-            }
-
-            if (IsInCheck)
-            {
+            if (MovesThisTurn == 0 && LegalMoves.Count > 0 && !Rules.Settings.AllowEndTurnWithZeroMoves)
                 return false;
-            }
-
-            if (MovesThisTurn == 0
-                && LegalMoves.Count > 0
-                && !Rules.Settings.AllowEndTurnWithZeroMoves)
-            {
-                return false;
-            }
-
             return true;
         }
         public GameState ConfirmEmpowered(IReadOnlyList<Guid> ids)
@@ -258,18 +204,12 @@ namespace ModularChess.Core
                 {
                     Square? square = Board.FindSquare(ids[i]);
                     if (square == null)
-                    {
                         continue;
-                    }
-
                     Piece piece = Board.GetPiece(square.Value);
                     if (piece != null && piece.Type == PieceType.Knight)
-                    {
                         extraLife.Add(piece.Id);
-                    }
                 }
             }
-
             ModeRuntime next = Runtime.WithEmpowered(ids, extraLife);
             next = MaybeOpenDraft(next, SideToMove, Board);
             return CloneWithRuntime(next);
@@ -294,10 +234,7 @@ namespace ModularChess.Core
         public GameState WithTerminal(GameStatus status)
         {
             if (status == GameStatus.InProgress)
-            {
                 throw new ArgumentException("Terminal status required.", nameof(status));
-            }
-
             return new GameState(
                 Board,
                 SideToMove,
@@ -316,24 +253,15 @@ namespace ModularChess.Core
         public GameState ApplyDraft(MartyrPower power, Guid? targetId, Square[] reinforcements)
         {
             if (Runtime.PendingDraft == null)
-            {
                 throw new InvalidOperationException("No Draft is pending.");
-            }
             CastlingRights nextCastling = CastlingRights;
             if (targetId != null)
             {
                 Square? square = Board.FindSquare(targetId.Value);
                 if (square != null)
-                {
                     nextCastling = nextCastling.WithoutPieceSquare(square.Value);
-                }
             }
-            ModeRuntime next = MartyrRules.Apply(
-                this,
-                power,
-                targetId,
-                reinforcements,
-                out Board nextBoard);
+            ModeRuntime next = MartyrRules.Apply(this, power, targetId, reinforcements, out Board nextBoard);
             return new GameState(
                 nextBoard,
                 SideToMove,
@@ -351,15 +279,12 @@ namespace ModularChess.Core
         }
         public IReadOnlyList<Move> LegalMovesFrom(Square from)
         {
-            List<Move> matches = new List<Move>();
+            var matches = new List<Move>();
             for (int i = 0; i < LegalMoves.Count; i++)
             {
                 if (LegalMoves[i].From.Equals(from))
-                {
                     matches.Add(LegalMoves[i]);
-                }
             }
-
             return matches;
         }
         public bool IsExileTarget(Square square)
@@ -374,18 +299,12 @@ namespace ModularChess.Core
             if (value == null || value.Value <= 1) return false;
             return AttackMap.IsAttacked(Board, square, SideToMove.Opponent(), Rules, Runtime);
         }
-        public static bool IsOwnHalf(Square square, Side side)
-        {
-            return MartyrRules.IsOwnHalf(square, side);
-        }
-        public static bool IsBackTwoRanks(Square square, Side side)
-        {
-            return MartyrRules.IsBackTwoRanks(square, side);
-        }
+        public static bool IsOwnHalf(Square square, Side side) => MartyrRules.IsOwnHalf(square, side);
+        public static bool IsBackTwoRanks(Square square, Side side) => MartyrRules.IsBackTwoRanks(square, side);
         #endregion
 
         #region Private Methods
-        private GameState(
+        GameState(
             Board board,
             Side sideToMove,
             Square? enPassantTarget,
@@ -410,53 +329,30 @@ namespace ModularChess.Core
             _historySides = AlignHistorySides(History.Count, historySides);
             Rules = rules ?? MatchRules.CoreOnly;
             Runtime = runtime ?? ModeRuntime.Empty;
-
             IsInCheck = AttackMap.IsInCheck(board, sideToMove, Rules, Runtime);
             List<Move> legal = MoveGenerator.GenerateLegal(
-                board,
-                sideToMove,
-                enPassantTarget,
-                castlingRights,
-                Rules,
-                Runtime);
+                board, sideToMove, enPassantTarget, castlingRights, Rules, Runtime);
             LegalMoves = legal;
-
             Square? keyEnPassant = EffectiveEnPassant(enPassantTarget, legal);
             string key = Fen.PositionKey(board, sideToMove, castlingRights, keyEnPassant);
             if (appendPositionKey)
             {
                 string[] keys = new string[(previousPositionKeys?.Length ?? 0) + 1];
                 if (previousPositionKeys != null && previousPositionKeys.Length > 0)
-                {
                     Array.Copy(previousPositionKeys, keys, previousPositionKeys.Length);
-                }
-
                 keys[keys.Length - 1] = key;
                 _positionKeys = keys;
             }
             else
-            {
                 _positionKeys = previousPositionKeys ?? new[] { key };
-            }
-
             if (forcedStatus != null)
-            {
                 Status = forcedStatus.Value;
-            }
-            else if (Runtime.PendingDraft != null)
-            {
+            else if (Runtime.PendingDraft != null || (TurnOpen && legal.Count == 0 && !IsInCheck))
                 Status = GameStatus.InProgress;
-            }
-            else if (TurnOpen && legal.Count == 0 && !IsInCheck)
-            {
-                Status = GameStatus.InProgress;
-            }
             else
-            {
                 Status = DrawEvaluator.Resolve(IsInCheck, legal.Count, halfmoveClock, _positionKeys, board);
-            }
         }
-        private bool MoveCostsAction(Piece moving, ModeRuntime runtime)
+        bool MoveCostsAction(Piece moving, ModeRuntime runtime)
         {
             if (runtime.ExtraMoveKingId != null && runtime.ExtraMoveKingId.Value == moving.Id)
                 return false;
@@ -468,14 +364,12 @@ namespace ModularChess.Core
                 return false;
             return true;
         }
-        private bool MoveEndsTurn(Piece moving, ModeRuntime runtime, int paidAfter, bool usedRallyExtra)
+        bool MoveEndsTurn(Piece moving, ModeRuntime runtime, int paidAfter, bool usedRallyExtra)
         {
             if (runtime.OverloadPieceId != null
                 && runtime.OverloadPieceId.Value == moving.Id
                 && runtime.OverloadMovesMade >= 2)
-            {
                 return true;
-            }
             bool kingFollowUpOpens = moving.Type == PieceType.King
                 && runtime.IsEmpowered(moving.Id)
                 && Runtime.ExtraMoveKingId == null;
@@ -492,7 +386,7 @@ namespace ModularChess.Core
             if (kingFollowUpOpens) return false;
             return true;
         }
-        private Board FinishTurnSideEffects(Board board, ref ModeRuntime runtime)
+        Board FinishTurnSideEffects(Board board, ref ModeRuntime runtime)
         {
             if (runtime.OverloadPieceId != null && runtime.OverloadMovesMade < 2)
             {
@@ -501,21 +395,23 @@ namespace ModularChess.Core
                 {
                     Piece piece = board.GetPiece(square.Value);
                     if (piece != null)
-                    {
                         board = RemoveOverloadPiece(board, piece, square.Value, ref runtime);
-                    }
                 }
                 else
-                {
                     runtime = runtime.ClearOverload();
-                }
             }
             runtime = runtime.TickStatuses(SideToMove).TickSideEffects(SideToMove);
             board = MartyrRules.ResolveExpiredExiles(board, runtime, SideToMove, out runtime);
-            runtime = runtime.WithExtraKing(null).WithMovesThisTurn(0).WithPaidMoves(0).WithRally(false).WithRallyExtraSpent(false).ClearOverload().ClearMovedThisTurn();
+            runtime = runtime.WithExtraKing(null)
+                .WithMovesThisTurn(0)
+                .WithPaidMoves(0)
+                .WithRally(false)
+                .WithRallyExtraSpent(false)
+                .ClearOverload()
+                .ClearMovedThisTurn();
             return board;
         }
-        private Board ResolveMartyrAfterCapture(
+        Board ResolveMartyrAfterCapture(
             Board board,
             Move move,
             Piece moving,
@@ -526,10 +422,9 @@ namespace ModularChess.Core
             if (!Rules.Has(ModeId.Martyr)) return board;
             board = ResolveBloodDebt(board, move, moving, captured, lossSquare, ref runtime);
             board = ResolveLandmine(board, move, moving, ref runtime);
-            board = ResolveReserveCall(board, move, moving, captured, lossSquare, ref runtime);
-            return board;
+            return ResolveReserveCall(board, move, moving, captured, lossSquare, ref runtime);
         }
-        private Board ResolveBloodDebt(
+        Board ResolveBloodDebt(
             Board board,
             Move move,
             Piece moving,
@@ -543,22 +438,15 @@ namespace ModularChess.Core
             if (capturer == null || capturer.Id != moving.Id) return board;
             if (capturer.Type == PieceType.King) return board;
             runtime = runtime.SpendBloodDebt(captured.Side);
-            Move retaliate = new Move(lossSquare, capturerSquare, MoveKind.Capture, capturedType: capturer.Type);
+            var retaliate = new Move(lossSquare, capturerSquare, MoveKind.Capture, capturedType: capturer.Type);
             CaptureResolution resolved = Rules.Hooks.ResolveCapture(board, retaliate, capturer, runtime);
             runtime = resolved.Runtime;
             if (resolved.Kind == CaptureResolutionKind.Negate) return board;
             runtime = runtime.AddCapture(capturer, false, capturerSquare);
-            if (!runtime.IsSummoned(capturer.Id))
-            {
-                int? value = PieceValues.Get(capturer.Type);
-                if (value != null)
-                {
-                    runtime = runtime.AddLostMaterial(capturer.Side, value.Value, Rules.Settings.MartyrThreshold);
-                }
-            }
+            runtime = CreditLostMaterial(runtime, capturer);
             return board.WithPiece(capturerSquare, null);
         }
-        private Board ResolveReserveCall(
+        Board ResolveReserveCall(
             Board board,
             Move move,
             Piece moving,
@@ -574,41 +462,32 @@ namespace ModularChess.Core
             {
                 board = board.WithPiece(capturerSquare, null);
                 if (board.CanPlace(move.From))
-                {
                     board = board.WithPiece(move.From, capturer);
-                }
             }
             if (board.CanPlace(lossSquare))
             {
-                Piece pawn = new Piece(PieceType.Pawn, captured.Side);
+                var pawn = new Piece(PieceType.Pawn, captured.Side);
                 board = board.WithPiece(lossSquare, pawn);
                 runtime = runtime.AddSummoned(pawn.Id);
             }
             return board;
         }
-        private Board ResolveLandmine(Board board, Move move, Piece moving, ref ModeRuntime runtime)
+        Board ResolveLandmine(Board board, Move move, Piece moving, ref ModeRuntime runtime)
         {
             if (!Rules.Has(ModeId.Martyr) || move.Kind == MoveKind.Bombard) return board;
             if (!runtime.TryGetLandmine(move.To, out LandmineMarker mine)) return board;
             if (mine.Owner == moving.Side) return board;
             Piece occupant = board.GetPiece(move.To);
             if (occupant == null || occupant.Id != moving.Id) return board;
-            Move detonate = new Move(move.To, move.To, MoveKind.Capture, capturedType: occupant.Type);
+            var detonate = new Move(move.To, move.To, MoveKind.Capture, capturedType: occupant.Type);
             CaptureResolution resolved = Rules.Hooks.ResolveCapture(board, detonate, occupant, runtime);
             runtime = resolved.Runtime.RemoveLandmineAt(move.To);
             if (resolved.Kind == CaptureResolutionKind.Negate) return board;
             runtime = runtime.AddCapture(occupant, false, move.To);
-            if (!runtime.IsSummoned(occupant.Id))
-            {
-                int? value = PieceValues.Get(occupant.Type);
-                if (value != null)
-                {
-                    runtime = runtime.AddLostMaterial(occupant.Side, value.Value, Rules.Settings.MartyrThreshold);
-                }
-            }
+            runtime = CreditLostMaterial(runtime, occupant);
             return board.WithPiece(move.To, null);
         }
-        private Board RemoveOverloadPiece(Board board, Piece piece, Square square, ref ModeRuntime runtime)
+        Board RemoveOverloadPiece(Board board, Piece piece, Square square, ref ModeRuntime runtime)
         {
             Piece occupant = board.GetPiece(square);
             if (occupant == null || occupant.Id != piece.Id)
@@ -617,37 +496,32 @@ namespace ModularChess.Core
                 return board;
             }
             runtime = runtime.AddCapture(occupant, false, square).ClearOverload();
-            if (!runtime.IsSummoned(occupant.Id))
-            {
-                int? value = PieceValues.Get(occupant.Type);
-                if (value != null)
-                {
-                    runtime = runtime.AddLostMaterial(occupant.Side, value.Value, Rules.Settings.MartyrThreshold);
-                }
-            }
+            runtime = CreditLostMaterial(runtime, occupant);
             return board.WithPiece(square, null);
         }
-        private ModeRuntime MaybeOpenDraft(ModeRuntime runtime, Side sideToMove, Board board)
+        ModeRuntime CreditLostMaterial(ModeRuntime runtime, Piece piece)
+        {
+            if (runtime.IsSummoned(piece.Id))
+                return runtime;
+            int? value = PieceValues.Get(piece.Type);
+            if (value == null)
+                return runtime;
+            return runtime.AddLostMaterial(piece.Side, value.Value, Rules.Settings.MartyrThreshold);
+        }
+        ModeRuntime MaybeOpenDraft(ModeRuntime runtime, Side sideToMove, Board board)
         {
             if (!Rules.Has(ModeId.Martyr) || runtime.PendingDraft != null)
-            {
                 return runtime;
-            }
-
             int queued = sideToMove == Side.White ? runtime.WhiteDraftsQueued : runtime.BlackDraftsQueued;
             if (queued <= 0)
-            {
                 return runtime;
-            }
-
             DraftOffer offer = MartyrRules.BuildOffer(this, runtime, sideToMove, board);
             PieceType? battlefield = offer.Contains(MartyrPower.BattlefieldPromotion)
                 ? offer.BattlefieldType
                 : null;
-
             return runtime.WithPendingDraft(offer, battlefield);
         }
-        private Piece FindCaptured(Move move)
+        Piece FindCaptured(Move move)
         {
             switch (move.Kind)
             {
@@ -666,7 +540,7 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException();
             }
         }
-        private GameState CloneWithRuntime(ModeRuntime runtime)
+        GameState CloneWithRuntime(ModeRuntime runtime)
         {
             return new GameState(
                 Board,
@@ -683,7 +557,7 @@ namespace ModularChess.Core
                 Status == GameStatus.InProgress ? null : Status,
                 false);
         }
-        private Move[] CopyHistory()
+        Move[] CopyHistory()
         {
             var copy = new Move[History.Count];
             for (int i = 0; i < History.Count; i++)
@@ -697,9 +571,9 @@ namespace ModularChess.Core
                 copy[i] = HistorySide(i);
             return copy;
         }
-        private Move[] AppendHistory(Move move)
+        Move[] AppendHistory(Move move)
         {
-            Move[] nextHistory = new Move[History.Count + 1];
+            var nextHistory = new Move[History.Count + 1];
             for (int i = 0; i < History.Count; i++)
                 nextHistory[i] = History[i];
             nextHistory[History.Count] = move;
@@ -721,61 +595,36 @@ namespace ModularChess.Core
                 return sides;
             var aligned = new Side[count];
             for (int i = 0; i < count; i++)
-            {
-                if (sides != null && i < sides.Length)
-                    aligned[i] = sides[i];
-                else
-                    aligned[i] = i % 2 == 0 ? Side.White : Side.Black;
-            }
+                aligned[i] = sides != null && i < sides.Length
+                    ? sides[i]
+                    : (i % 2 == 0 ? Side.White : Side.Black);
             return aligned;
         }
-        private bool IsLegal(Move move)
+        bool IsLegal(Move move)
         {
             for (int i = 0; i < LegalMoves.Count; i++)
             {
                 if (LegalMoves[i].Equals(move))
-                {
                     return true;
-                }
             }
-
             return false;
         }
-        private static Square? ComputeEnPassantTarget(Move move, Piece moving)
+        static Square? ComputeEnPassantTarget(Move move, Piece moving)
         {
-            if (moving.Type != PieceType.Pawn)
-            {
-                return null;
-            }
-
-            if (Math.Abs(move.To.Rank - move.From.Rank) != 2)
-            {
-                return null;
-            }
-
+            if (moving.Type != PieceType.Pawn) return null;
+            if (Math.Abs(move.To.Rank - move.From.Rank) != 2) return null;
             int startRank = moving.Side == Side.White ? 1 : 6;
-            if (move.From.Rank != startRank)
-            {
-                return null;
-            }
-
+            if (move.From.Rank != startRank) return null;
             return new Square(move.From.File, (move.From.Rank + move.To.Rank) / 2);
         }
-        private static Square? EffectiveEnPassant(Square? enPassantTarget, List<Move> legalMoves)
+        static Square? EffectiveEnPassant(Square? enPassantTarget, List<Move> legalMoves)
         {
-            if (enPassantTarget == null)
-            {
-                return null;
-            }
-
+            if (enPassantTarget == null) return null;
             for (int i = 0; i < legalMoves.Count; i++)
             {
                 if (legalMoves[i].Kind == MoveKind.EnPassant)
-                {
                     return enPassantTarget;
-                }
             }
-
             return null;
         }
         #endregion

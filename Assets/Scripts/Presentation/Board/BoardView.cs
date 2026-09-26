@@ -7,10 +7,10 @@ namespace ModularChess.Presentation
 {
     public sealed class BoardView : MonoBehaviour, IBoardView
     {
+        #region Fields
         public event Action<Square> SquareClicked;
         public event Action<Square?> SquareHovered;
         public event Action<bool> MatchChromeHidden;
-
         [SerializeField] float squareSize = 1f;
         [SerializeField] float captureSpacing = 0.7f;
         [SerializeField] BoardTheme theme;
@@ -19,7 +19,7 @@ namespace ModularChess.Presentation
         [SerializeField] PieceView piecePrefab;
         [SerializeField] SquareView squarePrefab;
         [SerializeField] TerrainSpriteCatalog terrainSprites;
-
+        const float PieceMoveSeconds = 0.5f;
         readonly Dictionary<Guid, PieceView> _pieces = new Dictionary<Guid, PieceView>();
         readonly SquareView[] _squares = new SquareView[BoardLayout.FileCount * BoardLayout.RankCount];
         readonly HashSet<Guid> _seenIds = new HashSet<Guid>();
@@ -30,7 +30,6 @@ namespace ModularChess.Presentation
         readonly HashSet<Guid> _dimmedIds = new HashSet<Guid>();
         readonly HashSet<Guid> _banished = new HashSet<Guid>();
         readonly HashSet<Guid> _captureThreats = new HashSet<Guid>();
-
         Transform _squaresRoot;
         Transform _piecesRoot;
         BoardLayout _layout;
@@ -48,7 +47,6 @@ namespace ModularChess.Presentation
         Guid? _selectPopId;
         bool _chromeUntilIdle;
         Action _idleOnce;
-
         public GameState BoundState => _state;
         public bool PiecesBusy => _movingCount > 0;
         public bool HidingMatchChrome { get; private set; }
@@ -72,7 +70,9 @@ namespace ModularChess.Presentation
             get => allowSelectionWhenFinished;
             set => allowSelectionWhenFinished = value;
         }
+        #endregion
 
+        #region Unity
         void Reset()
         {
             squareSize = 1f;
@@ -91,7 +91,23 @@ namespace ModularChess.Presentation
             if (buildOnAwake)
                 Build();
         }
+        void OnDisable()
+        {
+            if (!Application.isPlaying)
+                return;
+            CompleteMotion();
+        }
+        void OnDrawGizmosSelected()
+        {
+            BoardLayout layout = Application.isPlaying && _built ? _layout : new BoardLayout(squareSize, captureSpacing);
+            Vector3 center = transform.TransformPoint(layout.BoardCenterLocal);
+            Vector3 size = transform.TransformVector(layout.BoardSizeLocal);
+            Gizmos.color = new Color(1f, 1f, 1f, 0.3f);
+            Gizmos.DrawWireCube(center, new Vector3(Mathf.Abs(size.x), Mathf.Abs(size.y), 0.05f));
+        }
+        #endregion
 
+        #region Public Methods
         public void Bind(GameState state)
         {
             Bind(state, VisionMap.Compute(state, _viewer), _viewer);
@@ -377,7 +393,9 @@ namespace ModularChess.Presentation
             _hovered = square;
             SquareHovered?.Invoke(square);
         }
+        #endregion
 
+        #region Private Methods
         void EnsureTheme()
         {
             if (!theme.IsConfigured)
@@ -428,23 +446,17 @@ namespace ModularChess.Presentation
 
         void EnsureRoots()
         {
-            if (_squaresRoot == null)
-            {
-                var go = new GameObject("Squares");
-                _squaresRoot = go.transform;
-                _squaresRoot.SetParent(transform, false);
-                _squaresRoot.localPosition = Vector3.zero;
-                _squaresRoot.localRotation = Quaternion.identity;
-            }
-
-            if (_piecesRoot == null)
-            {
-                var go = new GameObject("Pieces");
-                _piecesRoot = go.transform;
-                _piecesRoot.SetParent(transform, false);
-                _piecesRoot.localPosition = Vector3.zero;
-                _piecesRoot.localRotation = Quaternion.identity;
-            }
+            if (_squaresRoot == null) _squaresRoot = CreateChildRoot("Squares");
+            if (_piecesRoot == null) _piecesRoot = CreateChildRoot("Pieces");
+        }
+        Transform CreateChildRoot(string name)
+        {
+            var go = new GameObject(name);
+            Transform child = go.transform;
+            child.SetParent(transform, false);
+            child.localPosition = Vector3.zero;
+            child.localRotation = Quaternion.identity;
+            return child;
         }
 
         SquareView CreateSquare(Square square)
@@ -546,7 +558,7 @@ namespace ModularChess.Presentation
                     }
                     else if (animate)
                     {
-                        float duration = MoveDurationSeconds(piece, view.transform.localPosition, dest);
+                        float duration = AnimationPrefs.MoveDuration(PieceMoveSeconds);
                         if (view.PlayMove(dest, duration, OnPieceMotionEnded))
                         {
                             _movingCount++;
@@ -802,16 +814,6 @@ namespace ModularChess.Presentation
             }
         }
 
-        float MoveDurationSeconds(Piece piece, Vector3 from, Vector3 to)
-        {
-            float dx = Mathf.Abs(to.x - from.x) / _layout.SquareSize;
-            float dy = Mathf.Abs(to.y - from.y) / _layout.SquareSize;
-            float tiles = piece != null && piece.Type == PieceType.Knight
-                ? dx + dy
-                : Mathf.Max(dx, dy);
-            tiles = Mathf.Max(1f, Mathf.Round(tiles));
-            return AnimationPrefs.MoveDuration(0.2f * tiles);
-        }
         void ApplyLandmineMarkers()
         {
             Sprite sprite = EffectIconCatalog.Load()?.SpriteFor(MartyrPower.Landmine);
@@ -968,13 +970,6 @@ namespace ModularChess.Presentation
                     return null;
             }
         }
-        void OnDisable()
-        {
-            if (!Application.isPlaying)
-                return;
-            CompleteMotion();
-        }
-
         void PruneSelectionAfterBind()
         {
             if (!_selected.HasValue || _state == null)
@@ -1081,14 +1076,6 @@ namespace ModularChess.Presentation
         {
             return file * BoardLayout.RankCount + rank;
         }
-
-        void OnDrawGizmosSelected()
-        {
-            BoardLayout layout = Application.isPlaying && _built ? _layout : new BoardLayout(squareSize, captureSpacing);
-            Vector3 center = transform.TransformPoint(layout.BoardCenterLocal);
-            Vector3 size = transform.TransformVector(layout.BoardSizeLocal);
-            Gizmos.color = new Color(1f, 1f, 1f, 0.3f);
-            Gizmos.DrawWireCube(center, new Vector3(Mathf.Abs(size.x), Mathf.Abs(size.y), 0.05f));
-        }
+        #endregion
     }
 }
