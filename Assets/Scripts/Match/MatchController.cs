@@ -47,6 +47,7 @@ namespace ModularChess.Match
         Square? _hovered;
         Guid? _pinnedPieceId;
         bool _replaying;
+        bool _debugReviewVision;
         MatchHistoryRecord _replayRecord;
         int _replayIndex;
         bool _replayAuto;
@@ -201,6 +202,7 @@ namespace ModularChess.Match
             _pinnedPieceId = null;
             _paused = false;
             _replaying = false;
+            _debugReviewVision = false;
             _replayRecord = null;
             _replayIndex = 0;
             _replayAuto = false;
@@ -280,6 +282,7 @@ namespace ModularChess.Match
             Autoplay.ClearOnLeave();
             _hovered = null;
             _pinnedPieceId = null;
+            _debugReviewVision = false;
             boardView?.ClearTargeting();
             boardView?.SetPendingEmpowered(null);
             boardView?.CompleteMotion();
@@ -530,6 +533,13 @@ namespace ModularChess.Match
         {
             _clock?.ResetToStart();
             hud?.SetClock(_clock, ClockSide());
+        }
+        public void DebugRevealFog()
+        {
+            if (_state == null || boardView == null)
+                return;
+            _debugReviewVision = !_debugReviewVision;
+            RefreshPresentation();
         }
 
         bool CanDebugEnd()
@@ -1669,7 +1679,7 @@ namespace ModularChess.Match
             Side viewer = _session != null && _session.Hotseat ? _state.SideToMove : (_session?.PlayerSide ?? Side.White);
             VisionMap vision = VisionMap.Compute(_state, viewer);
             boardView.ViewerSide = viewer;
-            boardView.ReviewVision = _replaying;
+            boardView.ReviewVision = _replaying || _debugReviewVision;
             if (_inSetup)
             {
                 boardView.SetPendingEmpowered(PendingEmpoweredIds());

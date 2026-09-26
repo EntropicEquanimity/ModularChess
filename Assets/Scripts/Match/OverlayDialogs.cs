@@ -1,3 +1,4 @@
+using ModularChess.Core;
 using ModularChess.Presentation;
 using UnityEngine;
 using UnityEngine.Events;
@@ -62,7 +63,18 @@ namespace ModularChess.Match
             UnityAction unlockAll,
             UnityAction win,
             UnityAction lose,
-            UnityAction resetTimer)
+            UnityAction resetTimer,
+            UnityAction vsAiNone,
+            UnityAction vsAiAllNoRandomizer,
+            UnityAction vsAiAll,
+            UnityAction<ModeId> vsAiSpecific,
+            UnityAction<int> jumpLevel,
+            UnityAction revealFog,
+            UnityAction meritPlus,
+            UnityAction meritMinus,
+            UnityAction unlockAllCampaign,
+            UnityAction clearAllCampaign,
+            UnityAction vsAiRandomModes)
         {
             Wake();
             HideQuit();
@@ -70,8 +82,25 @@ namespace ModularChess.Match
             if (debugMenu == null)  return;
             _debugView = debugMenu.GetComponent<DebugMenuView>();
             if (_debugView == null)  _debugView = debugMenu.AddComponent<DebugMenuView>();
-            debugMenu.transform.SetAsLastSibling(); // Ensure it's the last sibling in the hierarchy
-            _debugView.Present(resetSave, unlockAll, win, lose, resetTimer, HideDebugImmediate);
+            debugMenu.transform.SetAsLastSibling();
+            _debugView.Present(
+                resetSave,
+                unlockAll,
+                win,
+                lose,
+                resetTimer,
+                HideDebugImmediate,
+                vsAiNone,
+                vsAiAllNoRandomizer,
+                vsAiAll,
+                vsAiSpecific,
+                jumpLevel,
+                revealFog,
+                meritPlus,
+                meritMinus,
+                unlockAllCampaign,
+                clearAllCampaign,
+                vsAiRandomModes);
             Present(debugMenu);
         }
         public void HideDebugImmediate()

@@ -38,6 +38,14 @@ namespace ModularChess.Presentation
             Changed?.Invoke();
             return merit;
         }
+        public static void UnlockAll()
+        {
+            int count = CampaignCatalog.Count;
+            for (int i = 0; i < count; i++)
+                PlayerPrefs.SetInt(StarsKey(i), (int)(GetStars(i) | CampaignStarFlags.Complete));
+            PlayerPrefs.Save();
+            Changed?.Invoke();
+        }
         public static void Clear()
         {
             for (int i = 0; i < 64; i++)

@@ -124,7 +124,23 @@ namespace ModularChess.Match
                 _dialogs.HideDebugImmediate();
                 return;
             }
-            _dialogs.ShowDebug(DebugResetSave, DebugUnlockAll, DebugWin, DebugLose, DebugResetTimer);
+            _dialogs.ShowDebug(
+                DebugResetSave,
+                DebugUnlockAll,
+                DebugWin,
+                DebugLose,
+                DebugResetTimer,
+                DebugVsAiNone,
+                DebugVsAiAllNoRandomizer,
+                DebugVsAiAll,
+                DebugVsAiSpecific,
+                DebugJumpToLevel,
+                DebugRevealFog,
+                DebugMeritPlus,
+                DebugMeritMinus,
+                DebugUnlockAllCampaign,
+                DebugClearAllCampaign,
+                DebugVsAiRandomModes);
         }
 
         void ResolveReferences()
@@ -208,7 +224,7 @@ namespace ModularChess.Match
             EnsureCampaignOverlay();
             CacheOverlayViews();
             _history?.Bind(ShowMainMenu, StartHistoryReplay);
-            _campaign?.Bind(ShowPlay, StartCampaignLevel);
+            _campaign?.Bind(ShowPlay, index => StartCampaignLevel(index));
             HookOptionsOverlay();
             BindAccountCreation();
             BindMenuLoc();
@@ -358,14 +374,14 @@ namespace ModularChess.Match
         {
             EnsureCampaignOverlay();
             CacheOverlayViews();
-            _campaign?.Bind(ShowPlay, StartCampaignLevel);
+            _campaign?.Bind(ShowPlay, index => StartCampaignLevel(index));
             ShowOverlay(campaignOverlay);
             _campaign?.Refresh();
         }
-        void StartCampaignLevel(int index)
+        void StartCampaignLevel(int index, bool ignoreUnlock = false)
         {
             CampaignLevelDefinition level = CampaignCatalog.Get(index);
-            if (level == null || !CampaignProgress.IsUnlocked(index))
+            if (level == null || (!ignoreUnlock && !CampaignProgress.IsUnlocked(index)))
                 return;
             StartMatch(new MatchSession
             {
@@ -788,6 +804,127 @@ namespace ModularChess.Match
         void DebugResetTimer()
         {
             _match?.DebugResetTimer();
+        }
+        void DebugVsAiNone()
+        {
+            StartDebugVersus(Array.Empty<ModeId>());
+        }
+        void DebugVsAiAllNoRandomizer()
+        {
+            StartDebugVersus(ModesExcept(ModeId.Randomizer));
+        }
+        void DebugVsAiAll()
+        {
+            StartDebugVersus(AllModeIds());
+        }
+        void DebugVsAiSpecific(ModeId id)
+        {
+            StartDebugVersus(new[] { id });
+        }
+        void DebugJumpToLevel(int index)
+        {
+            _dialogs?.HideDebugImmediate();
+            StartCampaignLevel(index, true);
+        }
+        void DebugRevealFog()
+        {
+            _match?.DebugRevealFog();
+        }
+        void DebugMeritPlus()
+        {
+            MeritWallet.Add(1);
+            _unlocks?.Refresh();
+        }
+        void DebugMeritMinus()
+        {
+            MeritWallet.TrySpend(1);
+            _unlocks?.Refresh();
+        }
+        void DebugUnlockAllCampaign()
+        {
+            CampaignProgress.UnlockAll();
+            _campaign?.Refresh();
+        }
+        void DebugClearAllCampaign()
+        {
+            CampaignProgress.Clear();
+            _campaign?.Refresh();
+        }
+        void DebugVsAiRandomModes()
+        {
+            StartDebugVersus(RandomModeIds());
+        }
+        void StartDebugVersus(ModeId[] modes)
+        {
+            _dialogs?.HideDebugImmediate();
+            MatchSettings settings = RandomVersusSettings();
+            StartMatch(new MatchSession
+            {
+                Activity = Activity.VersusAi,
+                Rules = new MatchRules(modes, settings),
+                PlayerSide = ResolveColor(settings.HostColor),
+                Hotseat = false
+            });
+        }
+        static MatchSettings RandomVersusSettings()
+        {
+            var host = (HostColor)UnityEngine.Random.Range(0, 3);
+            var ai = (AiStrength)UnityEngine.Random.Range(0, 3);
+            int seed = UnityEngine.Random.Range(1, int.MaxValue);
+            int actionPoints = UnityEngine.Random.Range(MatchSettings.MinActionPoints, MatchSettings.MaxActionPoints + 1);
+            var layout = (TerrainLayoutKind)UnityEngine.Random.Range(0, 5);
+            int empower = UnityEngine.Random.Range(EmpoweredPowers.MinBudget, EmpoweredPowers.MaxBudget + 1);
+            int martyr = UnityEngine.Random.Range(1, 16);
+            int draft = UnityEngine.Random.Range(1, 6);
+            bool shuffle = UnityEngine.Random.value >= 0.5f;
+            bool colors = UnityEngine.Random.value >= 0.5f;
+            bool place = UnityEngine.Random.value >= 0.5f;
+            bool onPieces = UnityEngine.Random.value >= 0.5f;
+            return new MatchSettings(
+                TimeControl.None,
+                host,
+                ai,
+                false,
+                empower,
+                martyr,
+                draft,
+                actionPoints,
+                layout,
+                seed,
+                shuffle,
+                colors,
+                place,
+                onPieces);
+        }
+        static ModeId[] AllModeIds()
+        {
+            var ids = new ModeId[ModeCatalog.All.Length];
+            for (int i = 0; i < ModeCatalog.All.Length; i++)
+                ids[i] = ModeCatalog.All[i].Id;
+            return ids;
+        }
+        static ModeId[] RandomModeIds()
+        {
+            ModeDefinition[] all = ModeCatalog.All;
+            var picked = new List<ModeId>(all.Length);
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (UnityEngine.Random.value < 0.5f)
+                    picked.Add(all[i].Id);
+            }
+            if (picked.Count == 0 && all.Length > 0)
+                picked.Add(all[UnityEngine.Random.Range(0, all.Length)].Id);
+            return picked.ToArray();
+        }
+        static ModeId[] ModesExcept(ModeId skip)
+        {
+            var ids = new List<ModeId>(ModeCatalog.All.Length);
+            for (int i = 0; i < ModeCatalog.All.Length; i++)
+            {
+                if (ModeCatalog.All[i].Id != skip)
+                    ids.Add(ModeCatalog.All[i].Id);
+            }
+            return ids.ToArray();
         }
 
         void DebugResetSave()
