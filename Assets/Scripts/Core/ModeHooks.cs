@@ -55,14 +55,24 @@ namespace ModularChess.Core
         CaptureResolution Resolve(Board board, Move move, Piece captured, ModeRuntime runtime);
     }
 
+    internal interface ITurnHook
+    {
+        bool PoolKeepsTurnOpen(ModeRuntime runtime, MatchSettings settings);
+        bool KeepsTurnAfterMove(int paidAfter, bool extrasOpen, MatchSettings settings);
+        bool BlocksRepeatPiece(ModeRuntime runtime, Guid pieceId);
+    }
+
     internal sealed class ModeHooks
     {
         #region Fields
         public static ModeHooks None { get; } = new ModeHooks(
             Array.Empty<IMoveHook>(),
-            Array.Empty<ICaptureResolution>());
+            Array.Empty<ICaptureResolution>(),
+            Array.Empty<ITurnHook>());
         readonly IMoveHook[] _moves;
         readonly ICaptureResolution[] _captures;
+        readonly ITurnHook[] _turns;
+        public bool HasTurnEconomy => _turns.Length > 0;
         #endregion
 
         #region Public Methods
@@ -74,6 +84,7 @@ namespace ModularChess.Core
             }
             var moves = new List<IMoveHook>();
             var captures = new List<ICaptureResolution>();
+            var turns = new List<ITurnHook>();
             for (int i = 0; i < modes.Count; i++)
             {
                 switch (modes[i])
@@ -85,10 +96,40 @@ namespace ModularChess.Core
                     case ModeId.Martyr:
                         moves.Add(new MartyrMoves());
                         break;
+                    case ModeId.ActionEconomy:
+                        turns.Add(new ActionEconomyTurn());
+                        break;
                 }
             }
             SortByPriority(captures);
-            return new ModeHooks(moves.ToArray(), captures.ToArray());
+            return new ModeHooks(moves.ToArray(), captures.ToArray(), turns.ToArray());
+        }
+        public bool TurnStaysOpen(ModeRuntime runtime, MatchSettings settings)
+        {
+            for (int i = 0; i < _turns.Length; i++)
+            {
+                if (_turns[i].PoolKeepsTurnOpen(runtime, settings))
+                    return true;
+            }
+            return false;
+        }
+        public bool KeepsTurnAfterMove(int paidAfter, bool extrasOpen, MatchSettings settings)
+        {
+            for (int i = 0; i < _turns.Length; i++)
+            {
+                if (_turns[i].KeepsTurnAfterMove(paidAfter, extrasOpen, settings))
+                    return true;
+            }
+            return false;
+        }
+        public bool BlocksRepeatPiece(ModeRuntime runtime, Guid pieceId)
+        {
+            for (int i = 0; i < _turns.Length; i++)
+            {
+                if (_turns[i].BlocksRepeatPiece(runtime, pieceId))
+                    return true;
+            }
+            return false;
         }
         public void AppendMoves(Board board, Side side, ModeRuntime runtime, List<Move> moves)
         {
@@ -122,10 +163,11 @@ namespace ModularChess.Core
         #endregion
 
         #region Private Methods
-        ModeHooks(IMoveHook[] moves, ICaptureResolution[] captures)
+        ModeHooks(IMoveHook[] moves, ICaptureResolution[] captures, ITurnHook[] turns)
         {
             _moves = moves ?? Array.Empty<IMoveHook>();
             _captures = captures ?? Array.Empty<ICaptureResolution>();
+            _turns = turns ?? Array.Empty<ITurnHook>();
         }
         static void SortByPriority(List<ICaptureResolution> captures)
         {

@@ -77,7 +77,7 @@ An Activity. An authored sequence of levels that teach chess and Mode mechanics 
 _Avoid_: Puzzle Activity, Run, Stage, matchmaking
 
 **Campaign level**:
-One authored Board and win criteria inside Campaign. Awards up to 3 Merit via Stars. Replayable; each Star’s Merit is earned once. Not a Match.
+One authored Board and win criteria inside Campaign. Awards up to 3 Merit via Stars. Replayable; each Star’s Merit is earned once. Mode settings for that level (action points, terrain layout, Randomizer flags, seed) use the same shape as Host Match Settings. Not a Match.
 _Avoid_: Match, Stage, puzzle as the type name
 
 **Star**:

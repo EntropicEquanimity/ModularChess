@@ -51,6 +51,14 @@ namespace ModularChess.Match
         public AiStrength aiStrength = AiStrength.Easy;
         public int empowerBudget = 4;
         public int martyrThreshold = 6;
+        public int martyrDraftOptions = 3;
+        public int actionPoints = MatchSettings.DefaultActionPoints;
+        public TerrainLayoutKind terrainLayout = TerrainLayoutKind.Random;
+        public int matchSeed;
+        public bool randomShuffle = true;
+        public bool randomColors;
+        public bool randomPlacement;
+        public bool terrainOnPieces = true;
         #endregion
 
         #region Public Methods
@@ -72,7 +80,15 @@ namespace ModularChess.Match
                 playerSide,
                 aiStrength,
                 empowerBudget,
-                martyrThreshold);
+                martyrThreshold,
+                martyrDraftOptions,
+                actionPoints,
+                terrainLayout,
+                matchSeed,
+                randomShuffle,
+                randomColors,
+                randomPlacement,
+                terrainOnPieces);
         }
         #endregion
     }

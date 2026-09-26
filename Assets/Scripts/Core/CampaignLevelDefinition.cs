@@ -44,6 +44,14 @@ namespace ModularChess.Core
         public AiStrength AiStrength { get; }
         public int EmpowerBudget { get; }
         public int MartyrThreshold { get; }
+        public int MartyrDraftOptions { get; }
+        public int ActionPoints { get; }
+        public TerrainLayoutKind TerrainLayout { get; }
+        public int MatchSeed { get; }
+        public bool RandomShuffle { get; }
+        public bool RandomColors { get; }
+        public bool RandomPlacement { get; }
+        public bool TerrainOnPieces { get; }
         public int TurnLimit => TimeKind == CampaignTimeObjectiveKind.Turns ? TimeLimit : int.MaxValue;
         public int LossLimit => SpecialKind == CampaignSpecialObjectiveKind.LoseNoPieces
             ? 0
@@ -66,7 +74,15 @@ namespace ModularChess.Core
             Side playerSide = Side.White,
             AiStrength aiStrength = AiStrength.Easy,
             int empowerBudget = 4,
-            int martyrThreshold = 6)
+            int martyrThreshold = 6,
+            int martyrDraftOptions = 3,
+            int actionPoints = MatchSettings.DefaultActionPoints,
+            TerrainLayoutKind terrainLayout = TerrainLayoutKind.Random,
+            int matchSeed = 0,
+            bool randomShuffle = true,
+            bool randomColors = false,
+            bool randomPlacement = false,
+            bool terrainOnPieces = true)
         {
             Index = index;
             TitleKey = titleKey ?? throw new ArgumentNullException(nameof(titleKey));
@@ -82,6 +98,43 @@ namespace ModularChess.Core
             AiStrength = aiStrength;
             EmpowerBudget = Math.Max(3, empowerBudget);
             MartyrThreshold = martyrThreshold < 1 ? 6 : martyrThreshold;
+            if (martyrDraftOptions < 1)
+                MartyrDraftOptions = 3;
+            else if (martyrDraftOptions > 5)
+                MartyrDraftOptions = 5;
+            else
+                MartyrDraftOptions = martyrDraftOptions;
+            ActionPoints = MatchSettings.ClampActionPoints(
+                actionPoints < MatchSettings.MinActionPoints
+                    ? MatchSettings.DefaultActionPoints
+                    : actionPoints);
+            TerrainLayout = terrainLayout;
+            MatchSeed = matchSeed;
+            RandomShuffle = randomShuffle;
+            RandomColors = randomColors;
+            RandomPlacement = randomPlacement;
+            TerrainOnPieces = terrainOnPieces;
+        }
+        public MatchSettings ToMatchSettings()
+        {
+            TimeControl time = ShowsClock ? Clock : TimeControl.None;
+            HostColor color = PlayerSide == Side.White ? HostColor.White : HostColor.Black;
+            int seed = MatchSeed != 0 ? MatchSeed : (Index + 1) * 997;
+            return new MatchSettings(
+                time,
+                color,
+                AiStrength,
+                false,
+                EmpowerBudget,
+                MartyrThreshold,
+                MartyrDraftOptions,
+                ActionPoints,
+                TerrainLayout,
+                seed,
+                RandomShuffle,
+                RandomColors,
+                RandomPlacement,
+                TerrainOnPieces);
         }
         #endregion
     }

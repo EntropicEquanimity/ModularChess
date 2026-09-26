@@ -353,22 +353,20 @@ namespace ModularChess.Core
         }
         private static bool AlreadyMovedThisTurn(Board board, Move move, MatchRules rules, ModeRuntime runtime)
         {
-            if (rules == null || !rules.Has(ModeId.ActionEconomy))
-                return false;
-            if (runtime.ExtraMoveKingId != null || runtime.OverloadPieceId != null)
+            if (rules == null)
                 return false;
             Piece moving = board.GetPiece(move.From);
-            return moving != null && runtime.MovedThisTurn(moving.Id);
+            return moving != null && rules.Hooks.BlocksRepeatPiece(runtime, moving.Id);
         }
         private static bool KingMovedThisTurn(Board board, Side side, MatchRules rules, ModeRuntime runtime)
         {
-            if (rules == null || !rules.Has(ModeId.ActionEconomy))
+            if (rules == null)
                 return false;
             Square? king = board.FindKing(side);
             if (king == null)
                 return false;
             Piece piece = board.GetPiece(king.Value);
-            return piece != null && runtime.MovedThisTurn(piece.Id);
+            return piece != null && rules.Hooks.BlocksRepeatPiece(runtime, piece.Id);
         }
         private static void AddModeMoves(
             Board board,

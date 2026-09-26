@@ -322,117 +322,181 @@ MonoBehaviour:
     empowerBudget: 4
     martyrThreshold: 6
   - titleKey: campaign.level.23
-    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    fen: 6k1/5npp/8/8/2B5/8/5PPP/3Q2K1 w - - 0 1
     modes: 
     timeKind: 0
-    timeLimit: 50
+    timeLimit: 4
     clockMinutes: 0
     clockIncrement: 0
-    specialKind: 2
-    specialCount: 6
+    specialKind: 1
+    specialCount: 0
     specialPiece: 0
     playerSide: 0
     aiStrength: 1
     empowerBudget: 4
     martyrThreshold: 6
+    martyrDraftOptions: 3
+    actionPoints: 3
+    terrainLayout: 0
+    matchSeed: 0
+    randomShuffle: 1
+    randomColors: 0
+    randomPlacement: 0
+    terrainOnPieces: 0
   - titleKey: campaign.level.24
-    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    modes: 00000000
-    timeKind: 0
-    timeLimit: 50
-    clockMinutes: 0
-    clockIncrement: 0
-    specialKind: 2
-    specialCount: 6
-    specialPiece: 0
-    playerSide: 0
-    aiStrength: 1
-    empowerBudget: 4
-    martyrThreshold: 6
-  - titleKey: campaign.level.25
-    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    modes: 01000000
-    timeKind: 0
-    timeLimit: 50
-    clockMinutes: 0
-    clockIncrement: 0
-    specialKind: 2
-    specialCount: 6
-    specialPiece: 0
-    playerSide: 0
-    aiStrength: 1
-    empowerBudget: 4
-    martyrThreshold: 6
-  - titleKey: campaign.level.26
-    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    modes: 02000000
-    timeKind: 0
-    timeLimit: 55
-    clockMinutes: 0
-    clockIncrement: 0
-    specialKind: 2
-    specialCount: 8
-    specialPiece: 0
-    playerSide: 0
-    aiStrength: 1
-    empowerBudget: 4
-    martyrThreshold: 6
-  - titleKey: campaign.level.27
-    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    modes: 0000000002000000
-    timeKind: 0
-    timeLimit: 55
-    clockMinutes: 0
-    clockIncrement: 0
-    specialKind: 2
-    specialCount: 7
-    specialPiece: 0
-    playerSide: 0
-    aiStrength: 1
-    empowerBudget: 4
-    martyrThreshold: 6
-  - titleKey: campaign.level.28
-    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    modes: 0100000002000000
-    timeKind: 0
-    timeLimit: 55
-    clockMinutes: 0
-    clockIncrement: 0
-    specialKind: 2
-    specialCount: 7
-    specialPiece: 0
-    playerSide: 0
-    aiStrength: 1
-    empowerBudget: 4
-    martyrThreshold: 6
-  - titleKey: campaign.level.29
-    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    fen: r1bqk2r/pppp1ppp/2n2n2/1B2p3/3PP3/5N2/PPP2PPP/RNBQK2R w KQkq - 0 6
     modes: 
     timeKind: 0
-    timeLimit: 50
+    timeLimit: 18
     clockMinutes: 0
     clockIncrement: 0
     specialKind: 2
-    specialCount: 6
+    specialCount: 2
     specialPiece: 0
     playerSide: 0
     aiStrength: 1
     empowerBudget: 4
     martyrThreshold: 6
-  - titleKey: campaign.level.30
-    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    martyrDraftOptions: 3
+    actionPoints: 3
+    terrainLayout: 0
+    matchSeed: 0
+    randomShuffle: 1
+    randomColors: 0
+    randomPlacement: 0
+    terrainOnPieces: 0
+  - titleKey: campaign.level.25
+    fen: 6k1/5npp/8/8/2B5/8/5PPP/3Q2K1 w - - 0 1
+    modes: 03000000
+    timeKind: 0
+    timeLimit: 2
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 1
+    specialCount: 0
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+    martyrDraftOptions: 3
+    actionPoints: 2
+    terrainLayout: 0
+    matchSeed: 0
+    randomShuffle: 1
+    randomColors: 0
+    randomPlacement: 0
+    terrainOnPieces: 0
+  - titleKey: campaign.level.26
+    fen: 6k1/5npp/8/8/2B5/8/5PPP/3Q2K1 w - - 0 1
+    modes: 04000000
+    timeKind: 0
+    timeLimit: 4
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 1
+    specialCount: 0
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+    martyrDraftOptions: 3
+    actionPoints: 3
+    terrainLayout: 2
+    matchSeed: 0
+    randomShuffle: 1
+    randomColors: 0
+    randomPlacement: 0
+    terrainOnPieces: 0
+  - titleKey: campaign.level.27
+    fen: 6k1/5npp/8/7Q/2B5/8/5PPP/6K1 w - - 0 1
     modes: 00000000
     timeKind: 0
-    timeLimit: 50
+    timeLimit: 6
     clockMinutes: 0
     clockIncrement: 0
-    specialKind: 2
-    specialCount: 6
+    specialKind: 1
+    specialCount: 0
     specialPiece: 0
     playerSide: 0
     aiStrength: 1
     empowerBudget: 4
     martyrThreshold: 6
+    martyrDraftOptions: 3
+    actionPoints: 3
+    terrainLayout: 0
+    matchSeed: 0
+    randomShuffle: 1
+    randomColors: 0
+    randomPlacement: 0
+    terrainOnPieces: 0
+  - titleKey: campaign.level.28
+    fen: r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4
+    modes: 0300000004000000
+    timeKind: 0
+    timeLimit: 12
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 2
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+    martyrDraftOptions: 3
+    actionPoints: 3
+    terrainLayout: 1
+    matchSeed: 0
+    randomShuffle: 1
+    randomColors: 0
+    randomPlacement: 0
+    terrainOnPieces: 0
+  - titleKey: campaign.level.29
+    fen: r2qkbnr/ppp2ppp/2n5/1B2p3/4P1b1/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 6
+    modes: 
+    timeKind: 0
+    timeLimit: 16
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 3
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+    martyrDraftOptions: 3
+    actionPoints: 3
+    terrainLayout: 0
+    matchSeed: 0
+    randomShuffle: 1
+    randomColors: 0
+    randomPlacement: 0
+    terrainOnPieces: 0
+  - titleKey: campaign.level.30
+    fen: r1bqk2r/pppp1ppp/2n2n2/1B2p3/3PP3/5N2/PPP2PPP/RNBQK2R w KQkq - 0 6
+    modes: 030000000400000005000000
+    timeKind: 0
+    timeLimit: 20
+    clockMinutes: 0
+    clockIncrement: 0
+    specialKind: 2
+    specialCount: 3
+    specialPiece: 0
+    playerSide: 0
+    aiStrength: 1
+    empowerBudget: 4
+    martyrThreshold: 6
+    martyrDraftOptions: 3
+    actionPoints: 3
+    terrainLayout: 4
+    matchSeed: 0
+    randomShuffle: 0
+    randomColors: 1
+    randomPlacement: 0
+    terrainOnPieces: 0
   - titleKey: campaign.level.31
     fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
     modes: 01000000

@@ -24,10 +24,7 @@ namespace ModularChess.Core
         public bool TurnOpen => Runtime.ExtraMoveKingId != null
             || (Runtime.RallyArmed && MovesThisTurn > 0)
             || (Runtime.OverloadPieceId != null && Runtime.OverloadMovesMade < 2)
-            || (Rules != null
-                && Rules.Has(ModeId.ActionEconomy)
-                && MovesThisTurn > 0
-                && Runtime.PaidMovesThisTurn < Rules.Settings.ActionPoints);
+            || (Rules != null && Rules.Hooks.TurnStaysOpen(Runtime, Rules.Settings));
         public bool DraftPending => Runtime.PendingDraft != null;
         #endregion
 
@@ -486,11 +483,9 @@ namespace ModularChess.Core
             bool overloadOpen = runtime.OverloadPieceId != null
                 && runtime.OverloadPieceId.Value == moving.Id
                 && runtime.OverloadMovesMade < 2;
-            if (Rules != null && Rules.Has(ModeId.ActionEconomy))
-            {
-                bool morePaid = paidAfter < Rules.Settings.ActionPoints;
-                return !morePaid && !kingFollowUpOpens && !rallyStill && !overloadOpen;
-            }
+            bool extrasOpen = kingFollowUpOpens || rallyStill || overloadOpen;
+            if (Rules != null && Rules.Hooks.HasTurnEconomy)
+                return !Rules.Hooks.KeepsTurnAfterMove(paidAfter, extrasOpen, Rules.Settings);
             int after = runtime.MovesThisTurn + 1;
             if (after >= 2) return true;
             if (runtime.RallyArmed) return false;

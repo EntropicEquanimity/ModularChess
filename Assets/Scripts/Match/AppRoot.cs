@@ -367,30 +367,10 @@ namespace ModularChess.Match
             CampaignLevelDefinition level = CampaignCatalog.Get(index);
             if (level == null || !CampaignProgress.IsUnlocked(index))
                 return;
-            var modes = new List<ModeId>(level.Modes);
-            TimeControl time = level.ShowsClock ? level.Clock : TimeControl.None;
-            int martyrThreshold = MatchSettings.Default.MartyrThreshold;
-            for (int i = 0; i < modes.Count; i++)
-            {
-                if (modes[i] != ModeId.Martyr) continue;
-                martyrThreshold = level.MartyrThreshold;
-                break;
-            }
-            MatchSettings settings = new MatchSettings(
-                time,
-                level.PlayerSide == Side.White ? HostColor.White : HostColor.Black,
-                level.AiStrength,
-                false,
-                level.EmpowerBudget,
-                martyrThreshold,
-                MatchSettings.Default.MartyrDraftOptions,
-                MatchSettings.DefaultActionPoints,
-                TerrainLayoutKind.Random,
-                (level.Index + 1) * 997);
             StartMatch(new MatchSession
             {
                 Activity = Activity.Campaign,
-                Rules = new MatchRules(modes, settings),
+                Rules = new MatchRules(level.Modes, level.ToMatchSettings()),
                 PlayerSide = level.PlayerSide,
                 Hotseat = false,
                 CampaignLevel = level

@@ -88,6 +88,50 @@ namespace ModularChess.Match.Tests
             Assert.AreEqual(AiStrength.Medium, CampaignCatalog.Get(10).AiStrength);
             Assert.AreEqual(AiStrength.Hard, CampaignCatalog.Get(35).AiStrength);
             Assert.IsTrue(CampaignCatalog.Get(5).Modes.Length > 0);
+            MatchSettings authored = CampaignCatalog.Get(24).ToMatchSettings();
+            Assert.AreEqual(2, authored.ActionPoints);
+            Assert.IsTrue(HasMode(CampaignCatalog.Get(24), ModeId.ActionEconomy));
+            Assert.AreEqual(TerrainLayoutKind.Woods, CampaignCatalog.Get(25).TerrainLayout);
+            Assert.IsTrue(HasMode(CampaignCatalog.Get(25), ModeId.ComplexTerrain));
+        }
+
+        static bool HasMode(CampaignLevelDefinition level, ModeId id)
+        {
+            if (level?.Modes == null)
+                return false;
+            for (int i = 0; i < level.Modes.Length; i++)
+            {
+                if (level.Modes[i] == id)
+                    return true;
+            }
+            return false;
+        }
+
+        [Test]
+        public void CampaignLevel_ToMatchSettings_UsesAuthoredModeFields()
+        {
+            CampaignLevelDefinition level = new CampaignLevelDefinition(
+                4,
+                "campaign.level.5",
+                "8/8/8/8/8/8/8/8 w - - 0 1",
+                new[] { ModeId.ActionEconomy, ModeId.ComplexTerrain },
+                CampaignTimeObjectiveKind.Turns,
+                8,
+                TimeControl.None,
+                CampaignSpecialObjectiveKind.LoseNoPieces,
+                0,
+                PieceType.Pawn,
+                actionPoints: 5,
+                terrainLayout: TerrainLayoutKind.River,
+                matchSeed: 12,
+                terrainOnPieces: false);
+            MatchSettings settings = level.ToMatchSettings();
+            Assert.AreEqual(5, settings.ActionPoints);
+            Assert.AreEqual(TerrainLayoutKind.River, settings.TerrainLayout);
+            Assert.AreEqual(12, settings.MatchSeed);
+            Assert.IsFalse(settings.TerrainOnPieces);
+            Assert.AreEqual(HostColor.White, settings.HostColor);
+            Assert.AreEqual(AiStrength.Easy, settings.AiStrength);
         }
 
         [Test]

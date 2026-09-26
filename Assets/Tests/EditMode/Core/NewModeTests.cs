@@ -150,8 +150,8 @@ namespace ModularChess.Core.Tests
             MatchRules rules = new MatchRules(
                 new[] { ModeId.ComplexTerrain },
                 MatchSettings.Default);
-            GameState state = GameState.FromFen("4k3/8/8/8/4n3/8/8/4K3 w - - 0 1");
-            Board board = state.Board.WithTerrain(new Square(4, 3), TerrainKind.Forest);
+            GameState state = GameState.FromFen("n3k3/8/8/8/8/8/P7/4K3 w - - 0 1");
+            Board board = state.Board.WithTerrain(new Square(0, 7), TerrainKind.Forest);
             state = GameState.FromPosition(
                 board,
                 state.SideToMove,
@@ -161,7 +161,7 @@ namespace ModularChess.Core.Tests
                 state.FullmoveNumber,
                 rules: rules);
             VisionMap vision = VisionMap.Compute(state, Side.White);
-            Assert.AreEqual(SquareSight.Hidden, vision[new Square(4, 3)]);
+            Assert.AreEqual(SquareSight.Hidden, vision[new Square(0, 7)]);
         }
     }
 }
