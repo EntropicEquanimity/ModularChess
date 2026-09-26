@@ -832,12 +832,12 @@ namespace ModularChess.Match
         }
         void DebugMeritPlus()
         {
-            MeritWallet.Add(1);
+            MeritWallet.Add(20);
             _unlocks?.Refresh();
         }
         void DebugMeritMinus()
         {
-            MeritWallet.TrySpend(1);
+            MeritWallet.TrySpend(20);
             _unlocks?.Refresh();
         }
         void DebugUnlockAllCampaign()

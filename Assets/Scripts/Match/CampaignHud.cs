@@ -29,7 +29,7 @@ namespace ModularChess.Match
         protected override string RematchLocKey => "hud.tryAgain";
         public override void PresentSession(MatchSession session)
         {
-            Wire();
+            base.PresentSession(session);
             HideReplayChrome();
             CampaignLevelDefinition level = session?.CampaignLevel;
             _levelTitle = CampaignRowView.Title(level);

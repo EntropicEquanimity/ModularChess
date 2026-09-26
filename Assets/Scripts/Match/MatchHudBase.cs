@@ -55,6 +55,7 @@ namespace ModularChess.Match
         [SerializeField] Transform playerEffectsIconList;
         [SerializeField] Transform opponentEffectsIconList;
         [SerializeField] EffectIconCatalog effectIcons;
+        [SerializeField] MatchSettingsInfoView matchSettingsInfo;
         readonly List<EffectIconView> _playerEffectIcons = new List<EffectIconView>();
         readonly List<EffectIconView> _opponentEffectIcons = new List<EffectIconView>();
         Tween _optionsTween;
@@ -100,6 +101,7 @@ namespace ModularChess.Match
         {
             KillTweens();
             HideOptionsImmediate();
+            matchSettingsInfo?.HideImmediate();
         }
         protected virtual void OnDestroy()
         {
@@ -163,6 +165,10 @@ namespace ModularChess.Match
         }
         public virtual void PresentSession(MatchSession session)
         {
+            Wire();
+            if (matchSettingsInfo == null)
+                matchSettingsInfo = GetComponentInChildren<MatchSettingsInfoView>(true);
+            matchSettingsInfo?.Present(session);
         }
         public virtual void BindActions(MatchController controller)
         {
@@ -867,6 +873,9 @@ namespace ModularChess.Match
                 pieceDetails = GetComponentInChildren<PieceDetailsPanel>(true);
             }
 
+            if (matchSettingsInfo == null)
+                matchSettingsInfo = GetComponentInChildren<MatchSettingsInfoView>(true);
+
             if (matchChrome == null)
             {
                 Transform names = FindChild(transform, "PlayerNames");
@@ -932,6 +941,7 @@ namespace ModularChess.Match
         void HideTransient()
         {
             HideOptionsImmediate();
+            matchSettingsInfo?.HideImmediate();
             HideDraft();
             HidePieceDetails();
             _deferGameOver = false;
