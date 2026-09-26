@@ -222,6 +222,10 @@ namespace ModularChess.Core
                     Piece piece = step.Occupant;
                     if (piece == null)
                     {
+                        if (TerrainRules.BlocksMoveThrough(board, step.Square))
+                        {
+                            break;
+                        }
                         continue;
                     }
 

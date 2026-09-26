@@ -14,24 +14,23 @@ namespace ModularChess.Presentation
 
         Func<int> _get;
         Action<int> _set;
+        Func<int, string> _format;
         int _min;
         int _max;
 
-        public void Bind(string label, Func<int> get, Action<int> set, int min, int max)
+        public void Bind(string label, Func<int> get, Action<int> set, int min, int max, Func<int, string> format = null)
         {
             _get = get;
             _set = set;
+            _format = format;
             _min = min;
             _max = max;
-
             if (nameLabel != null)
                 nameLabel.text = label;
-
             if (minusButton != null)
                 GameAudio.Bind(minusButton, () => Step(-1));
             if (plusButton != null)
                 GameAudio.Bind(plusButton, () => Step(1));
-
             Refresh();
         }
 
@@ -47,7 +46,7 @@ namespace ModularChess.Presentation
         {
             int value = _get != null ? _get() : 0;
             if (valueLabel != null)
-                valueLabel.text = value.ToString();
+                valueLabel.text = _format != null ? _format(value) : value.ToString();
             if (minusButton != null)
                 minusButton.interactable = value > _min;
             if (plusButton != null)

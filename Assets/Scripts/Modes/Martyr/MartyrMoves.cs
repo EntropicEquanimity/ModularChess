@@ -33,6 +33,10 @@ namespace ModularChess.Core
                         Piece occupant = board.GetPiece(cursor);
                         if (occupant == null)
                         {
+                            if (TerrainRules.BlocksMoveThrough(board, cursor))
+                            {
+                                break;
+                            }
                             cursor = cursor.Offset(Directions.RookFiles[d], Directions.RookRanks[d]);
                             continue;
                         }

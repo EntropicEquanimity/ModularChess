@@ -7,6 +7,7 @@ namespace ModularChess.Core
     {
         #region Fields
         private readonly Piece[] _squares;
+        private readonly TerrainKind[] _terrain;
         public IEnumerable<Piece> OccupiedPieces
         {
             get
@@ -24,7 +25,7 @@ namespace ModularChess.Core
         #endregion
 
         #region Public Methods
-        internal Board(Piece[] squares)
+        internal Board(Piece[] squares, TerrainKind[] terrain = null)
         {
             if (squares == null)
             {
@@ -37,6 +38,10 @@ namespace ModularChess.Core
             }
 
             _squares = squares;
+            if (terrain != null && terrain.Length == squares.Length)
+                _terrain = terrain;
+            else
+                _terrain = new TerrainKind[squares.Length];
         }
         internal static Board Empty()
         {
@@ -51,13 +56,19 @@ namespace ModularChess.Core
 
             return _squares[square.ToIndex()];
         }
+        public TerrainKind TerrainAt(Square square)
+        {
+            if (!square.IsOnBoard)
+                return TerrainKind.None;
+            return _terrain[square.ToIndex()];
+        }
         public bool IsEmpty(Square square)
         {
             return square.IsOnBoard && _squares[square.ToIndex()] == null;
         }
         public bool CanPlace(Square square)
         {
-            return IsEmpty(square);
+            return IsEmpty(square) && TerrainAt(square) != TerrainKind.Mountain;
         }
         public Square? FindKing(Side side)
         {
@@ -128,7 +139,26 @@ namespace ModularChess.Core
                     throw new ArgumentOutOfRangeException(nameof(move), move.Kind, null);
             }
 
-            return new Board(next);
+            return new Board(next, _terrain);
+        }
+        internal Board WithTerrain(TerrainKind[] terrain)
+        {
+            TerrainKind[] copy = new TerrainKind[_squares.Length];
+            if (terrain != null)
+            {
+                int n = terrain.Length < copy.Length ? terrain.Length : copy.Length;
+                for (int i = 0; i < n; i++)
+                    copy[i] = terrain[i];
+            }
+            return new Board((Piece[])_squares.Clone(), copy);
+        }
+        internal Board WithTerrain(Square square, TerrainKind kind)
+        {
+            if (!square.IsOnBoard)
+                throw new ArgumentOutOfRangeException(nameof(square), square, "Square is off the board.");
+            TerrainKind[] next = (TerrainKind[])_terrain.Clone();
+            next[square.ToIndex()] = kind;
+            return new Board((Piece[])_squares.Clone(), next);
         }
         internal Board WithPiece(Square square, Piece piece)
         {
@@ -153,7 +183,7 @@ namespace ModularChess.Core
 
             Piece[] next = (Piece[])_squares.Clone();
             next[index] = piece;
-            return new Board(next);
+            return new Board(next, _terrain);
         }
         #endregion
 

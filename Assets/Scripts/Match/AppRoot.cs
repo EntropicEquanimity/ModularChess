@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using ModularChess.Core;
@@ -382,7 +383,10 @@ namespace ModularChess.Match
                 false,
                 level.EmpowerBudget,
                 martyrThreshold,
-                MatchSettings.Default.MartyrDraftOptions);
+                MatchSettings.Default.MartyrDraftOptions,
+                MatchSettings.DefaultActionPoints,
+                TerrainLayoutKind.Random,
+                (level.Index + 1) * 997);
             StartMatch(new MatchSession
             {
                 Activity = Activity.Campaign,
@@ -598,6 +602,7 @@ namespace ModularChess.Match
             int incrementPreset = _matchSettings != null ? _matchSettings.IncrementPreset : 0;
             HostColor hostColor = _matchSettings != null ? _matchSettings.HostColor : HostColor.White;
             AiStrength aiStrength = _matchSettings != null ? _matchSettings.AiStrength : AiStrength.Medium;
+            int seed = _modeSettings.MatchSeed != 0 ? _modeSettings.MatchSeed : Environment.TickCount;
             MatchSettings settings = new MatchSettings(
                 TimeFromPreset(timePreset, incrementPreset),
                 hostColor,
@@ -605,7 +610,14 @@ namespace ModularChess.Match
                 false,
                 _modeSettings.EmpowerBudget,
                 _modeSettings.MartyrThreshold,
-                _modeSettings.MartyrDraftOptions);
+                _modeSettings.MartyrDraftOptions,
+                _modeSettings.ActionPoints,
+                _modeSettings.TerrainLayout,
+                seed,
+                _modeSettings.RandomShuffle,
+                _modeSettings.RandomColors,
+                _modeSettings.RandomPlacement,
+                _modeSettings.TerrainOnPieces);
             var rules = new MatchRules(_selectedModes, settings);
             if (_activity == Activity.VersusAi)
             {
@@ -920,7 +932,7 @@ namespace ModularChess.Match
                 case HostColor.Black:
                     return Side.Black;
                 case HostColor.Random:
-                    return Random.value < 0.5f ? Side.White : Side.Black;
+                    return UnityEngine.Random.value < 0.5f ? Side.White : Side.Black;
                 default:
                     throw new System.ArgumentOutOfRangeException(nameof(color), color, null);
             }

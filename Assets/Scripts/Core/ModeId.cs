@@ -4,6 +4,9 @@ namespace ModularChess.Core
     {
         FogOfWar,
         PowerfulPieces,
-        Martyr
+        Martyr,
+        ActionEconomy,
+        ComplexTerrain,
+        Randomizer
     }
 }

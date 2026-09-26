@@ -307,6 +307,7 @@ GameObject:
   - component: {fileID: 7948226309934681482}
   - component: {fileID: 1673352549144922747}
   - component: {fileID: 1380095766620480634}
+  - component: {fileID: 575004604987683761}
   m_Layer: 5
   m_Name: InputField
   m_TagString: Untagged
@@ -473,6 +474,25 @@ MonoBehaviour:
   isAlert: 0
   m_InputValidator: {fileID: 0}
   m_ShouldActivateOnSelect: 1
+--- !u!114 &575004604987683761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4157858666240176694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e8a7b1d92f4e6a8c3d5f7b9e1a2c4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ModularChess.Presentation::ModularChess.Presentation.UiMotion
+  image: {fileID: 1262155772023396937}
+  hoverPadX: 40
+  hoverPadY: 10
+  duration: 0.1
+  openMinHeight: 8
+  openPop: 4
+  openDuration: 0.15
 --- !u!1 &8470509323505767233
 GameObject:
   m_ObjectHideFlags: 0

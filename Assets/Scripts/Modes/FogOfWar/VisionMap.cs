@@ -24,6 +24,7 @@ namespace ModularChess.Core
             if (state == null) throw new ArgumentNullException(nameof(state));
             if (state.Status != GameStatus.InProgress) return AllIdentified;
             bool fog = state.Rules != null && state.Rules.Has(ModeId.FogOfWar);
+            bool terrain = state.Rules != null && state.Rules.Has(ModeId.ComplexTerrain);
             SquareSight[] cells;
             if (fog)
             {
@@ -32,6 +33,8 @@ namespace ModularChess.Core
             else
             {
                 cells = FillCells(SquareSight.Identified);
+                if (terrain)
+                    HideForestCover(cells, state, viewer);
             }
             ApplyDustCloud(cells, state, viewer);
             ApplyFogVisionPower(cells, state, viewer);
@@ -50,6 +53,22 @@ namespace ModularChess.Core
             var cells = new SquareSight[Square.BoardSize * Square.BoardSize];
             for (int i = 0; i < cells.Length; i++) cells[i] = sight;
             return cells;
+        }
+        static void HideForestCover(SquareSight[] cells, GameState state, Side viewer)
+        {
+            SquareSight[] vision = FogVision.ComputeCells(state, viewer);
+            Board board = state.Board;
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = Square.FromIndex(i);
+                if (board.TerrainAt(square) != TerrainKind.Forest)
+                    continue;
+                Piece piece = board.GetPiece(square);
+                if (piece == null || piece.Side == viewer)
+                    continue;
+                if (vision[i] != SquareSight.Identified)
+                    cells[i] = SquareSight.Hidden;
+            }
         }
         static void ApplyDustCloud(SquareSight[] cells, GameState state, Side viewer)
         {

@@ -18,6 +18,7 @@ namespace ModularChess.Presentation
         [SerializeField] bool buildOnAwake = true;
         [SerializeField] PieceView piecePrefab;
         [SerializeField] SquareView squarePrefab;
+        [SerializeField] TerrainSpriteCatalog terrainSprites;
 
         readonly Dictionary<Guid, PieceView> _pieces = new Dictionary<Guid, PieceView>();
         readonly SquareView[] _squares = new SquareView[BoardLayout.FileCount * BoardLayout.RankCount];
@@ -28,6 +29,7 @@ namespace ModularChess.Presentation
         readonly HashSet<Square> _validTargets = new HashSet<Square>();
         readonly HashSet<Guid> _dimmedIds = new HashSet<Guid>();
         readonly HashSet<Guid> _banished = new HashSet<Guid>();
+        readonly HashSet<Guid> _captureThreats = new HashSet<Guid>();
 
         Transform _squaresRoot;
         Transform _piecesRoot;
@@ -470,7 +472,8 @@ namespace ModularChess.Presentation
                 square,
                 _layout.SquareSize,
                 light ? theme.LightSquare : theme.DarkSquare,
-                theme);
+                theme,
+                TerrainArt());
             return view;
         }
 
@@ -888,6 +891,12 @@ namespace ModularChess.Presentation
             GameObject loaded = RuntimePrefabs.ChessboardTile;
             return loaded != null ? loaded.GetComponent<SquareView>() : null;
         }
+        TerrainSpriteCatalog TerrainArt()
+        {
+            if (terrainSprites == null)
+                terrainSprites = TerrainSpriteCatalog.Load();
+            return terrainSprites;
+        }
 
         bool IsCovered(Square square)
         {
@@ -919,7 +928,46 @@ namespace ModularChess.Presentation
                     selected.PlaySelectPop();
             }
         }
-
+        void ApplyCaptureThreats()
+        {
+            _captureThreats.Clear();
+            if (_state != null && _selected.HasValue)
+            {
+                IReadOnlyList<Move> moves = _state.LegalMovesFrom(_selected.Value);
+                if (moves != null)
+                {
+                    for (int i = 0; i < moves.Count; i++)
+                    {
+                        Square? capturedAt = CaptureSquare(moves[i]);
+                        if (capturedAt == null)
+                            continue;
+                        Piece captured = _state.Board.GetPiece(capturedAt.Value);
+                        if (captured != null)
+                            _captureThreats.Add(captured.Id);
+                    }
+                }
+            }
+            foreach (KeyValuePair<Guid, PieceView> pair in _pieces)
+            {
+                if (pair.Value != null)
+                    pair.Value.SetCaptureThreat(_captureThreats.Contains(pair.Key));
+            }
+        }
+        static Square? CaptureSquare(Move move)
+        {
+            switch (move.Kind)
+            {
+                case MoveKind.Capture:
+                case MoveKind.Bombard:
+                    return move.To;
+                case MoveKind.Promotion:
+                    return move.CapturedType != null ? move.To : (Square?)null;
+                case MoveKind.EnPassant:
+                    return new Square(move.To.File, move.From.Rank);
+                default:
+                    return null;
+            }
+        }
         void OnDisable()
         {
             if (!Application.isPlaying)
@@ -1000,10 +1048,12 @@ namespace ModularChess.Presentation
                         continue;
                     view.SetHidden(_vision[square] == SquareSight.Hidden);
                     view.SetCovered(IsCovered(square));
+                    view.SetTerrain(_state != null ? _state.Board.TerrainAt(square) : TerrainKind.None);
                 }
             }
 
             ApplySelectedOutlines();
+            ApplyCaptureThreats();
             ApplyLandmineMarkers();
             if (!_selected.HasValue)
                 return;

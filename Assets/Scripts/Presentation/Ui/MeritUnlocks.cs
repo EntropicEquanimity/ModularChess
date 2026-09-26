@@ -17,6 +17,9 @@ namespace ModularChess.Presentation
             UnlockProduct.ModeFogOfWar,
             UnlockProduct.ModePowerfulPieces,
             UnlockProduct.ModeMartyr,
+            UnlockProduct.ModeActionEconomy,
+            UnlockProduct.ModeComplexTerrain,
+            UnlockProduct.ModeRandomizer,
             UnlockProduct.HistoryTier1,
             UnlockProduct.HistoryTier2,
             UnlockProduct.HistoryTier3,
@@ -62,6 +65,9 @@ namespace ModularChess.Presentation
                 case UnlockProduct.ModeFogOfWar: return 6;
                 case UnlockProduct.ModePowerfulPieces: return 12;
                 case UnlockProduct.ModeMartyr: return 15;
+                case UnlockProduct.ModeActionEconomy: return 13;
+                case UnlockProduct.ModeComplexTerrain: return 10;
+                case UnlockProduct.ModeRandomizer: return 15;
                 case UnlockProduct.HistoryTier1: return 1;
                 case UnlockProduct.HistoryTier2: return 3;
                 case UnlockProduct.HistoryTier3: return 5;
@@ -106,6 +112,9 @@ namespace ModularChess.Presentation
                 case UnlockProduct.ModeFogOfWar: return ModeId.FogOfWar;
                 case UnlockProduct.ModePowerfulPieces: return ModeId.PowerfulPieces;
                 case UnlockProduct.ModeMartyr: return ModeId.Martyr;
+                case UnlockProduct.ModeActionEconomy: return ModeId.ActionEconomy;
+                case UnlockProduct.ModeComplexTerrain: return ModeId.ComplexTerrain;
+                case UnlockProduct.ModeRandomizer: return ModeId.Randomizer;
                 default: return null;
             }
         }
@@ -116,6 +125,9 @@ namespace ModularChess.Presentation
                 case ModeId.FogOfWar: return UnlockProduct.ModeFogOfWar;
                 case ModeId.PowerfulPieces: return UnlockProduct.ModePowerfulPieces;
                 case ModeId.Martyr: return UnlockProduct.ModeMartyr;
+                case ModeId.ActionEconomy: return UnlockProduct.ModeActionEconomy;
+                case ModeId.ComplexTerrain: return UnlockProduct.ModeComplexTerrain;
+                case ModeId.Randomizer: return UnlockProduct.ModeRandomizer;
                 default: return null;
             }
         }

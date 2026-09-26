@@ -22,6 +22,9 @@ namespace ModularChess.Presentation
         Color _liveOutline = Color.white;
         Color _liveBody = Color.white;
         Color _liveGlyph = Color.white;
+        Color _glyphBeforeThreat = Color.white;
+        Color _bodyBeforeThreat = Color.white;
+        bool _captureThreatened;
         bool _restoreTintOnKill = true;
         Color _outlineColor = Color.white;
         Color _bodyColor = Color.white;
@@ -51,8 +54,17 @@ namespace ModularChess.Presentation
             EnsureRenderers();
             CacheVisuals();
             _ghosted = false;
+            _captureThreatened = false;
             RestorePrefabVisuals();
-            _glyph.sprite = ChessGlyphs.GetSprite(piece.Type, piece.Side);
+            if (piece.Hue != 0)
+            {
+                _glyph.sprite = ChessGlyphs.GetSprite(piece.Type, Side.White);
+                _glyph.color = Color.HSVToRGB(piece.Hue / 255f, 0.62f, 0.95f);
+            }
+            else
+            {
+                _glyph.sprite = ChessGlyphs.GetSprite(piece.Type, piece.Side);
+            }
             _glyph.enabled = true;
         }
         public void BindCaptured(Guid id, PieceType type, Side side, BoardTheme theme)
@@ -62,6 +74,7 @@ namespace ModularChess.Presentation
             EnsureRenderers();
             CacheVisuals();
             _ghosted = false;
+            _captureThreatened = false;
             RestorePrefabVisuals();
             _glyph.sprite = ChessGlyphs.GetSprite(type, side);
             _glyph.enabled = true;
@@ -87,7 +100,39 @@ namespace ModularChess.Presentation
         {
             if (_outline == null)
                 return;
-            _outline.enabled = selected || _outlineEnabled;
+            if (selected)
+            {
+                _outline.enabled = true;
+                _outline.color = new Color32(246, 246, 105, 230);
+                return;
+            }
+            _outline.enabled = _outlineEnabled;
+            _outline.color = _outlineColor;
+        }
+
+        public void SetCaptureThreat(bool threatened)
+        {
+            if (threatened == _captureThreatened)
+                return;
+            if (threatened)
+            {
+                if (_glyph != null)
+                    _glyphBeforeThreat = _glyph.color;
+                if (_body != null)
+                    _bodyBeforeThreat = _body.color;
+                _captureThreatened = true;
+                Color tint = new Color(1f, 0.18f, 0.14f, _ghosted ? 0.45f : 1f);
+                if (_glyph != null)
+                    _glyph.color = tint;
+                if (_body != null && _body.enabled)
+                    _body.color = new Color(tint.r, tint.g, tint.b, _ghosted ? 0.4f : 0.7f);
+                return;
+            }
+            _captureThreatened = false;
+            if (_glyph != null)
+                _glyph.color = _glyphBeforeThreat;
+            if (_body != null && _body.enabled)
+                _body.color = _bodyBeforeThreat;
         }
         public void SetGhosted(bool ghosted)
         {

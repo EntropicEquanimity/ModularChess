@@ -36,6 +36,10 @@ namespace ModularChess.Core
                 {
                     continue;
                 }
+                if (AlreadyMovedThisTurn(board, move, rules, runtime))
+                {
+                    continue;
+                }
 
                 Board next = ApplyForLegality(board, move, rules, runtime);
                 ModeRuntime afterRuntime = RuntimeAfterMove(board, move, rules, runtime);
@@ -51,7 +55,7 @@ namespace ModularChess.Core
                 legal.Add(move);
             }
 
-            if (runtime.ExtraMoveKingId == null)
+            if (runtime.ExtraMoveKingId == null && !KingMovedThisTurn(board, side, rules, runtime))
             {
                 AddCastling(board, side, castlingRights, legal, rules, runtime);
             }
@@ -190,14 +194,14 @@ namespace ModularChess.Core
             bool fleet = runtime.FleetPawns(pawn.Side);
 
             Square one = from.Offset(0, forward);
-            if (one.IsOnBoard && board.GetPiece(one) == null)
+            if (one.IsOnBoard && board.GetPiece(one) == null && TerrainRules.CanLand(board, one))
             {
                 AddPawnAdvance(from, one, promotionRank, moves);
                 bool canDouble = from.Rank == startRank || fleet;
-                if (canDouble)
+                if (canDouble && !TerrainRules.BlocksMoveThrough(board, one))
                 {
                     Square two = from.Offset(0, forward * 2);
-                    if (two.IsOnBoard && board.GetPiece(two) == null)
+                    if (two.IsOnBoard && board.GetPiece(two) == null && TerrainRules.CanLand(board, two))
                     {
                         moves.Add(new Move(from, two, MoveKind.Quiet));
                     }
@@ -234,6 +238,10 @@ namespace ModularChess.Core
             List<Move> moves)
         {
             if (!to.IsOnBoard)
+            {
+                return;
+            }
+            if (!TerrainRules.CanLand(board, to))
             {
                 return;
             }
@@ -280,7 +288,7 @@ namespace ModularChess.Core
             for (int i = 0; i < fileDeltas.Length; i++)
             {
                 Square to = from.Offset(fileDeltas[i], rankDeltas[i]);
-                if (!to.IsOnBoard)
+                if (!to.IsOnBoard || !TerrainRules.CanLand(board, to))
                 {
                     continue;
                 }
@@ -314,9 +322,17 @@ namespace ModularChess.Core
                 {
                     PatternStep step = RayBuffer[s];
                     Piece occupant = step.Occupant;
+                    if (!TerrainRules.CanLand(board, step.Square))
+                    {
+                        break;
+                    }
                     if (occupant == null)
                     {
                         moves.Add(new Move(from, step.Square, MoveKind.Quiet));
+                        if (TerrainRules.BlocksMoveThrough(board, step.Square))
+                        {
+                            break;
+                        }
                         continue;
                     }
                     if (occupant.Side == piece.Side)
@@ -334,6 +350,25 @@ namespace ModularChess.Core
                     break;
                 }
             }
+        }
+        private static bool AlreadyMovedThisTurn(Board board, Move move, MatchRules rules, ModeRuntime runtime)
+        {
+            if (rules == null || !rules.Has(ModeId.ActionEconomy))
+                return false;
+            if (runtime.ExtraMoveKingId != null || runtime.OverloadPieceId != null)
+                return false;
+            Piece moving = board.GetPiece(move.From);
+            return moving != null && runtime.MovedThisTurn(moving.Id);
+        }
+        private static bool KingMovedThisTurn(Board board, Side side, MatchRules rules, ModeRuntime runtime)
+        {
+            if (rules == null || !rules.Has(ModeId.ActionEconomy))
+                return false;
+            Square? king = board.FindKing(side);
+            if (king == null)
+                return false;
+            Piece piece = board.GetPiece(king.Value);
+            return piece != null && runtime.MovedThisTurn(piece.Id);
         }
         private static void AddModeMoves(
             Board board,
@@ -525,7 +560,12 @@ namespace ModularChess.Core
             int step = kingFile > kingFrom.File ? 1 : -1;
             for (int file = kingFrom.File + step; file != rookFile; file += step)
             {
-                if (board.GetPiece(new Square(file, kingFrom.Rank)) != null)
+                Square along = new Square(file, kingFrom.Rank);
+                if (board.GetPiece(along) != null)
+                {
+                    return false;
+                }
+                if (TerrainRules.BlocksMoveThrough(board, along) || !TerrainRules.CanLand(board, along))
                 {
                     return false;
                 }

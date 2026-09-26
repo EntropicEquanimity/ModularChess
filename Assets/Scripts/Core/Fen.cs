@@ -40,6 +40,8 @@ namespace ModularChess.Core
 
             ValidateKings(board);
             board = ApplyHasMovedFromCastling(board, castling);
+            MatchRules resolved = rules ?? MatchRules.CoreOnly;
+            board = ModeStart.Apply(board, resolved, ref castling);
             return GameState.FromPosition(
                 board,
                 sideToMove,
@@ -47,7 +49,7 @@ namespace ModularChess.Core
                 castling,
                 halfmove,
                 fullmove,
-                rules: rules);
+                rules: resolved);
         }
         public static string Format(GameState state)
         {

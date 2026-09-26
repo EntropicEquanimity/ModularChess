@@ -18,6 +18,7 @@ namespace ModularChess.Core
         private readonly Dictionary<MartyrPower, int> _blackObtains;
         private readonly List<CaptureRecord> _captures;
         private readonly List<LandmineMarker> _landmines;
+        private readonly HashSet<Guid> _movedThisTurn;
         public int WhiteLostMaterial { get; private set; }
         public int BlackLostMaterial { get; private set; }
         public int WhiteDraftsQueued { get; private set; }
@@ -42,7 +43,9 @@ namespace ModularChess.Core
         public Guid? OverloadPieceId { get; private set; }
         public int OverloadMovesMade { get; private set; }
         public int MovesThisTurn { get; private set; }
+        public int PaidMovesThisTurn { get; private set; }
         public bool RallyArmed { get; private set; }
+        public bool RallyExtraSpent { get; private set; }
         public DraftOffer? PendingDraft { get; private set; }
         public PieceType? PendingBattlefieldType { get; private set; }
         public bool SetupComplete { get; private set; }
@@ -50,6 +53,7 @@ namespace ModularChess.Core
 
         #region Public Methods
         public bool IsEmpowered(Guid pieceId) => _empowered.Contains(pieceId);
+        public bool MovedThisTurn(Guid pieceId) => _movedThisTurn.Contains(pieceId);
         public bool ExtraLifeAvailable(Guid pieceId)
         {
             return _extraLife.Contains(pieceId) && !_extraLifeSpent.Contains(pieceId);
@@ -119,6 +123,30 @@ namespace ModularChess.Core
         {
             ModeRuntime next = Clone();
             next.MovesThisTurn = count;
+            return next;
+        }
+        public ModeRuntime WithPaidMoves(int count)
+        {
+            ModeRuntime next = Clone();
+            next.PaidMovesThisTurn = count;
+            return next;
+        }
+        public ModeRuntime WithMoved(Guid pieceId)
+        {
+            ModeRuntime next = Clone();
+            next._movedThisTurn.Add(pieceId);
+            return next;
+        }
+        public ModeRuntime ClearMovedThisTurn()
+        {
+            ModeRuntime next = Clone();
+            next._movedThisTurn.Clear();
+            return next;
+        }
+        public ModeRuntime WithRallyExtraSpent(bool spent)
+        {
+            ModeRuntime next = Clone();
+            next.RallyExtraSpent = spent;
             return next;
         }
         public ModeRuntime WithRally(bool armed)
@@ -391,6 +419,7 @@ namespace ModularChess.Core
             _blackObtains = new Dictionary<MartyrPower, int>();
             _captures = new List<CaptureRecord>();
             _landmines = new List<LandmineMarker>();
+            _movedThisTurn = new HashSet<Guid>();
         }
         private ModeRuntime(ModeRuntime source)
         {
@@ -405,6 +434,7 @@ namespace ModularChess.Core
             _blackObtains = new Dictionary<MartyrPower, int>(source._blackObtains);
             _captures = new List<CaptureRecord>(source._captures);
             _landmines = new List<LandmineMarker>(source._landmines);
+            _movedThisTurn = new HashSet<Guid>(source._movedThisTurn);
             WhiteLostMaterial = source.WhiteLostMaterial;
             BlackLostMaterial = source.BlackLostMaterial;
             WhiteDraftsQueued = source.WhiteDraftsQueued;
@@ -429,7 +459,9 @@ namespace ModularChess.Core
             OverloadPieceId = source.OverloadPieceId;
             OverloadMovesMade = source.OverloadMovesMade;
             MovesThisTurn = source.MovesThisTurn;
+            PaidMovesThisTurn = source.PaidMovesThisTurn;
             RallyArmed = source.RallyArmed;
+            RallyExtraSpent = source.RallyExtraSpent;
             PendingDraft = source.PendingDraft;
             PendingBattlefieldType = source.PendingBattlefieldType;
             SetupComplete = source.SetupComplete;

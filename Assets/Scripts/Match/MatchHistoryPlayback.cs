@@ -17,11 +17,13 @@ namespace ModularChess.Match
             switch ((MatchHistoryEventKind)e.kind)
             {
                 case MatchHistoryEventKind.Move:
-                    return ApplyMove(ref state, e) ? true : TryApply(ref state, e);
+                    return ApplyMove(ref state, e);
                 case MatchHistoryEventKind.Empowered:
-                    return ApplyEmpowered(ref state, e) ? true : TryApply(ref state, e);
+                    return ApplyEmpowered(ref state, e);
                 case MatchHistoryEventKind.Draft:
-                    return ApplyDraft(ref state, e) ? true : TryApply(ref state, e);
+                    return ApplyDraft(ref state, e);
+                case MatchHistoryEventKind.EndTurn:
+                    return ApplyEndTurn(ref state);
                 default:
                     return false;
             }
@@ -93,8 +95,19 @@ namespace ModularChess.Match
             state = state.ConfirmEmpowered(ids);
             return true;
         }
+        static bool ApplyEndTurn(ref GameState state)
+        {
+            if (!state.CanEndTurn())
+                return false;
+            state = state.EndTurn();
+            return true;
+        }
         static bool ApplyDraft(ref GameState state, MatchHistoryEvent e)
         {
+            if (state.Runtime.PendingDraft == null && state.CanEndTurn())
+                state = state.EndTurn();
+            if (state.Runtime.PendingDraft == null)
+                return false;
             var power = (MartyrPower)e.power;
             Guid? targetId = null;
             if (!string.IsNullOrEmpty(e.target) && Square.TryParse(e.target, out Square target))

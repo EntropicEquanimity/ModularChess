@@ -11,7 +11,8 @@ namespace ModularChess.Match
     {
         Move = 0,
         Empowered = 1,
-        Draft = 2
+        Draft = 2,
+        EndTurn = 3
     }
 
     [Serializable]
@@ -48,6 +49,11 @@ namespace ModularChess.Match
         public int empoweredCount;
         public int martyrThreshold;
         public int martyrDraftOptions;
+        public int actionPoints;
+        public int terrainLayout;
+        public int matchSeed;
+        public int randomFlags;
+        public int terrainSkipPieces;
         public int mainMinutes;
         public int incrementSeconds;
         public int hostSide;
@@ -94,6 +100,11 @@ namespace ModularChess.Match
                 empowerBudget = session.Rules.Settings.EmpowerBudget,
                 martyrThreshold = session.Rules.Settings.MartyrThreshold,
                 martyrDraftOptions = session.Rules.Settings.MartyrDraftOptions,
+                actionPoints = session.Rules.Settings.ActionPoints,
+                terrainLayout = (int)session.Rules.Settings.TerrainLayout,
+                matchSeed = session.Rules.Settings.MatchSeed,
+                randomFlags = RandomFlags(session.Rules.Settings),
+                terrainSkipPieces = session.Rules.Settings.TerrainOnPieces ? 0 : 1,
                 mainMinutes = session.Rules.Settings.Time.BaseMinutes,
                 incrementSeconds = session.Rules.Settings.Time.IncrementSeconds,
                 hostSide = (int)session.PlayerSide,
@@ -162,6 +173,10 @@ namespace ModularChess.Match
                 squares = list
             };
         }
+        public static MatchHistoryEvent EndTurnEvent()
+        {
+            return new MatchHistoryEvent { kind = (int)MatchHistoryEventKind.EndTurn };
+        }
         public static MatchHistoryEvent DraftEvent(MartyrPower power, Square? target, Square[] reinforcements)
         {
             string[] slots = null;
@@ -201,7 +216,14 @@ namespace ModularChess.Match
                 false,
                 budget,
                 Math.Max(0, record.martyrThreshold),
-                Math.Max(0, record.martyrDraftOptions));
+                Math.Max(0, record.martyrDraftOptions),
+                record.actionPoints > 0 ? record.actionPoints : MatchSettings.DefaultActionPoints,
+                (TerrainLayoutKind)record.terrainLayout,
+                record.matchSeed,
+                (record.randomFlags & 1) != 0 || record.randomFlags == 0,
+                (record.randomFlags & 2) != 0,
+                (record.randomFlags & 4) != 0,
+                record.terrainSkipPieces == 0);
             return new MatchRules(modes, settings);
         }
         public static MatchSession SessionFrom(MatchHistoryRecord record)
@@ -236,6 +258,14 @@ namespace ModularChess.Match
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), state.Status, null);
             }
+        }
+        static int RandomFlags(MatchSettings settings)
+        {
+            int flags = 0;
+            if (settings.RandomShuffle) flags |= 1;
+            if (settings.RandomColors) flags |= 2;
+            if (settings.RandomPlacement) flags |= 4;
+            return flags;
         }
         static int[] ModeIds(MatchRules rules)
         {

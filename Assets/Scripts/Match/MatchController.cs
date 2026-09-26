@@ -648,6 +648,7 @@ namespace ModularChess.Match
             if (_state == null || !_state.CanEndTurn())
                 return;
             Side ended = _state.SideToMove;
+            _historyEvents.Add(MatchHistoryStore.EndTurnEvent());
             _state = _state.EndTurn();
             NoteCampaignTurnEnd(ended);
             _clock?.AddIncrement(ended);
@@ -1100,6 +1101,7 @@ namespace ModularChess.Match
             if (!_state.CanEndTurn())
                 return;
             Side ended = _state.SideToMove;
+            _historyEvents.Add(MatchHistoryStore.EndTurnEvent());
             _state = _state.EndTurn();
             NoteCampaignTurnEnd(ended);
             _clock?.AddIncrement(ended);

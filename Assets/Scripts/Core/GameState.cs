@@ -23,7 +23,11 @@ namespace ModularChess.Core
         public int MovesThisTurn => Runtime.MovesThisTurn;
         public bool TurnOpen => Runtime.ExtraMoveKingId != null
             || (Runtime.RallyArmed && MovesThisTurn > 0)
-            || (Runtime.OverloadPieceId != null && Runtime.OverloadMovesMade < 2);
+            || (Runtime.OverloadPieceId != null && Runtime.OverloadMovesMade < 2)
+            || (Rules != null
+                && Rules.Has(ModeId.ActionEconomy)
+                && MovesThisTurn > 0
+                && Runtime.PaidMovesThisTurn < Rules.Settings.ActionPoints);
         public bool DraftPending => Runtime.PendingDraft != null;
         #endregion
 
@@ -153,7 +157,15 @@ namespace ModularChess.Core
             bool resetsClock = moving.Type == PieceType.Pawn || (captured != null && !bounced);
             int nextHalfmove = resetsClock ? 0 : HalfmoveClock + 1;
             int nextMovesThisTurn = nextRuntime.MovesThisTurn + 1;
-            bool endsTurn = MoveEndsTurn(moving, nextRuntime);
+            bool paid = MoveCostsAction(moving, nextRuntime);
+            int paidAfter = nextRuntime.PaidMovesThisTurn + (paid ? 1 : 0);
+            bool usedRallyExtra = !paid
+                && nextRuntime.RallyArmed
+                && nextRuntime.MovesThisTurn > 0
+                && !nextRuntime.RallyExtraSpent;
+            bool endsTurn = MoveEndsTurn(moving, nextRuntime, paidAfter, usedRallyExtra);
+            if (!endsTurn)
+                nextRuntime = nextRuntime.WithMoved(moving.Id);
             Side nextSide = endsTurn ? SideToMove.Opponent() : SideToMove;
             int nextFullmove = SideToMove == Side.Black && endsTurn ? FullmoveNumber + 1 : FullmoveNumber;
             if (endsTurn)
@@ -166,7 +178,9 @@ namespace ModularChess.Core
                 Guid? extraKing = moving.Type == PieceType.King && nextRuntime.IsEmpowered(moving.Id)
                     ? moving.Id
                     : nextRuntime.ExtraMoveKingId;
-                nextRuntime = nextRuntime.WithExtraKing(extraKing).WithMovesThisTurn(nextMovesThisTurn);
+                nextRuntime = nextRuntime.WithExtraKing(extraKing).WithMovesThisTurn(nextMovesThisTurn).WithPaidMoves(paidAfter);
+                if (usedRallyExtra)
+                    nextRuntime = nextRuntime.WithRallyExtraSpent(true);
             }
 
             Move[] nextHistory = AppendHistory(move);
@@ -183,7 +197,7 @@ namespace ModularChess.Core
                 Rules,
                 nextRuntime,
                 null,
-                true);
+                endsTurn);
         }
         public GameState EndTurn()
         {
@@ -445,19 +459,42 @@ namespace ModularChess.Core
                 Status = DrawEvaluator.Resolve(IsInCheck, legal.Count, halfmoveClock, _positionKeys, board);
             }
         }
-        private bool MoveEndsTurn(Piece moving, ModeRuntime runtime)
+        private bool MoveCostsAction(Piece moving, ModeRuntime runtime)
         {
-            if (runtime.OverloadPieceId != null && runtime.OverloadPieceId.Value == moving.Id)
+            if (runtime.ExtraMoveKingId != null && runtime.ExtraMoveKingId.Value == moving.Id)
+                return false;
+            if (runtime.RallyArmed && runtime.MovesThisTurn > 0 && !runtime.RallyExtraSpent)
+                return false;
+            if (runtime.OverloadPieceId != null
+                && runtime.OverloadPieceId.Value == moving.Id
+                && runtime.OverloadMovesMade >= 2)
+                return false;
+            return true;
+        }
+        private bool MoveEndsTurn(Piece moving, ModeRuntime runtime, int paidAfter, bool usedRallyExtra)
+        {
+            if (runtime.OverloadPieceId != null
+                && runtime.OverloadPieceId.Value == moving.Id
+                && runtime.OverloadMovesMade >= 2)
             {
-                return runtime.OverloadMovesMade >= 2;
+                return true;
+            }
+            bool kingFollowUpOpens = moving.Type == PieceType.King
+                && runtime.IsEmpowered(moving.Id)
+                && Runtime.ExtraMoveKingId == null;
+            bool rallyStill = runtime.RallyArmed && !runtime.RallyExtraSpent && !usedRallyExtra;
+            bool overloadOpen = runtime.OverloadPieceId != null
+                && runtime.OverloadPieceId.Value == moving.Id
+                && runtime.OverloadMovesMade < 2;
+            if (Rules != null && Rules.Has(ModeId.ActionEconomy))
+            {
+                bool morePaid = paidAfter < Rules.Settings.ActionPoints;
+                return !morePaid && !kingFollowUpOpens && !rallyStill && !overloadOpen;
             }
             int after = runtime.MovesThisTurn + 1;
             if (after >= 2) return true;
             if (runtime.RallyArmed) return false;
-            if (moving.Type == PieceType.King && runtime.IsEmpowered(moving.Id) && Runtime.ExtraMoveKingId == null)
-            {
-                return false;
-            }
+            if (kingFollowUpOpens) return false;
             return true;
         }
         private Board FinishTurnSideEffects(Board board, ref ModeRuntime runtime)
@@ -480,7 +517,7 @@ namespace ModularChess.Core
             }
             runtime = runtime.TickStatuses(SideToMove).TickSideEffects(SideToMove);
             board = MartyrRules.ResolveExpiredExiles(board, runtime, SideToMove, out runtime);
-            runtime = runtime.WithExtraKing(null).WithMovesThisTurn(0).WithRally(false).ClearOverload();
+            runtime = runtime.WithExtraKing(null).WithMovesThisTurn(0).WithPaidMoves(0).WithRally(false).WithRallyExtraSpent(false).ClearOverload().ClearMovedThisTurn();
             return board;
         }
         private Board ResolveMartyrAfterCapture(

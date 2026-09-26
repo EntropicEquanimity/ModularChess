@@ -117,6 +117,12 @@ namespace ModularChess.Presentation
                     return Get("mode.powerful.name");
                 case ModeId.Martyr:
                     return Get("mode.martyr.name");
+                case ModeId.ActionEconomy:
+                    return Get("mode.action.name");
+                case ModeId.ComplexTerrain:
+                    return Get("mode.terrain.name");
+                case ModeId.Randomizer:
+                    return Get("mode.random.name");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(id), id, null);
             }
@@ -132,6 +138,12 @@ namespace ModularChess.Presentation
                     return Get("mode.powerful.summary");
                 case ModeId.Martyr:
                     return Get("mode.martyr.summary");
+                case ModeId.ActionEconomy:
+                    return Get("mode.action.summary");
+                case ModeId.ComplexTerrain:
+                    return Get("mode.terrain.summary");
+                case ModeId.Randomizer:
+                    return Get("mode.random.summary");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(id), id, null);
             }
@@ -192,6 +204,24 @@ namespace ModularChess.Presentation
             }
         }
 
+        public static string TerrainLayoutName(int value)
+        {
+            switch ((TerrainLayoutKind)value)
+            {
+                case TerrainLayoutKind.Random:
+                    return Get("mode.layout.random");
+                case TerrainLayoutKind.River:
+                    return Get("mode.layout.river");
+                case TerrainLayoutKind.Woods:
+                    return Get("mode.layout.woods");
+                case TerrainLayoutKind.Peaks:
+                    return Get("mode.layout.peaks");
+                case TerrainLayoutKind.Border:
+                    return Get("mode.layout.border");
+                default:
+                    return Get("mode.layout.random");
+            }
+        }
         public static string UnlockName(UnlockProduct product)
         {
             switch (product)
@@ -202,6 +232,12 @@ namespace ModularChess.Presentation
                     return ModeName(ModeId.PowerfulPieces);
                 case UnlockProduct.ModeMartyr:
                     return ModeName(ModeId.Martyr);
+                case UnlockProduct.ModeActionEconomy:
+                    return ModeName(ModeId.ActionEconomy);
+                case UnlockProduct.ModeComplexTerrain:
+                    return ModeName(ModeId.ComplexTerrain);
+                case UnlockProduct.ModeRandomizer:
+                    return ModeName(ModeId.Randomizer);
                 case UnlockProduct.HistoryTier1:
                     return Get("unlocks.history.tier1");
                 case UnlockProduct.HistoryTier2:
@@ -227,6 +263,12 @@ namespace ModularChess.Presentation
                     return ModeSummary(ModeId.PowerfulPieces);
                 case UnlockProduct.ModeMartyr:
                     return ModeSummary(ModeId.Martyr);
+                case UnlockProduct.ModeActionEconomy:
+                    return ModeSummary(ModeId.ActionEconomy);
+                case UnlockProduct.ModeComplexTerrain:
+                    return ModeSummary(ModeId.ComplexTerrain);
+                case UnlockProduct.ModeRandomizer:
+                    return ModeSummary(ModeId.Randomizer);
                 case UnlockProduct.HistoryTier1:
                     return Get("unlocks.history.tier1.summary");
                 case UnlockProduct.HistoryTier2:

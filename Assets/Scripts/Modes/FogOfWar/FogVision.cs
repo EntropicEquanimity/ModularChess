@@ -128,6 +128,10 @@ namespace ModularChess.Core
                 {
                     Piece occupant = board.GetPiece(cursor);
                     MarkIdentified(cursor, cells);
+                    if (TerrainRules.BlocksVisionThrough(board, cursor))
+                    {
+                        break;
+                    }
                     if (occupant == null)
                     {
                         cursor = cursor.Offset(files[i], ranks[i]);

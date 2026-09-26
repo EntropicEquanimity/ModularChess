@@ -12,6 +12,13 @@ namespace ModularChess.Presentation
         public int EmpowerBudget = EmpoweredPowers.DefaultBudget;
         public int MartyrThreshold = 6;
         public int MartyrDraftOptions = 3;
+        public int ActionPoints = MatchSettings.DefaultActionPoints;
+        public TerrainLayoutKind TerrainLayout = TerrainLayoutKind.Random;
+        public int MatchSeed;
+        public bool RandomShuffle = true;
+        public bool RandomColors;
+        public bool RandomPlacement;
+        public bool TerrainOnPieces = true;
     }
 
     public sealed class ModeSettingsPopup : MonoBehaviour
@@ -229,6 +236,50 @@ namespace ModularChess.Presentation
                     AddStepper(content, Loc.Get("mode.setting.lost"), () => settings.MartyrThreshold, v => settings.MartyrThreshold = v, 1, 18);
                     AddStepper(content, Loc.Get("mode.setting.draft"), () => settings.MartyrDraftOptions, v => settings.MartyrDraftOptions = v, 1, 5);
                     break;
+                case ModeId.ActionEconomy:
+                    AddStepper(
+                        content,
+                        Loc.Get("mode.setting.actions"),
+                        () => settings.ActionPoints,
+                        v => settings.ActionPoints = MatchSettings.ClampActionPoints(v),
+                        MatchSettings.MinActionPoints,
+                        MatchSettings.MaxActionPoints);
+                    break;
+                case ModeId.ComplexTerrain:
+                    AddStepper(
+                        content,
+                        Loc.Get("mode.setting.layout"),
+                        () => (int)settings.TerrainLayout,
+                        v => settings.TerrainLayout = (TerrainLayoutKind)v,
+                        0,
+                        4,
+                        Loc.TerrainLayoutName);
+                    AddFlag(
+                        content,
+                        Loc.Get("mode.setting.terrainSpawn"),
+                        () => settings.TerrainOnPieces,
+                        v => settings.TerrainOnPieces = v);
+                    break;
+                case ModeId.Randomizer:
+                    AddFlag(content, Loc.Get("mode.setting.shuffle"), () => settings.RandomShuffle, v =>
+                    {
+                        if (!v && !settings.RandomColors && !settings.RandomPlacement)
+                            return;
+                        settings.RandomShuffle = v;
+                    });
+                    AddFlag(content, Loc.Get("mode.setting.colors"), () => settings.RandomColors, v =>
+                    {
+                        if (!v && !settings.RandomShuffle && !settings.RandomPlacement)
+                            return;
+                        settings.RandomColors = v;
+                    });
+                    AddFlag(content, Loc.Get("mode.setting.placement"), () => settings.RandomPlacement, v =>
+                    {
+                        if (!v && !settings.RandomShuffle && !settings.RandomColors)
+                            return;
+                        settings.RandomPlacement = v;
+                    });
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(id), id, null);
             }
@@ -244,11 +295,17 @@ namespace ModularChess.Presentation
                 DestroyImmediate(content.GetChild(i).gameObject);
         }
 
-        void AddStepper(Transform content, string label, Func<int> get, Action<int> set, int min, int max)
+        void AddStepper(
+            Transform content,
+            string label,
+            Func<int> get,
+            Action<int> set,
+            int min,
+            int max,
+            Func<int, string> format = null)
         {
             if (content == null || !content.gameObject.scene.IsValid() || settingsControlPrefab == null)
                 return;
-
             GameObject go = Instantiate(settingsControlPrefab, content);
             go.name = label;
             go.SetActive(true);
@@ -260,9 +317,19 @@ namespace ModularChess.Presentation
             SettingsControl control = go.GetComponent<SettingsControl>();
             if (control == null)
                 control = go.AddComponent<SettingsControl>();
-            control.Bind(label, get, set, min, max);
+            control.Bind(label, get, set, min, max, format);
         }
-
+        void AddFlag(Transform content, string label, Func<bool> get, Action<bool> set)
+        {
+            AddStepper(
+                content,
+                label,
+                () => get() ? 1 : 0,
+                v => set(v != 0),
+                0,
+                1,
+                v => Loc.Get(v != 0 ? "mode.setting.on" : "mode.setting.off"));
+        }
         void FitFieldsToContent()
         {
             Transform content = FieldsContent();

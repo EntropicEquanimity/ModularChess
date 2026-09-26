@@ -77,12 +77,13 @@ namespace ModularChess.Presentation
     internal static class BoardRenderOrder
     {
         public const int Square = 0;
-        public const int LastMove = 1;
-        public const int Selected = 2;
-        public const int Legal = 3;
-        public const int PieceOutline = 4;
-        public const int PieceBody = 5;
-        public const int PieceGlyph = 6;
+        public const int Terrain = 1;
+        public const int LastMove = 2;
+        public const int Selected = 3;
+        public const int Legal = 4;
+        public const int PieceOutline = 5;
+        public const int PieceBody = 6;
+        public const int PieceGlyph = 7;
         public const int Cover = 10;
     }
 }

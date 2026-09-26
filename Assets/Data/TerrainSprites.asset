@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e8a17b92d64f3e8a5c0b7d1e4f6a29, type: 3}
+  m_Name: TerrainSprites
+  m_EditorClassIdentifier: 
+  swamp:
+  - {fileID: 21300000, guid: 139d6d4f73ab2e7418e7afc51599f6e0, type: 3}
+  - {fileID: 21300000, guid: e089977b9a3bd4e48bfa6c129c8bd2fd, type: 3}
+  - {fileID: 21300000, guid: cca956ed769bb0f4695ba8516a04978c, type: 3}
+  forest:
+  - {fileID: 21300000, guid: 6ca8b7ad1cbb308438f703cf70e2d06d, type: 3}
+  - {fileID: 21300000, guid: b562150cc358d7447a874ab03ef69741, type: 3}
+  - {fileID: 21300000, guid: bc9a3006ba0626046b9bd078cb7ba739, type: 3}
+  mountain:
+  - {fileID: 21300000, guid: 75d02ddd5e4415941aa0ce9fd3eff095, type: 3}
+  - {fileID: 21300000, guid: 98069030deb5d264db997601b9c2c71b, type: 3}
+  - {fileID: 21300000, guid: 35c954cf0fd484d47823877b5ae997dc, type: 3}

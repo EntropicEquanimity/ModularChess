@@ -22,7 +22,7 @@ namespace ModularChess.Core
                 for (int d = 0; d < Directions.KingFiles.Length; d++)
                 {
                     Square to = from.Offset(Directions.KingFiles[d], Directions.KingRanks[d]);
-                    if (!to.IsOnBoard)
+                    if (!to.IsOnBoard || !TerrainRules.CanLand(board, to))
                     {
                         continue;
                     }

@@ -63,6 +63,7 @@ MonoBehaviour:
   buildOnAwake: 1
   piecePrefab: {fileID: 6844280791312596072, guid: f5dc4f970cf564049995caf2cdf4f57c, type: 3}
   squarePrefab: {fileID: 0}
+  terrainSprites: {fileID: 11400000, guid: d1a9c3e5b7f84a2c9e0d4b6f8a1c3e57, type: 2}
 --- !u!114 &1900003
 MonoBehaviour:
   m_ObjectHideFlags: 0
